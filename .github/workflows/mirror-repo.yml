@@ -92,7 +92,7 @@ jobs:
           TARGET_TOKEN: ${{ secrets.RAPHAEL_PAT }}
         if: env.TARGET_REPO != '' && env.TARGET_TOKEN != ''
         run: |
-          git remote add raphael https://${TARGET_TOKEN}@${TARGET_REPO#https://}
+          git remote add raphael https://${TARGET_TOKEN}@${TARGET_REPO} || true
           git push raphael --all --force
           git push raphael --tags --force
         continue-on-error: true
