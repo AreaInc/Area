@@ -25,7 +25,7 @@ docker-compose up -d
 ## 📋 Prérequis
 
 - Docker & Docker Compose
-- Node.js 18+ (pour le développement local)
+- Node.js 24 (pour le développement local)
 - PostgreSQL 15+
 - Redis 7+
 
