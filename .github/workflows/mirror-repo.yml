@@ -3,9 +3,9 @@ name: Mirror Repository
 on:
   push:
     branches:
-      - '**'  # Toutes les branches
+      - '**'
   delete:
-  workflow_dispatch:  # Permet déclenchement manuel
+  workflow_dispatch:
 
 jobs:
   mirror:
@@ -16,20 +16,27 @@ jobs:
       - name: Checkout source repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Récupère tout l'historique
+          fetch-depth: 0
           fetch-tags: true
-          persist-credentials: false  # Ne pas persister les credentials du checkout
+          persist-credentials: false
 
       - name: Configure Git
         run: |
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "actions@github.com"
 
+      - name: Remove workflow files from mirror
+        run: |
+          git rm -r --cached .github/workflows/ || true
+          git commit -m "chore: exclude workflows from mirror" || true
+
       # ============================================
       # Mirror vers les repos personnels
       # ============================================
 
       # Exemple de configuration pour les autres membres :
+      # PRENOM_REPO_URL : github.com/username/repo-name.git
+      # PRENOM_PAT : ghp_xxxxx (Scopes : repo)
       # Décommenter et configurer les secrets appropriés
 
       # - name: Mirror to Laurent's Repository
