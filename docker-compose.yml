@@ -27,9 +27,8 @@ services:
       - "8080:8080"
     environment:
       - NODE_ENV=production
-      - PORT=8080
-      - POSTGRES_HOST=area-postgres
-      - POSTGRES_PORT=5432
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
       - POSTGRES_NAME=${POSTGRES_NAME:-area}
       - POSTGRES_USER=${POSTGRES_USER:-area_user}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-area_password}
@@ -41,17 +40,17 @@ services:
     networks:
       - area-network
 
-  frontend:
-    build:
-      context: ./frontend/web
-      dockerfile: Dockerfile
-    container_name: area-frontend
-    ports:
-      - "8081:80"
-    depends_on:
-      - backend
-    networks:
-      - area-network
+  # frontend:
+  #   build:
+  #     context: ./frontend/web
+  #     dockerfile: Dockerfile
+  #   container_name: area-frontend
+  #   ports:
+  #     - "8081:80"
+  #   depends_on:
+  #     - backend
+  #   networks:
+  #     - area-network
 
 volumes:
   postgres_data:
