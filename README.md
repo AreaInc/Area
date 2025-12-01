@@ -1,69 +1,31 @@
 # AREA - Action Reaction Automation Platform
 
-> Plateforme d'automatisation connectant différents services via des Actions et Réactions (similaire à IFTTT/Zapier)
+> You are looking at an n8n-like automation project :)
 
 [![NestJS](https://img.shields.io/badge/NestJS-E0234E?style=flat&logo=nestjs&logoColor=white)](https://nestjs.com/)
 [![React](https://img.shields.io/badge/React-61DAFB?style=flat&logo=react&logoColor=black)](https://reactjs.org/)
 [![React Native](https://img.shields.io/badge/React_Native-61DAFB?style=flat&logo=react&logoColor=black)](https://reactnative.dev/)
 [![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)](https://www.docker.com/)
 
-## 🚀 Démarrage Rapide
+## Starting the app
 
 ```bash
-# Cloner le repository
 git clone https://github.com/EpitechPGE3-2025/G-DEV-500-LYN-5-2-area-3.git
 cd G-DEV-500-LYN-5-2-area-3
 
-# Lancer l'application avec Docker
 docker-compose up -d
 
-# Accéder à l'application
 # Web: http://localhost:8081
 # API: http://localhost:8080
 ```
 
-## 📋 Prérequis
+## Prerequisites
 
 - Docker & Docker Compose
-- Node.js 18+ (pour le développement local)
-- PostgreSQL 15+
-- Redis 7+
+- Node
 
-## 🏗️ Architecture
-
-```
-┌─────────────┐     ┌─────────────┐
-│   Web App   │────▶│ API Gateway │
-│ (React/TS)  │     │  (NestJS)   │
-└─────────────┘     └──────┬──────┘
-                           │
-┌─────────────┐           │
-│ Mobile App  │───────────┤
-│(React Native)│          │
-└─────────────┘     ┌─────▼──────────────┐
-                    │  Microservices     │
-                    ├────────────────────┤
-                    │ • Auth Service     │
-                    │ • Core Service     │
-                    │ • Hook Manager     │
-                    │ • Worker Queue     │
-                    └─────┬──────────────┘
-                          │
-                    ┌─────▼──────────┐
-                    │ PostgreSQL     │
-                    │ Redis          │
-                    └────────────────┘
-```
-
-### Services Microservices
-
-- **API Gateway**: Point d'entrée, routing et authentification
-- **Auth Service**: Gestion utilisateurs et OAuth2
-- **Core Service**: Gestion des AREAs (CRUD)
-- **Hook Manager**: Surveillance des triggers
-- **Worker Service**: Exécution des réactions
-
-## 🔌 Services Intégrés
+## Integrated services
+These services are INCOMING and not yet implemented
 
 | Service | Actions | Reactions | Auth |
 |---------|---------|-----------|------|
@@ -71,43 +33,25 @@ docker-compose up -d
 | Gmail | 3 | 2 | OAuth2 |
 | Discord | 2 | 3 | OAuth2 |
 | GitHub | 4 | 2 | OAuth2 |
-| Weather | 2 | 0 | API Key |
+| Weather | 2 | 0 | API |
 | Slack | 2 | 3 | OAuth2 |
 
-## 📦 Structure du Projet
+## Development
 
-```
-area-project/
-├── backend/
-│   ├── apps/
-│   │   ├── api-gateway/      # Point d'entrée API
-│   │   ├── auth-service/     # Authentification
-│   │   ├── core-service/     # Logique AREA
-│   │   └── worker-service/   # Exécution asynchrone
-│   └── libs/                 # Bibliothèques partagées
-├── frontend/
-│   ├── web/                  # Application React
-│   └── mobile/               # Application React Native
-├── docker-compose.yml
-└── README.md
-```
-
-## 🛠️ Développement
-
-### Installation locale
+### Local Installation
 
 ```bash
-# Backend
+# Back
 cd backend
-npm install
-npm run start:dev
+pnpm install
+pnpm start:dev
 
-# Frontend Web
+# Front
 cd frontend/web
-npm install
-npm run dev
+pnpm install
+pnpm dev
 
-# Frontend Mobile
+# Mobile
 cd frontend/mobile
 npm install
 npx expo start
@@ -116,105 +60,42 @@ npx expo start
 ### Base de données
 
 ```bash
-# Migrations
-npx prisma migrate dev
-
-# Studio (GUI)
-npx prisma studio
+# Drizzle
+docker compose up -d area-postgres
+cd backend
+pnpm db:generate && pnpm db:migrate
 ```
 
 ### Tests
 
 ```bash
-# Backend
-npm run test
+pnpm test
 npm run test:e2e
 npm run test:cov
-
-# Frontend
-npm run test
-npm run test:coverage
 ```
 
-## 🔐 Configuration
+## Configuration
 
-Créer un fichier `.env` à la racine :
+Please check our `.env.example` to setup environment variables
 
-```env
-# Database
-DATABASE_URL="postgresql://user:password@localhost:5432/area_db"
-
-# Redis
-REDIS_URL="redis://localhost:6379"
-
-# JWT
-JWT_SECRET="your-secret-key"
-
-# OAuth2 Providers
-GOOGLE_CLIENT_ID="your-client-id"
-GOOGLE_CLIENT_SECRET="your-client-secret"
-
-GITHUB_CLIENT_ID="your-client-id"
-GITHUB_CLIENT_SECRET="your-client-secret"
-```
-
-## 📚 API Documentation
-
-L'API REST est documentée avec Swagger :
-
-```
-http://localhost:8080/api/docs
-```
-
-### Endpoints principaux
-
-- `POST /api/auth/register` - Inscription
-- `POST /api/auth/login` - Connexion
-- `GET /api/services` - Liste des services
-- `POST /api/areas` - Créer une AREA
-- `GET /api/areas` - Lister les AREAs
-- `PUT /api/areas/:id` - Modifier une AREA
-- `DELETE /api/areas/:id` - Supprimer une AREA
-
-## 🐳 Docker
-
-```bash
-# Build et démarrage
-docker-compose up --build -d
-
-# Voir les logs
-docker-compose logs -f
-
-# Arrêter
-docker-compose down
-
-# Nettoyer volumes
-docker-compose down -v
-```
-
-## 🧪 Technologies
+## Tech stack
 
 ### Backend
 - **Framework**: NestJS
-- **Database**: PostgreSQL + Prisma ORM
-- **Cache/Queue**: Redis + BullMQ
-- **Auth**: JWT + OAuth2
-- **Validation**: class-validator
-- **Testing**: Jest
+- **Database**: PostgreSQL + Drizzle ORM
 
 ### Frontend Web
 - **Framework**: React + TypeScript
 - **Build**: Vite
 - **Styling**: Tailwind CSS
 - **State**: React Query
-- **Forms**: React Hook Form
 
 ### Frontend Mobile
 - **Framework**: React Native + Expo
 - **Navigation**: React Navigation
 - **State**: React Query
 
-## 👥 Équipe
+## Équipe
 
 | Nom | Rôle |
 |-----|------|
@@ -225,7 +106,7 @@ docker-compose down -v
 | Charly PALIERE | DevOps |
 | Raphaël GEORGET | Full-Stack |
 
-## 📅 Planning
+## Planning
 
 - **Sprint 0** (Sem 1): Setup & Architecture
 - **Sprint 1** (Sem 2-3): Core Foundation
@@ -233,13 +114,3 @@ docker-compose down -v
 - **Sprint 3** (Sem 6): Integration & Tests
 - **Sprint 4** (Sem 7-8): Scale & Polish
 - **Sprint 5** (Sem 9): Final Release
-
-## 📝 License
-
-Ce projet est réalisé dans le cadre d'un projet académique à Epitech.
-
----
-
-**Date de début**: 17 Novembre 2024  
-**Date de fin**: 19 Janvier 2025  
-**Durée**: 9 semaines
