@@ -86,12 +86,7 @@ services:
       - etcd3
     env_file:
       - database/postgresql/.env
-    environment:
-      PATRONI_NAME: ${NODE1_NAME}
-      PATRONI_RESTAPI_LISTEN: 0.0.0.0:${NODE1_API_PORT}
-      PATRONI_RESTAPI_CONNECT_ADDRESS: ${NODE1_HOST}:${NODE1_API_PORT}
-      PATRONI_POSTGRESQL_LISTEN: 0.0.0.0:${NODE1_POSTGRES_PORT}
-      PATRONI_POSTGRESQL_CONNECT_ADDRESS: ${NODE1_HOST}:${NODE1_POSTGRES_PORT}
+      - database/postgresql/.env1
     volumes:
       - patroni1-data:/var/lib/postgresql/data
       - ./database/postgresql/patroni.yml.template:/patroni.yml.template:ro
@@ -115,12 +110,7 @@ services:
       - etcd3
     env_file:
       - database/postgresql/.env
-    environment:
-      PATRONI_NAME: ${NODE2_NAME}
-      PATRONI_RESTAPI_LISTEN: 0.0.0.0:${NODE2_API_PORT}
-      PATRONI_RESTAPI_CONNECT_ADDRESS: ${NODE2_HOST}:${NODE2_API_PORT}
-      PATRONI_POSTGRESQL_LISTEN: 0.0.0.0:${NODE2_POSTGRES_PORT}
-      PATRONI_POSTGRESQL_CONNECT_ADDRESS: ${NODE2_HOST}:${NODE2_POSTGRES_PORT}
+      - database/postgresql/.env2
     volumes:
       - patroni2-data:/var/lib/postgresql/data
       - ./database/postgresql/patroni.yml.template:/patroni.yml.template:ro
@@ -144,12 +134,7 @@ services:
       - etcd3
     env_file:
       - database/postgresql/.env
-    environment:
-      PATRONI_NAME: ${NODE3_NAME}
-      PATRONI_RESTAPI_LISTEN: 0.0.0.0:${NODE3_API_PORT}
-      PATRONI_RESTAPI_CONNECT_ADDRESS: ${NODE3_HOST}:${NODE3_API_PORT}
-      PATRONI_POSTGRESQL_LISTEN: 0.0.0.0:${NODE3_POSTGRES_PORT}
-      PATRONI_POSTGRESQL_CONNECT_ADDRESS: ${NODE3_HOST}:${NODE3_POSTGRES_PORT}
+      - database/postgresql/.env3
     volumes:
       - patroni3-data:/var/lib/postgresql/data
       - ./database/postgresql/patroni.yml.template:/patroni.yml.template:ro
