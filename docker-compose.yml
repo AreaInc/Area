@@ -52,50 +52,116 @@ services:
       <<: *etcd-health
       test: ["CMD", "etcdctl", "--endpoints=http://etcd3:2379", "endpoint", "health"]
 
-  # haproxy:
-  #   image: ${PATRONI_TEST_IMAGE:-patroni}
-  #   networks: [ demo ]
-  #   env_file: docker/patroni.env
-  #   hostname: haproxy
-  #   container_name: demo-haproxy
-  #   ports:
-  #     - "5000:5000"
-  #     - "5001:5001"
-  #   command: haproxy
-  #   environment: &haproxy_env
-  #     ETCDCTL_ENDPOINTS: http://etcd1:2379,http://etcd2:2379,http://etcd3:2379
-  #     PATRONI_ETCD3_HOSTS: "'etcd1:2379','etcd2:2379','etcd3:2379'"
-  #     PATRONI_SCOPE: demo
-  #
-  # patroni1:
-  #   image: ${PATRONI_TEST_IMAGE:-patroni}
-  #   networks: [ demo ]
-  #   env_file: docker/patroni.env
-  #   hostname: patroni1
-  #   container_name: demo-patroni1
-  #   environment:
-  #     <<: *haproxy_env
-  #     PATRONI_NAME: patroni1
-  #
-  # patroni2:
-  #   image: ${PATRONI_TEST_IMAGE:-patroni}
-  #   networks: [ demo ]
-  #   env_file: docker/patroni.env
-  #   hostname: patroni2
-  #   container_name: demo-patroni2
-  #   environment:
-  #     <<: *haproxy_env
-  #     PATRONI_NAME: patroni2
-  #
-  # patroni3:
-  #   image: ${PATRONI_TEST_IMAGE:-patroni}
-  #   networks: [ demo ]
-  #   env_file: docker/patroni.env
-  #   hostname: patroni3
-  #   container_name: demo-patroni3
-  #   environment:
-  #     <<: *haproxy_env
-  #     PATRONI_NAME: patroni3
+  haproxy:
+    build: database/haproxy
+    container_name: haproxy
+    hostname: haproxy
+    depends_on:
+      - etcd1
+      - etcd2
+      - etcd3
+    networks:
+      - patroni
+    ports:
+      - "5000:5000"
+      - "5001:5001"
+    environment:
+      ETCDCTL_ENDPOINTS: http://etcd1:2379,http://etcd2:2379,http://etcd3:2379
+      PATRONI_ETCD3_HOSTS: "'etcd1:2379','etcd2:2379','etcd3:2379'"
+      PATRONI_SCOPE: demo
+    healthcheck:
+      test: ["CMD-SHELL", "(command -v curl >/dev/null && curl -sSf http://localhost:5000/ >/dev/null) || (ps aux | grep -v grep | grep haproxy >/dev/null)"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  patroni1: &patroni
+    build: database/postgresql
+    container_name: patroni-1
+    hostname: postgres-1
+    depends_on:
+      - etcd1
+      - etcd2
+      - etcd3
+    env_file:
+      - database/postgresql/.env
+    environment:
+      PATRONI_NAME: ${NODE1_NAME}
+      PATRONI_RESTAPI_LISTEN: 0.0.0.0:${NODE1_API_PORT}
+      PATRONI_RESTAPI_CONNECT_ADDRESS: ${NODE1_HOST}:${NODE1_API_PORT}
+      PATRONI_POSTGRESQL_LISTEN: 0.0.0.0:${NODE1_POSTGRES_PORT}
+      PATRONI_POSTGRESQL_CONNECT_ADDRESS: ${NODE1_HOST}:${NODE1_POSTGRES_PORT}
+    volumes:
+      - patroni1-data:/var/lib/postgresql/data
+      - ./database/postgresql/patroni.yml.template:/patroni.yml.template:ro
+    restart: unless-stopped
+    networks:
+      - patroni
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres" ]
+      interval: 5s
+      timeout: 3s
+      start_period: 5s
+      retries: 5
+
+  patroni2:
+    <<: *patroni
+    container_name: patroni-2
+    hostname: postgres-2
+    depends_on:
+      - etcd1
+      - etcd2
+      - etcd3
+    env_file:
+      - database/postgresql/.env
+    environment:
+      PATRONI_NAME: ${NODE2_NAME}
+      PATRONI_RESTAPI_LISTEN: 0.0.0.0:${NODE2_API_PORT}
+      PATRONI_RESTAPI_CONNECT_ADDRESS: ${NODE2_HOST}:${NODE2_API_PORT}
+      PATRONI_POSTGRESQL_LISTEN: 0.0.0.0:${NODE2_POSTGRES_PORT}
+      PATRONI_POSTGRESQL_CONNECT_ADDRESS: ${NODE2_HOST}:${NODE2_POSTGRES_PORT}
+    volumes:
+      - patroni2-data:/var/lib/postgresql/data
+      - ./database/postgresql/patroni.yml.template:/patroni.yml.template:ro
+    restart: unless-stopped
+    networks:
+      - patroni
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres" ]
+      interval: 5s
+      timeout: 3s
+      start_period: 5s
+      retries: 5
+
+  patroni3:
+    <<: *patroni
+    container_name: patroni-3
+    hostname: postgres-3
+    depends_on:
+      - etcd1
+      - etcd2
+      - etcd3
+    env_file:
+      - database/postgresql/.env
+    environment:
+      PATRONI_NAME: ${NODE3_NAME}
+      PATRONI_RESTAPI_LISTEN: 0.0.0.0:${NODE3_API_PORT}
+      PATRONI_RESTAPI_CONNECT_ADDRESS: ${NODE3_HOST}:${NODE3_API_PORT}
+      PATRONI_POSTGRESQL_LISTEN: 0.0.0.0:${NODE3_POSTGRES_PORT}
+      PATRONI_POSTGRESQL_CONNECT_ADDRESS: ${NODE3_HOST}:${NODE3_POSTGRES_PORT}
+    volumes:
+      - patroni3-data:/var/lib/postgresql/data
+      - ./database/postgresql/patroni.yml.template:/patroni.yml.template:ro
+    restart: unless-stopped
+    networks:
+      - patroni
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres" ]
+      interval: 5s
+      timeout: 3s
+      start_period: 5s
+      retries: 5
 
   # area-postgres:
   #   image: postgres:15-alpine
@@ -173,3 +239,6 @@ volumes:
   etcd1-data:
   etcd2-data:
   etcd3-data:
+  patroni1-data:
+  patroni2-data:
+  patroni3-data:
