@@ -3,6 +3,8 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DrizzleModule } from './db/drizzle.module';
 
+import { EventsModule } from './websockets.module';
+
 import { AuthModule } from '@thallesp/nestjs-better-auth';
 import { auth } from './auth'; // Your Better Auth instance
 
@@ -21,7 +23,7 @@ import { auth } from './auth'; // Your Better Auth instance
 //     ]),
 
 @Module({
-  imports: [DrizzleModule, AuthModule.forRoot({ auth })],
+  imports: [DrizzleModule, AuthModule.forRoot({ auth }), EventsModule],
   controllers: [AppController],
   providers: [AppService],
 })
