@@ -1,73 +1,175 @@
+---
 services:
-  area-postgres:
-    image: postgres:15-alpine
-    container_name: area-postgres
+  etcd1: &etcd
+    build: database/etcd
+    container_name: etcd1
+    hostname: etcd1
+    networks:
+      - patroni
+    env_file:
+      - database/etcd/.env
     environment:
-      POSTGRES_DB: ${POSTGRES_NAME:-area}
-      POSTGRES_USER: ${POSTGRES_USER:-area_user}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-area_password}
-    ports:
-      - "5432:5432"
+      ETCD_NAME: etcd1
+      ETCD_ADVERTISE_CLIENT_URLS: http://etcd1:2379
+      ETCD_INITIAL_ADVERTISE_PEER_URLS: http://etcd1:2380
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-area_user} -d ${POSTGRES_NAME:-area}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - area-network
+      - etcd1-data:/etcd-data
+    healthcheck: &etcd-health
+      test: ["CMD", "etcdctl", "--endpoints=http://etcd1:2379", "endpoint", "health"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
 
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: area-backend
-    ports:
-      - "8080:8080"
+  etcd2:
+    <<: *etcd
+    container_name: etcd2
+    hostname: etcd2
+    env_file:
+      - database/etcd/.env
     environment:
-      - NODE_ENV=production
-      - POSTGRES_HOST=${POSTGRES_HOST}
-      - POSTGRES_PORT=${POSTGRES_PORT}
-      - POSTGRES_NAME=${POSTGRES_NAME:-area}
-      - POSTGRES_USER=${POSTGRES_USER:-area_user}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-area_password}
-      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
-      - BACKEND_PORT=${BACKEND_PORT}
-    depends_on:
-      area-postgres:
-        condition: service_healthy
-    networks:
-      - area-network
+      ETCD_NAME: etcd2
+      ETCD_ADVERTISE_CLIENT_URLS: http://etcd2:2379
+      ETCD_INITIAL_ADVERTISE_PEER_URLS: http://etcd2:2380
+    volumes:
+      - etcd2-data:/etcd-data
+    healthcheck:
+      <<: *etcd-health
+      test: ["CMD", "etcdctl", "--endpoints=http://etcd2:2379", "endpoint", "health"]
 
-  # frontend:
-  #   build:
-  #     context: ./frontend/web
-  #     dockerfile: Dockerfile
-  #   container_name: area-frontend
+  etcd3:
+    <<: *etcd
+    container_name: etcd3
+    hostname: etcd3
+    env_file:
+      - database/etcd/.env
+    environment:
+      ETCD_NAME: etcd3
+      ETCD_ADVERTISE_CLIENT_URLS: http://etcd3:2379
+      ETCD_INITIAL_ADVERTISE_PEER_URLS: http://etcd3:2380
+    volumes:
+      - etcd3-data:/etcd-data
+    healthcheck:
+      <<: *etcd-health
+      test: ["CMD", "etcdctl", "--endpoints=http://etcd3:2379", "endpoint", "health"]
+
+  # haproxy:
+  #   image: ${PATRONI_TEST_IMAGE:-patroni}
+  #   networks: [ demo ]
+  #   env_file: docker/patroni.env
+  #   hostname: haproxy
+  #   container_name: demo-haproxy
   #   ports:
-  #     - "8081:80"
-  #   depends_on:
-  #     - backend
+  #     - "5000:5000"
+  #     - "5001:5001"
+  #   command: haproxy
+  #   environment: &haproxy_env
+  #     ETCDCTL_ENDPOINTS: http://etcd1:2379,http://etcd2:2379,http://etcd3:2379
+  #     PATRONI_ETCD3_HOSTS: "'etcd1:2379','etcd2:2379','etcd3:2379'"
+  #     PATRONI_SCOPE: demo
+  #
+  # patroni1:
+  #   image: ${PATRONI_TEST_IMAGE:-patroni}
+  #   networks: [ demo ]
+  #   env_file: docker/patroni.env
+  #   hostname: patroni1
+  #   container_name: demo-patroni1
+  #   environment:
+  #     <<: *haproxy_env
+  #     PATRONI_NAME: patroni1
+  #
+  # patroni2:
+  #   image: ${PATRONI_TEST_IMAGE:-patroni}
+  #   networks: [ demo ]
+  #   env_file: docker/patroni.env
+  #   hostname: patroni2
+  #   container_name: demo-patroni2
+  #   environment:
+  #     <<: *haproxy_env
+  #     PATRONI_NAME: patroni2
+  #
+  # patroni3:
+  #   image: ${PATRONI_TEST_IMAGE:-patroni}
+  #   networks: [ demo ]
+  #   env_file: docker/patroni.env
+  #   hostname: patroni3
+  #   container_name: demo-patroni3
+  #   environment:
+  #     <<: *haproxy_env
+  #     PATRONI_NAME: patroni3
+
+  # area-postgres:
+  #   image: postgres:15-alpine
+  #   container_name: area-postgres
+  #   environment:
+  #     POSTGRES_DB: ${POSTGRES_NAME:-area}
+  #     POSTGRES_USER: ${POSTGRES_USER:-area_user}
+  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-area_password}
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-area_user} -d ${POSTGRES_NAME:-area}"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
   #   networks:
   #     - area-network
-
-  vault:
-    image: hashicorp/vault:latest
-    container_name: vault
-    restart: unless-stopped
-    ports:
-      - "8200:8200"
-    environment:
-      - VAULT_DEV_ROOT_TOKEN_ID=myroot
-      - VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200
-    volumes:
-      - vault_data:/vault/file
+  #
+  # backend:
+  #   build:
+  #     context: ./backend
+  #     dockerfile: Dockerfile
+  #   container_name: area-backend
+  #   ports:
+  #     - "8080:8080"
+  #   environment:
+  #     - NODE_ENV=production
+  #     - POSTGRES_HOST=${POSTGRES_HOST}
+  #     - POSTGRES_PORT=${POSTGRES_PORT}
+  #     - POSTGRES_NAME=${POSTGRES_NAME:-area}
+  #     - POSTGRES_USER=${POSTGRES_USER:-area_user}
+  #     - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-area_password}
+  #     - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+  #     - BACKEND_PORT=${BACKEND_PORT}
+  #   depends_on:
+  #     area-postgres:
+  #       condition: service_healthy
+  #   networks:
+  #     - area-network
+  #
+  # # frontend:
+  # #   build:
+  # #     context: ./frontend/web
+  # #     dockerfile: Dockerfile
+  # #   container_name: area-frontend
+  # #   ports:
+  # #     - "8081:80"
+  # #   depends_on:
+  # #     - backend
+  # #   networks:
+  # #     - area-network
+  #
+  # vault:
+  #   image: hashicorp/vault:latest
+  #   container_name: vault
+  #   restart: unless-stopped
+  #   ports:
+  #     - "8200:8200"
+  #   environment:
+  #     - VAULT_DEV_ROOT_TOKEN_ID=myroot
+  #     - VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200
+  #   volumes:
+  #     - vault_data:/vault/file
 
 networks:
-  area-network:
-    driver: bridge
+  patroni:
+  # area-network:
+  #   driver: bridge
 
 volumes:
-  postgres_data:
-  vault_data:
+  # postgres_data:
+  # vault_data:
+  etcd1-data:
+  etcd2-data:
+  etcd3-data:
