@@ -6,6 +6,9 @@
 # Environment & Configuration
 # ============================================
 .env
+.env1
+.env2
+.env3
 .env.local
 .env.development
 .env.production
