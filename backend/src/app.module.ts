@@ -1,3 +1,11 @@
+/*
+** EPITECH PROJECT, 2025
+** G-DEV-500-LYN-5-2-area-3
+** File description:
+** backend/src/app.module.ts
+*/
+import "dotenv/config";
+
 import { Module } from "@nestjs/common";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
@@ -23,7 +31,7 @@ import { auth } from "./auth"; // Your Better Auth instance
 //     ]),
 
 @Module({
-  imports: [DrizzleModule, AuthModule.forRoot({ auth }), EventsModule],
+  imports: [ DrizzleModule, AuthModule.forRoot({ auth }), EventsModule ],
   controllers: [AppController],
   providers: [AppService],
 })
