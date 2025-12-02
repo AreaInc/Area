@@ -1,0 +1,10 @@
+# ============================================================================
+# PATRONI NODE 1 CONFIGURATION
+# ============================================================================
+
+# Node 1
+PATRONI_NAME=postgres-1
+PATRONI_RESTAPI_LISTEN=0.0.0.0:8008
+PATRONI_RESTAPI_CONNECT_ADDRESS=postgres-1:8008
+PATRONI_POSTGRESQL_LISTEN=0.0.0.0:5432
+PATRONI_POSTGRESQL_CONNECT_ADDRESS=postgres-1:5432
