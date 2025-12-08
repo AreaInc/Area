@@ -1,0 +1,277 @@
+ACTION-REACTION_
+< CREATE AN AUTOMATION PLATFORM />
+ACTION-REACTION
+General considerations
+As part of this project, you will assume the role of a Software Architect team.
+Your main goal is neither reinventing the wheel nor writing numerous lines of code. On the contrary, your
+main goal is to understand, select and integrate a wide range of existing libraries.
+The code you write will only implement the so-called business logic. In other words, your main job will be
+to write glue between selected software components to complete the requested project.
+Before embarking on the creation of such a project, we suggest you take the time to analyze and under-
+stand the operation of each software brick. In this theory, we will talk about state of the art and POC:
+3 State of the art: Study the different possible solutions and choose the right component based on
+the requirements.
+3 POC (Proof Of Concept): Make a quick demo program that proves the proper functioning of a com-
+ponent or algorithm.
+This project is longer than your usual ones. It will be essential for the success of this project that
+you put in place real project management and not rush headlong.
+1
+The project
+The goal of this project is to discover, as a whole, the software platform that you have chosen through the
+creation of a business application.
+To do this, you must implement a software suite that functions similar to that of IFTTT and/or Zapier.
+This software suite will be broken into three parts :
+3 An application server to implement all the features listed below (see Features)
+3 A web client to use the application from your browser by querying the application server
+3 A mobile client to use the application from your phone by querying the application server
+No business process will be performed on the web & mobile client side, which only serves as a user
+interface and redirects requests from/to the application server.
+While developing the web client and mobile client, consider accessibility guidelines and best prac-
+tices. Make your application usable by as many people as possible, including those with disabilities.
+Click here for more information
+2
+Functions
+The application will offer the following funtionalities:
+3 The user registers on the application in order to obtain an account (cf User management)
+3 The registered user then confirms their enrollment on the application before being able to use it (see
+Authentication / Identification)
+3 The application then asks the authenticated user to subscribe to Services (cf Services)
+3 Each service offers the following components:
+– type Action (see Action Components)
+– type REAction (see REAction Components)
+3 The authenticated user composes AREA by interconnecting an Action to a REAction previously con-
+figured (see AREA)
+3 The application triggers AREA automatically thanks to hooks (cf. Hook)
+The application server is only exploited for web and / or mobile clients, which will have to expose
+all of its functionalities through a REST API.
+3
+Work group
+The project is to be done in a group. Validation of the associated module will take into account not only
+the quality of the work performed but also the quantity of available features.
+Here is the minimum expected configuration for a group of X students:
+3 Either NBS the number of services supported by the application server and available from clients
+3 Or NBA the total number of Actions supported by all services and customers available
+3 Or NBR the total number of REActions supported by all services and customers available
+Here's whats expected of you:
+3 NBS >= 1 + X
+3 NBA + NBR >= 3 * X
+In the case where one of the two web or mobile clients offers less functions than the other, this
+calculation will be based on the least successful client.
+4
+User Management
+As the application is centered on the digital life of users, it must therefore offer a management of the latter.
+To do this, you must create a user management module.
+The client asks non-identified users to register via an online form. Take inspiration by what you already
+know about this step (eg fill in an email address, registration via a third party service like Google, Facebook,
+X, etc.).
+When the form is submitted from the client, a request is made to the application server to validate this
+account creation step.
+An administration section would be useful to manage site users.
+Authentication / Identification
+Using the application requires knowing the user in question.
+To do this, it is necessary to implement the following options:
+3 A method of user authentication via a username / password. In this case, the client transmits the
+request to the application server which will process it.
+3 A method of identifying users via OAuth2 (eg Google / X / Facebook / etc.). In this case, the client
+processes itself this identification and warns the application server if successful.
+Regarding the method of identification, remember to connect the third party account to a system
+user.
+5
+Services
+The purpose of the application being to interconnect services between them (Outlook 365, Google, OneDrive,
+X, etc.), it is first necessary to propose to the authenticated user to select the services for which he has
+an account.
+In this part, it will therefore be necessary to ask users to subscribe to these services (eg from their profile
+page the user links their X / Google account / etc via an authentication OAuth2).
+When it is necessary, the client will have to manage the identification before transmitting to the applica-
+tion server the subscription to this service (eg the user subscribes to the Facebook service which requires
+them to log in via OAuth2).
+The available services offered to the user from their client will be retrieved from the services list imple-
+mented on the application server side.
+6
+Composants Action
+Each service may offer Action components. These components enable the activation of a hook (see Hook)
+when the condition is detected.
+Some examples :
+3 Google service / Facebook / X / Instagram / etc.
+- A new message is posted in group G
+- A new message containing a #hashtag is posted
+- A new private message is received by the user
+- One of the user's messages gets a like
+- The user gains a Follower
+3 service RSS / Feedly / etc.
+- A new article is available
+- An article is added to their favorites by the user
+3 service OneDrive / Dropbox
+- A new file is present in the X directory
+- A user shares a file
+3 service Outlook 365 / Mail / Gmail / etc.
+- Receipt of a message from a user X
+- Receipt of a message whose title contains the word X
+3 service Timer
+- The current date is of the type DD / MM
+- The current time is of the type HH: MM
+- In X days it will be Y (ex In 3 days, it will be Friday).
+7
+Composants REAction
+Each service may offer REAction components. These components perform a specific task by activating a
+hook (see Hook).
+Some examples :
+3 service Google / Facebook / X / Instagram / etc.
+3 The user posts a message in group G
+3 The user is a new person P
+3 service OneDrive / Dropbox
+3 The user adds the file F in the directory R
+3 The user shares the F file with another U user
+3 service Outlook 365 / Mail / Gmail / etc.
+3 The user sends a message M to a recipient D
+3 service Scripting
+3 The user checks his 'pickup' rights on the project P
+8
+AREA
+After subscribing to different services (see Units), the authenticated user can create some AREA in order
+to execute a REAction when an Action is found.
+Some examples :
+3 Gmail / OneDrive
+3 Action: A received email containing an attachment
+3 REAction: The attachement is stored in a directory in OneDrive
+3 GitHub / Teams
+3 Action: An issue is created on a repository
+3 REAction: A message is sent on teams
+Hook
+This essential element of the application is responsible for executing REActions when the effects of Ac-
+tions linked through an AREA are recorded.
+A hook acts as a mechanism that “attaches” to a specific event, checks whether it has occurred, and then
+automatically triggers the corresponding process. For each Action used in the system, the hook retrieves
+the necessary information to determine whether or not this Action actually happened.
+For example, for the Action “A project P is to be completed in less than H hours”:
+- The hook lists the user’s projects
+- The hook detects that project P ends in less than H hours
+- The hook verifies that this is the first time this condition is met for project P
+- The hook then activates the REAction components present in the user’s AREA that are linked to this
+Action component
+Refer to the IFTTT or Zapier website for a better understanding of this feature if necessary.
+9
+Architecture
+Mobile Client
+The mobile client should be available on Android or Windows Mobile. It will only be responsible for dis-
+playing screens and forwarding requests from the user to the application server.
+The mobile client must provide a way to configure the network location of the application server.
+Web Client
+The web client will only be responsible for displaying screens and forwarding requests from the user to
+the application server.
+Application Server
+The application server is the only one to embed the business logic of the project. It will offer its services
+to web & module clients through a REST API.
+No business model process will be carried out on the web & mobile client side. This only serves as
+a user interface and redirects requests from / to the application server.
+10
+Project Construction
+As part of this project, you will have to develop several more or less independent parts. Each of these parts
+will be free to use the technologies of your choice.
+In order to homogenize the construction of such a project, it will be based on the use of Docker Compose
+Please read the following points carefully
+docker-compose build
+You will have to make a docker-compose.yml file at the root of your project, which will describe the differ-
+ent docker services used.
+This file must include at least the following three docker services:
+3 A server service to launch the application server on port 8080
+3 A client_mobile service to build the mobile client
+3 A client_web service to launch the web client on port 8081
+The client_web depends on client_mobile AND server .For more information, see the documen-
+tation about depends_on
+11
+docker-compose up
+Validation of the integrity of your images will be done when launching the docker-compose up command.
+The following points should be respected :
+3 The services client_mobile and client_web will share a common volume
+3 The client_mobile service will edit the associated binary and put it on the common volume with the
+client_web
+3 The server service will run by exposing the port 8080
+3 The server service will respond to the request http://localhost:8080/about.json (see File about.json)
+3 The client_web service will run by exposing the port 8081
+3 The client_web service will respond to one of the following queries:
+3 http://localhost:8081/client.apk to provide the Android version of mobile client
+12
+File about.json
+The application server should answer the call http://localhost:8080/about.json.
+{
+" client ": {
+" host ": " 10.101.53.35 "
+},
+" server ": {
+" current _ time ": 1531680780 ,
+" services ": [{
+" name ": " facebook " ,
+" actions ": [{
+" name ": " new _ message _ in _ group " ,
+" description ": "A new message is posted in the group "
+}, {
+" name ": " new _ message _ inbox " ,
+" description ": "A new private message is received by the user "
+}, {
+" name ": " new _ like " ,
+" description ": " The user gains a like from one of their messages "
+}] ,
+" reactions ": [{
+" name ": " like _ message " ,
+" description ": " The user likes a message "
+}]
+}]
+}
+}
+The following properties are required:
+3 client.host indicates the IP address of the client performing the HTTP request
+3 server.current_time indicates the server time in the Epoch Unix Time Stamp format
+3 server.services indicates the list of services supported by the server
+3 server.services[].name indicates the name of the service
+3 server.services[].actions indicates the list of Actions supported by this service
+3 server.services[].actions[].name indicates the identifier of this Action
+3 server.services[].actions[].description indicates the description of this Action
+3 server.services[].reactions indicates the list of REActions supported by this service
+3 server.services[].actions[].name indicates the identifier of this REAction
+3 server.services[].actions[].description indicates the description of this REAction
+13
+Documentation
+Your documentation should clearly explain your project's architecture and functionality to help future de-
+velopers understand and build upon your work. Focus on creating simple, scalable designs without code
+duplication.
+Provide a comprehensive README.md that details your server's API. This must include clear installation
+and setup instructions explaining how to install dependencies, configure the environment, and launch the
+project locally for development purposes.
+Include essential diagrams like class and sequence diagrams for the most important system components.
+Additionally, you must include a HOWTOCONTRIBUTE.md. This file should serve as a practical guide for
+extending the project's functionality. It must detail the process for adding new elements such as services,
+actions, reactions, or other core features.
+Your documentation should enable others to easily set up the development environment, understand how
+to use and extend the application, and contribute effectively to the project.
+All requested .md documents must be written in markdown format.
+14
+Timeline of the project
+As explained during the kick-off, this project will be divided into 3 milestones.
+3 The first defense - Planning:
+The goal here is to have experimented with various technological stack and languages and choosen
+the best one to do the job for your team.
+For your benchmarks, we recommend separating the back-end and front-end. This will allow you
+to evaluate each part of your application independently and choose the best technologies for each.
+However, if you decide to use a full-stack solution, you will need to justify your choice.
+Furthermore it is expected that you separated the project into multiple tasks, that task are scheduled
+in time (in a manner of your choosing!) and that the work organization between the members of the
+group is defined.
+A PoC of the project in the selected language wil be appreciated.
+After planning your project and choosing your tech stack, don't forget to consider
+security and database design (BDD). Security is crucial in any application to protect data and main-
+tain trust with your users. Similarly, a well-designed database can improve performance, accuracy,
+and speed of your application. Consider these aspects while moving forward with your project.
+3 The second defense - Minimum Viable Product:
+The goal here is to demonstrate that you were able to realise the core architecture of the project and
+implemented the base concepts (make different APIs interact with each other).
+Furthermore, your planning must be adjusted to the reality of where you're at in the project and an
+analysis the changes will be asked.
+3 Final defense - Final Product:
+The goal here is to have finished the project with the most features possible (different types of ser-
+vices, intersting interactions, good user interface, deployment using docker, ...).
+The presentation of your project will also be evaluated along with an analysis of what went right and
+wrong during the development of the project and what you learned along the way.
+15
+v 6
