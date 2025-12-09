@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { DashboardLayout } from '../components/DashboardLayout'
+import { DashboardLayout } from '../components/dashboard/DashboardLayout'
 import { Github, Slack, Mail, MessageSquare, Database, Cloud } from 'lucide-react'
 
 export const Route = createFileRoute('/connections')({
