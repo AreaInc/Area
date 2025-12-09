@@ -12,8 +12,10 @@
   "dependencies": {
     "@reduxjs/toolkit": "^2.11.1",
     "@tailwindcss/vite": "^4.1.17",
+    "@tanstack/react-query": "^5.90.12",
     "@tanstack/react-router": "^1.140.0",
     "@xyflow/react": "^12.10.0",
+    "better-auth": "^1.4.6",
     "clsx": "^2.1.1",
     "lucide-react": "^0.556.0",
     "react": "^19.2.0",

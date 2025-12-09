@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import { 
   type Connection,
   type Node,
@@ -15,8 +15,15 @@ import { WorkflowCanvas } from '../components/dashboard/WorkflowCanvas'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
 import { nodesChange, edgesChange, connect, addNode as addNodeAction } from '../store/slices/flowSlice'
 import { updateWorkflow } from '../store/slices/workflowsSlice'
+import { authClient } from '../lib/auth-client'
 
 export const Route = createFileRoute('/dashboard')({
+  beforeLoad: async () => {
+    const session = await authClient.getSession()
+    if (!session.data) {
+      throw redirect({ to: '/login' })
+    }
+  },
   component: Dashboard,
 })
 
