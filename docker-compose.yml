@@ -171,17 +171,17 @@ services:
     networks:
       - area-network
 
-  # frontend:
-  #   build:
-  #     context: ./frontend/web
-  #     dockerfile: Dockerfile
-  #   container_name: area-frontend
-  #   ports:
-  #     - "8081:80"
-  #   depends_on:
-  #     - backend
-  #   networks:
-  #     - area-network
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: area-frontend
+    ports:
+      - "8081:80"
+    depends_on:
+      - backend
+    networks:
+      - area-network
 
   vault:
     image: hashicorp/vault:latest
