@@ -5,6 +5,7 @@ import {
   UseGuards,
   HttpException,
   HttpStatus,
+  UseInterceptors,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -13,10 +14,13 @@ import {
   ApiParam,
   ApiBearerAuth,
 } from "@nestjs/swagger";
+import { CacheInterceptor, CacheKey, CacheTTL } from "@nestjs/cache-manager";
 import { ServiceRegistry } from "../../services/service-registry";
 import { ServicesService } from "../../services/services-service";
 import { ServiceProvider } from "../../common/types/enums";
 import { AuthGuard } from "../guards/auth.guard";
+import { AllowAnonymous } from "@thallesp/nestjs-better-auth";
+import { Public } from "../decorators/public.decorator";
 
 @ApiTags("Services")
 @ApiBearerAuth()
@@ -29,6 +33,11 @@ export class ServicesController {
   ) {}
 
   @Get()
+  @Public()
+  @AllowAnonymous()
+  @UseInterceptors(CacheInterceptor)
+  @CacheKey("api/services")
+  @CacheTTL(60)
   @ApiOperation({ summary: "Get all available services" })
   @ApiResponse({
     status: 200,

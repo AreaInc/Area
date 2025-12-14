@@ -1,6 +1,8 @@
 import "dotenv/config";
 
 import { Module } from "@nestjs/common";
+import { CacheModule } from "@nestjs/cache-manager";
+import { redisStore } from "cache-manager-ioredis-yet";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { DrizzleModule } from "./db/drizzle.module";
@@ -28,6 +30,20 @@ import { auth } from "./auth";
 
 @Module({
   imports: [
+    CacheModule.registerAsync({
+      isGlobal: true,
+      useFactory: async () => {
+        const store = await redisStore({
+          host: process.env.REDIS_HOST,
+          port: Number(process.env.REDIS_PORT ?? 6379),
+          password: process.env.REDIS_PASS,
+          ttl: 60, // 60 seconds default TTL
+        });
+        return {
+          store: () => store,
+        };
+      },
+    }),
     DrizzleModule,
     AuthModule.forRoot({ auth }),
     EventsModule,

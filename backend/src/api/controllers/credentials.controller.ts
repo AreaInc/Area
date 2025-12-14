@@ -24,8 +24,8 @@ import { ServiceProvider } from "../../common/types/enums";
 import { CreateCredentialsDto } from "../dto/create-credentials.dto";
 import { AuthGuard } from "../guards/auth.guard";
 import { CurrentUser } from "../decorators/user.decorator";
-import { AuthUser } from "../types/user";
-import { GmailCredentials } from "../../services/gmail";
+import type { AuthUser } from "../types/user";
+import { GmailCredentials, type GmailOAuth2Data } from "../../services/gmail";
 import { BaseCredentials } from "../../common/base/base-credentials";
 
 @ApiTags("Credentials")

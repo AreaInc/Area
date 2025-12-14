@@ -25,7 +25,7 @@ import { ServiceProvider, ExecutionStatus } from "../../common/types/enums";
 import { ExecuteActionDto } from "../dto/execute-action.dto";
 import { AuthGuard } from "../guards/auth.guard";
 import { CurrentUser } from "../decorators/user.decorator";
-import { AuthUser } from "../types/user";
+import type { AuthUser } from "../types/user";
 import { BaseCredentials } from "../../common/base/base-credentials";
 
 @ApiTags("Actions")
