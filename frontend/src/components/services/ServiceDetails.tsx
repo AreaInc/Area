@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { ArrowLeft, Zap, Shield, Info, Activity } from 'lucide-react'
+import { ArrowLeft, Shield, Info, Activity } from 'lucide-react'
 import type { Service, Action } from '../../types/service'
 
 interface ServiceDetailsProps {
@@ -54,7 +54,6 @@ export function ServiceDetails({ service }: ServiceDetailsProps) {
             </div>
 
             <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-                <Zap className="text-yellow-500" />
                 Available Actions
             </h2>
 

@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { ServiceGrid } from '../../components/services/ServiceGrid'
+import { ServiceGrid } from '../../../components/services/ServiceGrid'
 
-export const Route = createFileRoute('/dashboard/services')({
+export const Route = createFileRoute('/dashboard/services/')({
   component: Services,
 })
 
