@@ -27,6 +27,10 @@ import { CurrentUser } from "../decorators/user.decorator";
 import type { AuthUser } from "../types/user";
 import { GmailCredentials, type GmailOAuth2Data } from "../../services/gmail";
 import { BaseCredentials } from "../../common/base/base-credentials";
+import {
+  CredentialResponseDto,
+  SuccessResponseDto,
+} from "../dto/credential-response.dto";
 
 @ApiTags("Credentials")
 @ApiBearerAuth()
@@ -40,7 +44,20 @@ export class CredentialsController {
 
   @Get()
   @ApiOperation({ summary: "Get all credentials for the current user" })
-  @ApiResponse({ status: 200, description: "List of user credentials" })
+  @ApiResponse({
+    status: 200,
+    description: "List of user credentials",
+    type: [CredentialResponseDto],
+    example: [
+      {
+        id: 1,
+        serviceProvider: "gmail",
+        type: "oauth2",
+        name: "My Gmail Account",
+        isValid: true,
+      },
+    ],
+  })
   async getUserCredentials(@CurrentUser() user: AuthUser) {
     const credentials = await this.credentialsService.getUserCredentials(
       String(user.id),
@@ -64,6 +81,16 @@ export class CredentialsController {
   @ApiResponse({
     status: 200,
     description: "List of credentials for the service",
+    type: [CredentialResponseDto],
+    example: [
+      {
+        id: 1,
+        serviceProvider: "gmail",
+        type: "oauth2",
+        name: "My Gmail Account",
+        isValid: true,
+      },
+    ],
   })
   async getServiceCredentials(
     @CurrentUser() user: AuthUser,
@@ -87,7 +114,18 @@ export class CredentialsController {
   @Post()
   @ApiOperation({ summary: "Create new credentials for a service" })
   @ApiBody({ type: CreateCredentialsDto })
-  @ApiResponse({ status: 201, description: "Credentials created successfully" })
+  @ApiResponse({
+    status: 201,
+    description: "Credentials created successfully",
+    type: CredentialResponseDto,
+    example: {
+      id: 1,
+      serviceProvider: "gmail",
+      type: "oauth2",
+      name: "My Gmail Account",
+      isValid: true,
+    },
+  })
   @ApiResponse({ status: 400, description: "Invalid request" })
   @ApiResponse({ status: 404, description: "Service not found" })
   async createCredentials(
@@ -149,7 +187,6 @@ export class CredentialsController {
         credentials = new GmailCredentials(
           String(user.id),
           createDto.name,
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           gmailData,
         );
         break;
@@ -175,7 +212,14 @@ export class CredentialsController {
   @Delete(":id")
   @ApiOperation({ summary: "Delete credentials by ID" })
   @ApiParam({ name: "id", description: "Credentials ID" })
-  @ApiResponse({ status: 200, description: "Credentials deleted successfully" })
+  @ApiResponse({
+    status: 200,
+    description: "Credentials deleted successfully",
+    type: SuccessResponseDto,
+    example: {
+      success: true,
+    },
+  })
   @ApiResponse({ status: 403, description: "Forbidden" })
   @ApiResponse({ status: 404, description: "Credentials not found" })
   async deleteCredentials(

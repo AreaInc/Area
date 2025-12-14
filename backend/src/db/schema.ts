@@ -149,3 +149,35 @@ export const actionExecutions = pgTable("action_executions", {
   completedAt: timestamp("completed_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const workflows = pgTable("workflows", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  version: integer("version").default(1).notNull(),
+  nodes: jsonb("nodes").notNull(),
+  connections: jsonb("connections").notNull(),
+  isActive: boolean("is_active").default(false).notNull(),
+  lastRun: timestamp("last_run"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const workflowExecutions = pgTable("workflow_executions", {
+  id: serial("id").primaryKey(),
+  workflowId: integer("workflow_id")
+    .notNull()
+    .references(() => workflows.id),
+  userId: text("user_id").notNull(),
+  status: varchar("status", { length: 50 }).notNull(),
+  inputData: jsonb("input_data"),
+  outputData: jsonb("output_data"),
+  nodeResults: jsonb("node_results"),
+  errorMessage: text("error_message"),
+  startedAt: timestamp("started_at").defaultNow().notNull(),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});

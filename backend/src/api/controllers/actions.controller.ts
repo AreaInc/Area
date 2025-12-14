@@ -27,6 +27,10 @@ import { AuthGuard } from "../guards/auth.guard";
 import { CurrentUser } from "../decorators/user.decorator";
 import type { AuthUser } from "../types/user";
 import { BaseCredentials } from "../../common/base/base-credentials";
+import {
+  ActionExecutionResponseDto,
+  ActionExecutionHistoryDto,
+} from "../dto/action-response.dto";
 
 @ApiTags("Actions")
 @ApiBearerAuth()
@@ -44,7 +48,20 @@ export class ActionsController {
   @ApiParam({ name: "provider", description: "Service provider identifier" })
   @ApiParam({ name: "actionId", description: "Action identifier" })
   @ApiBody({ type: ExecuteActionDto })
-  @ApiResponse({ status: 200, description: "Action executed successfully" })
+  @ApiResponse({
+    status: 200,
+    description: "Action executed successfully",
+    type: ActionExecutionResponseDto,
+    example: {
+      executionId: 123,
+      success: true,
+      data: {
+        messageId: "xxx",
+        threadId: "yyy",
+      },
+      status: "success",
+    },
+  })
   @ApiResponse({
     status: 400,
     description: "Invalid request or missing credentials",
@@ -157,7 +174,32 @@ export class ActionsController {
     type: Number,
     description: "Maximum number of executions to return",
   })
-  @ApiResponse({ status: 200, description: "List of executions" })
+  @ApiResponse({
+    status: 200,
+    description: "List of executions",
+    type: [ActionExecutionHistoryDto],
+    example: [
+      {
+        id: 123,
+        serviceProvider: "gmail",
+        actionId: "gmail_send_email",
+        status: "success",
+        inputParams: {
+          to: "user@example.com",
+          subject: "Hello",
+          body: "World",
+        },
+        outputData: {
+          messageId: "xxx",
+          threadId: "yyy",
+        },
+        errorMessage: null,
+        startedAt: "2024-01-01T00:00:00Z",
+        completedAt: "2024-01-01T00:00:01Z",
+        createdAt: "2024-01-01T00:00:00Z",
+      },
+    ],
+  })
   async getExecutions(
     @CurrentUser() user: AuthUser,
     @Query("limit") limit?: string,

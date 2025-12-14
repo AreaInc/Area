@@ -3,6 +3,8 @@ import { ServiceRegistry } from "./service-registry";
 import { CredentialsService } from "./credentials-service";
 import { ActionsService } from "./actions-service";
 import { ServicesService } from "./services-service";
+import { WorkflowsService } from "./workflows-service";
+import { WorkflowExecutionService } from "./workflow-execution-service";
 import { GmailService } from "./gmail";
 
 @Global()
@@ -12,12 +14,16 @@ import { GmailService } from "./gmail";
     CredentialsService,
     ActionsService,
     ServicesService,
+    WorkflowsService,
+    WorkflowExecutionService,
   ],
   exports: [
     ServiceRegistry,
     CredentialsService,
     ActionsService,
     ServicesService,
+    WorkflowsService,
+    WorkflowExecutionService,
   ],
 })
 export class ServicesModule implements OnModuleInit {

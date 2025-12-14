@@ -9,7 +9,6 @@ async function bootstrap() {
     bodyParser: false,
   });
 
-  // Enable CORS
   app.enableCors({
     origin: [
       "http://localhost:5173", // Vite default dev port

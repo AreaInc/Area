@@ -19,8 +19,10 @@ import { ServiceRegistry } from "../../services/service-registry";
 import { ServicesService } from "../../services/services-service";
 import { ServiceProvider } from "../../common/types/enums";
 import { AuthGuard } from "../guards/auth.guard";
-import { AllowAnonymous } from "@thallesp/nestjs-better-auth";
-import { Public } from "../decorators/public.decorator";
+import {
+  ServiceResponseDto,
+  ActionResponseDto,
+} from "../dto/service-response.dto";
 
 @ApiTags("Services")
 @ApiBearerAuth()
@@ -33,8 +35,6 @@ export class ServicesController {
   ) {}
 
   @Get()
-  @Public()
-  @AllowAnonymous()
   @UseInterceptors(CacheInterceptor)
   @CacheKey("api/services")
   @CacheTTL(60)
@@ -42,6 +42,41 @@ export class ServicesController {
   @ApiResponse({
     status: 200,
     description: "List of all services with their actions",
+    type: [ServiceResponseDto],
+    example: [
+      {
+        id: 1,
+        provider: "gmail",
+        name: "Gmail",
+        description: "Send and receive emails using Gmail",
+        imageUrl: "https://example.com/gmail-icon.png",
+        version: "1.0.0",
+        supportedActions: ["send_email", "read_email"],
+        credentialTypes: ["oauth2"],
+        actions: [
+          {
+            id: "gmail_send_email",
+            name: "Send Email",
+            description: "Sends an email using Gmail",
+            type: "send_email",
+            inputSchema: {
+              type: "object",
+              properties: {
+                to: { type: "string" },
+                subject: { type: "string" },
+                body: { type: "string" },
+              },
+            },
+            outputSchema: {
+              type: "object",
+              properties: {
+                messageId: { type: "string" },
+              },
+            },
+          },
+        ],
+      },
+    ],
   })
   async getAllServices() {
     const services = await this.servicesService.getAllServices();
@@ -75,7 +110,43 @@ export class ServicesController {
   @Get(":provider")
   @ApiOperation({ summary: "Get a specific service by provider" })
   @ApiParam({ name: "provider", description: "Service provider identifier" })
-  @ApiResponse({ status: 200, description: "Service details" })
+  @ApiResponse({
+    status: 200,
+    description: "Service details",
+    type: ServiceResponseDto,
+    example: {
+      id: 1,
+      provider: "gmail",
+      name: "Gmail",
+      description: "Send and receive emails using Gmail",
+      imageUrl: "https://example.com/gmail-icon.png",
+      version: "1.0.0",
+      supportedActions: ["send_email", "read_email"],
+      credentialTypes: ["oauth2"],
+      actions: [
+        {
+          id: "gmail_send_email",
+          name: "Send Email",
+          description: "Sends an email using Gmail",
+          type: "send_email",
+          inputSchema: {
+            type: "object",
+            properties: {
+              to: { type: "string" },
+              subject: { type: "string" },
+              body: { type: "string" },
+            },
+          },
+          outputSchema: {
+            type: "object",
+            properties: {
+              messageId: { type: "string" },
+            },
+          },
+        },
+      ],
+    },
+  })
   @ApiResponse({ status: 404, description: "Service not found" })
   async getService(@Param("provider") provider: string) {
     const serviceProvider = provider as ServiceProvider;
@@ -121,7 +192,33 @@ export class ServicesController {
   @Get(":provider/actions")
   @ApiOperation({ summary: "Get all actions for a service" })
   @ApiParam({ name: "provider", description: "Service provider identifier" })
-  @ApiResponse({ status: 200, description: "List of actions" })
+  @ApiResponse({
+    status: 200,
+    description: "List of actions",
+    type: [ActionResponseDto],
+    example: [
+      {
+        id: "gmail_send_email",
+        name: "Send Email",
+        description: "Sends an email using Gmail",
+        type: "send_email",
+        inputSchema: {
+          type: "object",
+          properties: {
+            to: { type: "string" },
+            subject: { type: "string" },
+            body: { type: "string" },
+          },
+        },
+        outputSchema: {
+          type: "object",
+          properties: {
+            messageId: { type: "string" },
+          },
+        },
+      },
+    ],
+  })
   @ApiResponse({ status: 404, description: "Service not found" })
   getServiceActions(@Param("provider") provider: string) {
     const serviceProvider = provider as ServiceProvider;
@@ -150,7 +247,31 @@ export class ServicesController {
   @ApiOperation({ summary: "Get a specific action by ID" })
   @ApiParam({ name: "provider", description: "Service provider identifier" })
   @ApiParam({ name: "actionId", description: "Action identifier" })
-  @ApiResponse({ status: 200, description: "Action details" })
+  @ApiResponse({
+    status: 200,
+    description: "Action details",
+    type: ActionResponseDto,
+    example: {
+      id: "gmail_send_email",
+      name: "Send Email",
+      description: "Sends an email using Gmail",
+      type: "send_email",
+      inputSchema: {
+        type: "object",
+        properties: {
+          to: { type: "string" },
+          subject: { type: "string" },
+          body: { type: "string" },
+        },
+      },
+      outputSchema: {
+        type: "object",
+        properties: {
+          messageId: { type: "string" },
+        },
+      },
+    },
+  })
   @ApiResponse({ status: 404, description: "Action or service not found" })
   getAction(
     @Param("provider") provider: string,
