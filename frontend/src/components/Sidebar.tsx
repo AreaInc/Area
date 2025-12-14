@@ -36,7 +36,7 @@ export function Sidebar() {
   }
 
   return (
-    <div className="absolute top-4 left-4 bottom-4 w-64 bg-card/95 backdrop-blur-sm border border-border/50 text-foreground flex flex-col font-sans rounded-2xl shadow-2xl z-30 transition-all duration-300">
+    <div className="absolute top-4 left-4 bottom-4 w-64 bg-card/95 backdrop-blur-sm border border-border/50 text-foreground flex flex-col font-sans rounded-2xl z-30 transition-all duration-300">
       <div className="p-6 pb-2">
         <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
           Area Flow

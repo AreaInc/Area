@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { Workflow } from '../types/workflow'
-import { authClient } from '../lib/auth-client'
 
 const API_BASE = 'http://localhost:8080/api'
 
@@ -11,7 +10,6 @@ const API_BASE = 'http://localhost:8080/api'
 // We setup CORS in backend/src/main.ts, so cookies should work if 'credentials: true' is set in fetch.
 
 async function fetchWorkflows(): Promise<Workflow[]> {
-  const session = await authClient.getSession()
   // Better-auth client handles auth, but for custom API calls we might need to use standard fetch with credentials
   // Or we can use the better-auth client's fetch if it exposes one, or just standard fetch with credentials.
   

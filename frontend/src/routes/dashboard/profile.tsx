@@ -1,9 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { DashboardLayout } from '../components/dashboard/DashboardLayout'
 import { User, Trash2 } from 'lucide-react'
-import { useSession } from '../lib/auth-client'
+import { useSession } from '../../lib/auth-client'
 
-export const Route = createFileRoute('/profile')({
+export const Route = createFileRoute('/dashboard/profile')({
   component: Profile,
 })
 
@@ -14,8 +13,8 @@ function Profile() {
   if (!user) return null
 
   return (
-    <DashboardLayout>
-      <div className="p-8 max-w-4xl mx-auto">
+    <div className="pl-72 p-8 h-full w-full overflow-y-auto">
+      <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold mb-8">Profile Settings</h1>
 
         <div className="bg-card border border-border rounded-xl p-8 mb-8">
@@ -68,6 +67,6 @@ function Profile() {
           </button>
         </div>
       </div>
-    </DashboardLayout>
+    </div>
   )
 }
