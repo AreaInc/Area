@@ -6,9 +6,11 @@ import { AppService } from "./app.service";
 import { DrizzleModule } from "./db/drizzle.module";
 
 import { EventsModule } from "./websockets.module";
+import { ServicesModule } from "./services/services-module";
+import { ApiModule } from "./api/api.module";
 
 import { AuthModule } from "@thallesp/nestjs-better-auth";
-import { auth } from "./auth"; // Your Better Auth instance
+import { auth } from "./auth";
 
 // NOTE:
 // To use Redis in your Module you may add the redis transporter to your module
@@ -25,7 +27,13 @@ import { auth } from "./auth"; // Your Better Auth instance
 //     ]),
 
 @Module({
-  imports: [DrizzleModule, AuthModule.forRoot({ auth }), EventsModule],
+  imports: [
+    DrizzleModule,
+    AuthModule.forRoot({ auth }),
+    EventsModule,
+    ServicesModule,
+    ApiModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
