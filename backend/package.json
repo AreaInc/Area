@@ -26,6 +26,7 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@nestjs/cache-manager": "^3.0.1",
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@nestjs/microservices": "^11.1.9",
@@ -35,6 +36,8 @@
     "@nestjs/websockets": "^11.1.9",
     "@thallesp/nestjs-better-auth": "^2.2.0",
     "better-auth": "^1.4.4",
+    "cache-manager": "^7.2.7",
+    "cache-manager-ioredis-yet": "^2.1.2",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.44.7",
     "ioredis": "^5.8.2",
