@@ -1,12 +1,8 @@
 import { configureStore } from '@reduxjs/toolkit';
-import authReducer from './slices/authSlice';
-import workflowsReducer from './slices/workflowsSlice';
 import flowReducer from './slices/flowSlice';
 
 export const store = configureStore({
   reducer: {
-    auth: authReducer,
-    workflows: workflowsReducer,
     flow: flowReducer,
   },
   middleware: (getDefaultMiddleware) =>

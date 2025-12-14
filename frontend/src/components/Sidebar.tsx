@@ -4,41 +4,39 @@ import clsx from 'clsx'
 import { UserMenu } from './UserMenu'
 import { type Workflow } from '../types/workflow'
 import { useAppSelector, useAppDispatch } from '../store/hooks'
-import { addWorkflow } from '../store/slices/workflowsSlice'
 import { setWorkflow } from '../store/slices/flowSlice'
 import { INITIAL_NODES } from '../mocks/nodes'
+import { useWorkflows } from '../hooks/useWorkflows'
 
 export function Sidebar() {
-  const workflows = useAppSelector((state) => state.workflows.items)
+  const { workflows, createWorkflow } = useWorkflows()
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
 
   const handleCreateWorkflow = () => {
-    const newId = Math.random().toString(36).substr(2, 9)
-    const newWorkflow: Workflow = {
-        id: newId,
+    // We should probably have a modal for name/desc, but for now:
+    createWorkflow({
         name: 'New Workflow',
-        isActive: true,
-        lastRun: 'Never',
+        description: 'Created via Sidebar',
         nodes: INITIAL_NODES,
-        edges: []
-    }
-    
-    // Add to list
-    dispatch(addWorkflow(newWorkflow))
-    
-    // Set as active and reset canvas
-    dispatch(setWorkflow({
-        id: newId,
-        nodes: newWorkflow.nodes,
-        edges: newWorkflow.edges
-    }))
-
-    navigate({ to: '/dashboard' })
+        connections: {} // API expects connections object, frontend currently uses 'edges' array in Redux. 
+                        // We need to adapt this. The backend schema uses 'connections'. 
+                        // The frontend 'flowSlice' uses 'edges'. 
+                        // For now, let's just pass empty connections.
+    }, {
+        onSuccess: (newWorkflow) => {
+             dispatch(setWorkflow({
+                id: newWorkflow.id,
+                nodes: newWorkflow.nodes,
+                edges: [] // Need to convert backend connections to edges if we load it immediately
+            }))
+            navigate({ to: '/dashboard' })
+        }
+    })
   }
 
   return (
-    <div className="absolute top-4 left-4 bottom-4 w-64 bg-card/95 backdrop-blur-sm border border-border/50 text-foreground flex flex-col font-sans rounded-2xl shadow-2xl z-30 transition-all duration-300">
+    <div className="absolute top-4 left-4 bottom-4 w-64 bg-card/95 backdrop-blur-sm border border-border/50 text-foreground flex flex-col font-sans rounded-2xl z-30 transition-all duration-300">
       <div className="p-6 pb-2">
         <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
           Area Flow
@@ -73,14 +71,16 @@ function WorkflowItem({ workflow }: { workflow: Workflow }) {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const activeWorkflowId = useAppSelector((state) => state.flow.activeWorkflowId)
-  // If activeWorkflowId is null, check if this is the first workflow (default active)
+  
   const isActive = activeWorkflowId === workflow.id
 
   const handleWorkflowClick = () => {
+      // Logic to convert backend 'connections' to ReactFlow 'edges' would go here if needed
+      // For now assume workflow.edges is populated or empty
       dispatch(setWorkflow({
           id: workflow.id,
           nodes: workflow.nodes,
-          edges: workflow.edges
+          edges: workflow.edges || [] 
       }))
       navigate({ to: '/dashboard' })
   }
@@ -109,7 +109,7 @@ function WorkflowItem({ workflow }: { workflow: Workflow }) {
       </div>
       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
         <Clock size={12} />
-        <span>{workflow.lastRun}</span>
+        <span>{workflow.lastRun || 'Never'}</span>
       </div>
     </button>
   )

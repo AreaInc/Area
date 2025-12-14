@@ -3,6 +3,7 @@ import { ServicesController } from "./controllers/services.controller";
 import { CredentialsController } from "./controllers/credentials.controller";
 import { ActionsController } from "./controllers/actions.controller";
 import { WorkflowsController } from "./controllers/workflows.controller";
+import { UsersController } from "./controllers/users.controller";
 import { WebhooksController } from "./controllers/webhooks.controller";
 import { ServicesModule } from "../services/services-module";
 
@@ -13,6 +14,7 @@ import { ServicesModule } from "../services/services-module";
     CredentialsController,
     ActionsController,
     WorkflowsController,
+    UsersController,
     WebhooksController,
   ],
 })

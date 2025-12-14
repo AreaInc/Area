@@ -7,6 +7,7 @@ export interface Workflow {
     isActive: boolean;
     nodes: Node[];
     edges: Edge[];
+    connections?: Record<string, any>;
     lastRun?: string;
     createdAt?: string;
     updatedAt?: string;
