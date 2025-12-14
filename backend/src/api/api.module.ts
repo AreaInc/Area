@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { ServicesController } from "./controllers/services.controller";
 import { CredentialsController } from "./controllers/credentials.controller";
+import { ServiceAuthController } from "./controllers/service-auth.controller";
 import { ActionsController } from "./controllers/actions.controller";
 import { WorkflowsController } from "./controllers/workflows.controller";
 import { UsersController } from "./controllers/users.controller";
@@ -12,6 +13,7 @@ import { ServicesModule } from "../services/services-module";
   controllers: [
     ServicesController,
     CredentialsController,
+    ServiceAuthController,
     ActionsController,
     WorkflowsController,
     UsersController,

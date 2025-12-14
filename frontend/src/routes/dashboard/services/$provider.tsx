@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { ServiceDetails } from '../../../components/services/ServiceDetails'
 import { useService } from '../../../hooks/useServices'
 import { Loader2 } from 'lucide-react'
+import { useSearchParams } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/dashboard/services/$provider')({
   component: ServicePage,
@@ -10,6 +11,11 @@ export const Route = createFileRoute('/dashboard/services/$provider')({
 function ServicePage() {
   const { provider } = Route.useParams()
   const { service, isLoading, isError } = useService(provider)
+  const [searchParams] = useSearchParams({
+    parse: (query) => Object.fromEntries(new URLSearchParams(query)),
+    stringify: (params) => new URLSearchParams(params).toString(),
+  })
+  const authStatus = searchParams.success ? 'success' : (searchParams.error ? 'error' : undefined)
 
   if (isLoading) {
     return (
@@ -31,7 +37,7 @@ function ServicePage() {
 
   return (
     <div className="p-8 pl-72 h-full overflow-y-auto">
-      <ServiceDetails service={service} />
+      <ServiceDetails service={service} authStatus={authStatus} />
     </div>
   )
 }
