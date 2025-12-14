@@ -168,8 +168,36 @@ services:
         condition: service_healthy
       patroni3:
         condition: service_healthy
+      migration:
+        condition: service_completed_successfully
     networks:
       - area-network
+      - patroni
+
+  migration:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: builder
+    container_name: area-migration
+    environment:
+      - NODE_ENV=production
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_NAME=${POSTGRES_NAME:-area}
+      - POSTGRES_USER=${POSTGRES_USER:-area_user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-area_password}
+    command: pnpm db:push
+    depends_on:
+      patroni1:
+        condition: service_healthy
+      patroni2:
+        condition: service_healthy
+      patroni3:
+        condition: service_healthy
+    networks:
+      - area-network
+      - patroni
 
   frontend:
     build:
@@ -204,6 +232,9 @@ services:
     command: redis-server --save 20 1 --loglevel warning --requirepass ${REDIS_PASS}
     volumes:
       - cache:/data
+    networks:
+      - area-network
+      - patroni
 
 networks:
   patroni:
