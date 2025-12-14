@@ -22,7 +22,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Build backend Docker image (CI check)
+      - name: Build backend Docker image
         uses: docker/build-push-action@v4
         with:
           context: ./backend
@@ -30,13 +30,45 @@ jobs:
           push: false
           tags: area-backend:ci-${{ github.sha }}
           platforms: linux/amd64
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+          cache-from: type=local,src=/tmp/.buildx-back-cache
+          cache-to: type=local,dest=/tmp/.buildx-back-cache-new,mode=max
 
       - name: Move build cache into place
         if: always()
         run: |
-          if [ -d /tmp/.buildx-cache-new ]; then
-            rm -rf /tmp/.buildx-cache || true
-            mv /tmp/.buildx-cache-new /tmp/.buildx-cache || true
+          if [ -d /tmp/.buildx-back-cache-new ]; then
+            rm -rf /tmp/.buildx-back-cache || true
+            mv /tmp/.buildx-back-cache-new /tmp/.buildx-back-cache || true
+          fi
+
+  frontend-check:
+    name: Check Frontend Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build Frontend Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: false
+          tags: area-frontend:ci-${{ github.sha }}
+          platforms: linux/amd64
+          cache-from: type=local,src=/tmp/.buildx-front-cache
+          cache-to: type=local,dest=/tmp/.buildx-front-cache-new,mode=max
+
+      - name: Move build cache into place
+        if: always()
+        run: |
+          if [ -d /tmp/.buildx-front-cache-new ]; then
+            rm -rf /tmp/.buildx-front-cache || true
+            mv /tmp/.buildx-front-cache-new /tmp/.buildx-front-cache || true
           fi
