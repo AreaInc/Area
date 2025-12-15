@@ -81,9 +81,11 @@ frontend/mobile/web-build/
 prisma/migrations/*/migration.sql~
 .prisma/
 
-# PostgreSQL dumps
-*.sql
 *.dump
+*.sql
+!**/migrations/*.sql
+
+**/migrations/meta/
 
 # ============================================
 # Docker

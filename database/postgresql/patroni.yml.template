@@ -2,6 +2,9 @@ scope: ${PATRONI_SCOPE}
 namespace: ${PATRONI_NAMESPACE}
 name: ${PATRONI_NAME}
 
+log:
+  level: ERROR
+
 restapi:
   listen: ${PATRONI_RESTAPI_LISTEN}
   connect_address: ${PATRONI_RESTAPI_CONNECT_ADDRESS}
