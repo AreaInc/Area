@@ -7,11 +7,13 @@ import { useAppSelector, useAppDispatch } from '../store/hooks'
 import { setWorkflow } from '../store/slices/flowSlice'
 import { INITIAL_NODES } from '../mocks/nodes'
 import { useWorkflows } from '../hooks/useWorkflows'
+import { useQueryClient } from '@tanstack/react-query' // Import useQueryClient
 
 export function Sidebar() {
   const { workflows, createWorkflow } = useWorkflows()
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
+  const queryClient = useQueryClient() // Initialize queryClient
 
   const handleCreateWorkflow = () => {
     // We should probably have a modal for name/desc, but for now:
@@ -25,6 +27,11 @@ export function Sidebar() {
                         // For now, let's just pass empty connections.
     }, {
         onSuccess: (newWorkflow) => {
+             // Optimistically update the cache
+             queryClient.setQueryData(['workflows'], (old: Workflow[] | undefined) => {
+                 return [...(old || []), newWorkflow];
+             });
+
              dispatch(setWorkflow({
                 id: String(newWorkflow.id),
                 nodes: newWorkflow.nodes,
