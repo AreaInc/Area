@@ -2,19 +2,27 @@ import { createFileRoute } from '@tanstack/react-router'
 import { ServiceDetails } from '../../../components/services/ServiceDetails'
 import { useService } from '../../../hooks/useServices'
 import { Loader2 } from 'lucide-react'
-import { useSearchParams } from '@tanstack/react-router'
+
+type ServiceSearch = {
+  success?: boolean
+  error?: boolean
+}
 
 export const Route = createFileRoute('/dashboard/services/$provider')({
   component: ServicePage,
+  validateSearch: (search: Record<string, unknown>): ServiceSearch => {
+    return {
+      success: search.success === true || search.success === 'true',
+      error: search.error === true || search.error === 'true',
+    }
+  },
 })
 
 function ServicePage() {
   const { provider } = Route.useParams()
+  const searchParams = Route.useSearch()
   const { service, isLoading, isError } = useService(provider)
-  const [searchParams] = useSearchParams({
-    parse: (query) => Object.fromEntries(new URLSearchParams(query)),
-    stringify: (params) => new URLSearchParams(params).toString(),
-  })
+  
   const authStatus = searchParams.success ? 'success' : (searchParams.error ? 'error' : undefined)
 
   if (isLoading) {

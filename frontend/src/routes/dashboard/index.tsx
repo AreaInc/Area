@@ -52,14 +52,14 @@ function Dashboard() {
     dispatch(connect(params))
   }, [dispatch])
 
-  const addNode = (type: string, label: string) => {
+  const addNode = (type: string, label: string, metadata?: Record<string, any>) => {
     const newNode: Node = {
       id: Math.random().toString(36).substr(2, 9),
       position: { 
         x: Math.random() * 400 + 350, 
         y: Math.random() * 400 + 200 
       },
-      data: { label },
+      data: { label, ...metadata },
       type,
       style: { 
         background: 'var(--card)', 
