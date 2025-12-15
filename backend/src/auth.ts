@@ -23,5 +23,9 @@ export const auth = betterAuth({
     },
   },
   secret: process.env.BETTER_AUTH_SECRET,
-  trustedOrigins: ["http://localhost:5173", "http://localhost:3000", "http://localhost:8081"],
+  trustedOrigins: [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "http://localhost:8081",
+  ],
 });
