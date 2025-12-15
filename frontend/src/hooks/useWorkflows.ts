@@ -59,7 +59,35 @@ async function deleteWorkflow(id: string): Promise<void> {
     credentials: 'include'
   })
 
-  if (!response.ok) throw new Error('Failed to delete workflow')
+  // Workaround: Backend incorrectly returns 404 for successful deletions
+  // Treat 200 OK, 204 No Content, and 404 Not Found as successful for DELETE operations
+  // if the resource is confirmed to be deleted (as reported by user).
+  // A 404 in this context might mean "resource already not found", which implies it's gone.
+  if (response.status === 200 || response.status === 204 || response.status === 404) {
+      return;
+  } else {
+      throw new Error(`Failed to delete workflow with status: ${response.status} ${response.statusText}`);
+  }
+}
+
+async function activateWorkflow(id: string): Promise<{ id: number, isActive: boolean }> {
+  const response = await fetch(`${API_BASE}/workflows/${id}/activate`, {
+    method: 'POST',
+    credentials: 'include'
+  })
+
+  if (!response.ok) throw new Error('Failed to activate workflow')
+  return response.json()
+}
+
+async function deactivateWorkflow(id: string): Promise<{ id: number, isActive: boolean }> {
+  const response = await fetch(`${API_BASE}/workflows/${id}/deactivate`, {
+    method: 'POST',
+    credentials: 'include'
+  })
+
+  if (!response.ok) throw new Error('Failed to deactivate workflow')
+  return response.json()
 }
 
 export function useWorkflows() {
@@ -91,13 +119,29 @@ export function useWorkflows() {
     },
   })
 
+  const activateMutation = useMutation({
+    mutationFn: activateWorkflow,
+    onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['workflows'] })
+    }
+  })
+
+  const deactivateMutation = useMutation({
+    mutationFn: deactivateWorkflow,
+    onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['workflows'] })
+    }
+  })
+
   return {
     workflows: workflowsQuery.data || [],
     isLoading: workflowsQuery.isLoading,
     isError: workflowsQuery.isError,
     error: workflowsQuery.error,
-    createWorkflow: createMutation.mutate,
-    updateWorkflow: updateMutation.mutate,
-    deleteWorkflow: deleteMutation.mutate,
+    createWorkflow: createMutation.mutateAsync,
+    updateWorkflow: updateMutation.mutateAsync,
+    deleteWorkflow: deleteMutation.mutateAsync,
+    activateWorkflow: activateMutation.mutateAsync,
+    deactivateWorkflow: deactivateMutation.mutateAsync
   }
 }
