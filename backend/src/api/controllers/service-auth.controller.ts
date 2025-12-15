@@ -7,9 +7,8 @@ import {
   UseGuards,
   HttpException,
   HttpStatus,
-  Req,
 } from "@nestjs/common";
-import { Response } from "express";
+import type { Response } from "express";
 import { google } from "googleapis";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { AuthGuard } from "../guards/auth.guard";
@@ -88,7 +87,7 @@ export class ServiceAuthController {
 
     try {
       const { tokens } = await oauth2Client.getToken(code);
-      
+
       // In a production app, we should verify the 'state' matches the authenticated user
       // or retrieve the user from the session if cookies are working.
       // Here we trust 'state' contains the userId for simplicity of the MVP.
@@ -102,7 +101,7 @@ export class ServiceAuthController {
         accessToken: tokens.access_token!,
         refreshToken: tokens.refresh_token || "", // Might be empty if not prompt=consent
         tokenType: tokens.token_type || "Bearer",
-        expiresAt: tokens.expiry_date,
+        expiresAt: tokens.expiry_date ?? undefined,
         scope: tokens.scope,
       });
 
