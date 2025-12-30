@@ -12,24 +12,87 @@ pnpm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
+.pnpm-debug.log*
 
-# OS
-.DS_Store
+# Package manager
+package-lock.json
+yarn.lock
 
-# Tests
-/backend/coverage
-/backend/.nyc_output
+# ============================================
+# Backend (NestJS)
+# ============================================
+backend/dist/
+backend/build/
+backend/.nest/
+backend/coverage/
+backend/.nyc_output/
 
-# IDEs and editors
-/backend/.idea
-.project
-.classpath
-.c9/
-*.launch
-.settings/
-*.sublime-workspace
+# Logs
+backend/logs/
+*.log
 
-# IDE - VSCode
+# ============================================
+# Frontend Web (React + Vite)
+# ============================================
+frontend/web/dist/
+frontend/web/build/
+frontend/web/.vite/
+frontend/web/.cache/
+frontend/web/coverage/
+
+# ============================================
+# Frontend Mobile (React Native + Expo)
+# ============================================
+frontend/mobile/dist/
+frontend/mobile/build/
+frontend/mobile/.expo/
+frontend/mobile/.expo-shared/
+frontend/mobile/android/
+frontend/mobile/ios/
+frontend/mobile/*.jks
+frontend/mobile/*.p8
+frontend/mobile/*.p12
+frontend/mobile/*.key
+frontend/mobile/*.mobileprovision
+frontend/mobile/*.orig.*
+frontend/mobile/web-build/
+
+# Metro bundler
+.metro-health-check*
+
+# ============================================
+# Database
+# ============================================
+# Prisma
+*.db
+*.db-journal
+prisma/migrations/*/migration.sql~
+.prisma/
+
+*.dump
+*.sql
+!**/migrations/*.sql
+
+**/migrations/meta/
+
+# ============================================
+# Docker
+# ============================================
+# Don't ignore docker-compose.yml
+# Don't ignore Dockerfile
+docker-compose.override.yml
+.dockerignore~
+
+# Volumes data (if local)
+postgres_data/
+redis_data/
+grafana_data/
+prometheus_data/
+
+# ============================================
+# IDE & Editors
+# ============================================
+# VSCode
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json

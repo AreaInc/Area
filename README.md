@@ -78,6 +78,10 @@ npm run test:cov
 
 Please check our `.env.example` to setup environment variables
 
+## Contributing
+
+For guidelines on how to extend the project by adding new services, actions, or reactions, please refer to our [HOWTOCONTRIBUTE.md](./HOWTOCONTRIBUTE.md) documentation.
+
 ## Tech stack
 
 ### Backend
