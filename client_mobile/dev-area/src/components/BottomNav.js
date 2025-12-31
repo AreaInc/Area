@@ -4,11 +4,15 @@ import { Home, History, User, Plus } from 'lucide-react-native';
 import GlassCard from './GlassCard';
 import { LinearGradient } from 'expo-linear-gradient';
 
+import { useNavigation } from '@react-navigation/native';
+
 const BottomNav = () => {
+    const navigation = useNavigation();
+
     return (
         <GlassCard style={styles.container}>
             <View style={styles.content}>
-                <TouchableOpacity style={styles.navItem}>
+                <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Home')}>
                     <Home color="#3b82f6" size={24} fill="#3b82f6" fillOpacity={0.2} />
                 </TouchableOpacity>
 
@@ -16,11 +20,11 @@ const BottomNav = () => {
                     <History color="#94a3b8" size={24} />
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.navItem}>
+                <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Profile')}>
                     <User color="#94a3b8" size={24} />
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.addButtonContainer}>
+                <TouchableOpacity style={styles.addButtonContainer} onPress={() => navigation.navigate('CreateWorkflow')}>
                     <LinearGradient
                         colors={['#2563eb', '#1d4ed8']}
                         style={styles.addButton}

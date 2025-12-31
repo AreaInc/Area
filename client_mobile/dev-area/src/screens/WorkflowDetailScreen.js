@@ -1,190 +1,139 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Switch, ScrollView, Animated, PanResponder } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Switch, ScrollView, Animated, PanResponder, Alert, ActivityIndicator } from 'react-native';
 import { ArrowLeft, Play, Settings } from 'lucide-react-native';
 import GradientBackground from '../components/GradientBackground';
 import WorkflowNode from '../components/WorkflowNode';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { initialData } from '../data/mockData';
+import { api } from '../services/api';
 
 const ITEM_HEIGHT = 100;
 
-const DraggableItem = ({ item, index, onDragStart, onDragMove, onDragEnd, isDragging, displacement }) => {
-    const pan = useRef(new Animated.ValueXY()).current;
-    const scale = useRef(new Animated.Value(1)).current;
-    const shift = useRef(new Animated.Value(0)).current; // Visual shift for virtual reorder
-    const longPressTimer = useRef(null);
-    const isLongPressActive = useRef(false);
-
-    // Keep track of latest props to avoid stale closures in PanResponder
-    const funcs = useRef({ onDragStart, onDragMove, onDragEnd });
-    useEffect(() => {
-        funcs.current = { onDragStart, onDragMove, onDragEnd };
-    });
-
-    // Handle displacement animation (when other items need to move)
-    React.useEffect(() => {
-        Animated.spring(shift, {
-            toValue: displacement * ITEM_HEIGHT,
-            useNativeDriver: true,
-            friction: 20,
-            tension: 200,
-        }).start();
-    }, [displacement]);
-
-    const panResponder = useRef(
-        PanResponder.create({
-            onStartShouldSetPanResponder: () => true,
-            onMoveShouldSetPanResponder: (evt, gestureState) => {
-                if (isLongPressActive.current) return true;
-                if (Math.abs(gestureState.dy) > 10 || Math.abs(gestureState.dx) > 10) {
-                    if (longPressTimer.current) {
-                        clearTimeout(longPressTimer.current);
-                        longPressTimer.current = null;
-                    }
-                    return false;
-                }
-                return false;
-            },
-            onPanResponderGrant: () => {
-                pan.setOffset({ x: 0, y: 0 });
-                pan.setValue({ x: 0, y: 0 });
-
-                longPressTimer.current = setTimeout(() => {
-                    isLongPressActive.current = true;
-                    isLongPressActive.current = true;
-                    if (funcs.current.onDragStart) {
-                        funcs.current.onDragStart(item.id);
-                    }
-                    Animated.spring(scale, {
-                        toValue: 1.05,
-                        useNativeDriver: true,
-                    }).start();
-                }, 300);
-            },
-            onPanResponderMove: (evt, gestureState) => {
-                if (isLongPressActive.current) {
-                    pan.setValue({ x: 0, y: gestureState.dy });
-                    if (isLongPressActive.current) {
-                        pan.setValue({ x: 0, y: gestureState.dy });
-                        if (funcs.current.onDragMove) {
-                            funcs.current.onDragMove(gestureState.dy);
-                        }
-                    }
-                }
-            },
-            onPanResponderRelease: () => {
-                if (longPressTimer.current) {
-                    clearTimeout(longPressTimer.current);
-                    longPressTimer.current = null;
-                }
-
-                if (isLongPressActive.current) {
-                    pan.flattenOffset();
-                    Animated.parallel([
-                        Animated.spring(pan, {
-                            toValue: { x: 0, y: 0 },
-                            useNativeDriver: true,
-                        }),
-                        Animated.spring(scale, {
-                            toValue: 1,
-                            useNativeDriver: true,
-                        }),
-                    ]).start();
-
-                    if (funcs.current.onDragEnd) {
-                        funcs.current.onDragEnd();
-                    }
-                }
-
-                isLongPressActive.current = false;
-            },
-        })
-    ).current;
-
+const DraggableItem = ({ item, index, isDragging, displacement, onDragStart, onDragMove, onDragEnd }) => {
     return (
-        <Animated.View
-            style={[
-                styles.itemContainer,
-                {
-                    transform: [
-                        { translateY: isDragging ? pan.y : shift }, // Use pan for dragged, shift for others
-                        { scale: scale },
-                    ],
-                    zIndex: isDragging ? 100 : 1,
-                    opacity: isDragging ? 0.9 : 1,
-                },
-            ]}
-            {...panResponder.panHandlers}
-        >
-            <WorkflowNode
-                type={item.type}
-                title={item.title}
-                subtitle={item.subtitle}
-                status={item.status}
-                isStart={item.isStart}
-                isEnd={item.isEnd}
-            />
-        </Animated.View>
+        <View style={styles.itemContainer}>
+            <TouchableOpacity onLongPress={onDragStart} delayLongPress={200}>
+                <WorkflowNode
+                    title={item.title}
+                    subtitle={item.subtitle}
+                    type={item.type}
+                    status={item.status}
+                    isStart={item.isStart}
+                    isEnd={item.isEnd}
+                />
+                {/* TODO: Implement full drag-and-drop visuals if needed */}
+            </TouchableOpacity>
+        </View>
     );
 };
 
 const WorkflowDetailScreen = ({ navigation, route }) => {
-    const { title } = route.params || { title: "New Workflow" };
-    const [data, setData] = useState(initialData);
+    const { id, title: initialTitle, status: initialStatus } = route.params || {};
+    const [data, setData] = useState([]);
+    const [title, setTitle] = useState(initialTitle || "Loading...");
+    const [isActive, setIsActive] = useState(initialStatus === 'Active');
+    const [loading, setLoading] = useState(true);
+
+    // Drag state
     const [draggingId, setDraggingId] = useState(null);
     const [dragState, setDragState] = useState({ srcIndex: null, destIndex: null });
     const [scrollEnabled, setScrollEnabled] = useState(true);
 
-    const handleDragStart = (itemId) => {
-        const index = data.findIndex(item => item.id === itemId);
-        setDraggingId(itemId);
-        setDragState({ srcIndex: index, destIndex: index });
+    useEffect(() => {
+        if (id) {
+            fetchWorkflowDetails();
+        }
+    }, [id]);
+
+    const fetchWorkflowDetails = async () => {
+        try {
+            const { data: workflow, error } = await api.get(`/api/workflows/${id}`);
+            if (workflow) {
+                setTitle(workflow.name);
+                setIsActive(workflow.isActive);
+
+                // Map backend nodes to mobile UI nodes
+                // Backend nodes structure: { id, type, data: { label, ... } }
+                // Mobile UI expects: { id, type, title, subtitle, status, isStart, isEnd }
+                // We need to linearize them or just show them as a list for now
+                if (workflow.nodes && Array.isArray(workflow.nodes)) {
+                    const mappedNodes = workflow.nodes.map((node, index) => ({
+                        id: node.id,
+                        type: mapNodeType(node.type),
+                        title: node.data?.label || node.type,
+                        subtitle: node.data?.description || 'No description',
+                        status: 'Idle', // Default status
+                        isStart: index === 0, // Simplified assumption
+                        isEnd: index === workflow.nodes.length - 1 // Simplified assumption
+                    }));
+                    setData(mappedNodes);
+                }
+            } else {
+                console.error("Error fetching details:", error);
+            }
+        } catch (e) {
+            console.error("Fetch error:", e);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const mapNodeType = (backendType) => {
+        // Map backend node types to mobile icon types
+        // Example: 'webhook' -> 'trigger', 'gmail' -> 'action'
+        if (backendType?.includes('trigger') || backendType?.includes('webhook')) return 'trigger';
+        if (backendType?.includes('action') || backendType?.includes('gmail')) return 'action';
+        return 'action'; // Default
+    };
+
+    const toggleWorkflow = async (value) => {
+        // Optimistic update
+        setIsActive(value);
+        try {
+            await api.post(`/api/workflows/${id}/${value ? 'activate' : 'deactivate'}`);
+        } catch (error) {
+            console.error("Toggle error:", error);
+            setIsActive(!value); // Revert on error
+        }
+    };
+
+    const handleDragStart = (id) => {
+        setDraggingId(id);
         setScrollEnabled(false);
     };
 
-    const handleDragMove = (itemId, dy) => {
-        if (!draggingId || dragState.srcIndex === null) return;
-
-        const srcIndex = dragState.srcIndex;
-        // Calculate the theoretical new index based on drag distance
-        const movedSteps = Math.round(dy / ITEM_HEIGHT);
-        const nextIndex = Math.max(0, Math.min(data.length - 1, srcIndex + movedSteps));
-
-        if (nextIndex !== dragState.destIndex) {
-            setDragState(prev => ({ ...prev, destIndex: nextIndex }));
-        }
+    const handleDragMove = (id, dy) => {
+        // Placeholder
     };
 
     const handleDragEnd = () => {
-        if (dragState.srcIndex !== null && dragState.destIndex !== null && dragState.srcIndex !== dragState.destIndex) {
-            const newData = [...data];
-            const [item] = newData.splice(dragState.srcIndex, 1);
-            newData.splice(dragState.destIndex, 0, item);
-            setData(newData);
-        }
-
         setDraggingId(null);
-        setDragState({ srcIndex: null, destIndex: null });
         setScrollEnabled(true);
     };
 
-    const getDisplacement = (index) => {
-        if (!draggingId) return 0;
-        const { srcIndex, destIndex } = dragState;
+    const getDisplacement = (index) => 0;
 
-        // The dragged item itself doesn't use displacement (it uses pan)
-        if (index === srcIndex) return 0;
-
-        // Items between src and dest need to shift
-        if (srcIndex < destIndex) {
-            // Dragged down: items in between move UP
-            if (index > srcIndex && index <= destIndex) return -1;
-        } else if (srcIndex > destIndex) {
-            // Dragged up: items in between move DOWN
-            if (index >= destIndex && index < srcIndex) return 1;
-        }
-        return 0;
+    const handleDelete = () => {
+        Alert.alert(
+            "Delete Workflow",
+            "Are you sure you want to delete this workflow?",
+            [
+                { text: "Cancel", style: "cancel" },
+                {
+                    text: "Delete",
+                    style: "destructive",
+                    onPress: async () => {
+                        try {
+                            await api.delete(`/api/workflows/${id}`);
+                            navigation.goBack();
+                        } catch (error) {
+                            console.error("Delete error:", error);
+                            Alert.alert("Error", "Failed to delete workflow");
+                        }
+                    }
+                }
+            ]
+        );
     };
 
     return (
@@ -196,11 +145,11 @@ const WorkflowDetailScreen = ({ navigation, route }) => {
                 <View style={styles.titleContainer}>
                     <Text style={styles.headerTitle}>{title}</Text>
                     <View style={styles.statusRow}>
-                        <View style={[styles.statusDot, { backgroundColor: '#4ade80' }]} />
-                        <Text style={styles.statusText}>ACTIVE</Text>
+                        <View style={[styles.statusDot, { backgroundColor: isActive ? '#4ade80' : '#ef4444' }]} />
+                        <Text style={styles.statusText}>{isActive ? 'ACTIVE' : 'INACTIVE'}</Text>
                     </View>
                 </View>
-                <TouchableOpacity style={styles.settingsButton}>
+                <TouchableOpacity style={styles.settingsButton} onPress={handleDelete}>
                     <Settings color="#fff" size={24} />
                 </TouchableOpacity>
             </View>
@@ -208,44 +157,49 @@ const WorkflowDetailScreen = ({ navigation, route }) => {
             <View style={styles.controlBar}>
                 <Text style={styles.controlLabel}>Workflow Status</Text>
                 <Switch
-                    value={true}
+                    value={isActive}
+                    onValueChange={toggleWorkflow}
                     trackColor={{ false: "#334155", true: "#2563eb" }}
                     thumbColor={"#fff"}
                 />
             </View>
 
+            {loading ? (
+                <ActivityIndicator size="large" color="#3b82f6" style={{ marginTop: 50 }} />
+            ) : (
 
 
-            <ScrollView
-                scrollEnabled={scrollEnabled}
-                contentContainerStyle={styles.canvas}
-                showsVerticalScrollIndicator={false}
-            >
-                {data.map((item, index) => (
-                    <DraggableItem
-                        key={item.id}
-                        item={item}
-                        index={index}
-                        isDragging={draggingId === item.id}
-                        displacement={getDisplacement(index)}
-                        onDragStart={() => handleDragStart(item.id)}
-                        onDragMove={(dy) => handleDragMove(item.id, dy)}
-                        onDragEnd={handleDragEnd}
-                    />
-                ))}
 
-                <TouchableOpacity style={styles.addNodeButton}>
-                    <LinearGradient
-                        colors={['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.05)']}
-                        style={styles.addNodeGradient}
-                    >
-                        <Text style={styles.addNodeText}>+ Add Node</Text>
-                    </LinearGradient>
-                </TouchableOpacity>
+                <ScrollView
+                    scrollEnabled={scrollEnabled}
+                    contentContainerStyle={styles.canvas}
+                    showsVerticalScrollIndicator={false}
+                >
+                    {data.map((item, index) => (
+                        <DraggableItem
+                            key={item.id}
+                            item={item}
+                            index={index}
+                            isDragging={draggingId === item.id}
+                            displacement={getDisplacement(index)}
+                            onDragStart={() => handleDragStart(item.id)}
+                            onDragMove={(dy) => handleDragMove(item.id, dy)}
+                            onDragEnd={handleDragEnd}
+                        />
+                    ))}
 
-                <View style={{ height: 100 }} />
-            </ScrollView>
+                    <TouchableOpacity style={styles.addNodeButton}>
+                        <LinearGradient
+                            colors={['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.05)']}
+                            style={styles.addNodeGradient}
+                        >
+                            <Text style={styles.addNodeText}>+ Add Node</Text>
+                        </LinearGradient>
+                    </TouchableOpacity>
 
+                    <View style={{ height: 100 }} />
+                </ScrollView>
+            )}
             <View style={styles.bottomBar}>
                 <View style={styles.toolbar}>
                     <TouchableOpacity style={styles.toolBtn}>
@@ -266,7 +220,7 @@ const WorkflowDetailScreen = ({ navigation, route }) => {
                     </LinearGradient>
                 </TouchableOpacity>
             </View>
-        </GradientBackground>
+        </GradientBackground >
     );
 };
 

@@ -1,13 +1,47 @@
-import React from 'react';
-import { StyleSheet, Text, View, ScrollView } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { StyleSheet, Text, View, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import GradientBackground from '../components/GradientBackground';
 import Header from '../components/Header';
 import SearchBar from '../components/SearchBar';
 import StatsCard from '../components/StatsCard';
 import WorkflowItem from '../components/WorkflowItem';
 import BottomNav from '../components/BottomNav';
+import { api } from '../services/api';
 
 const HomeScreen = ({ navigation }) => {
+  const [workflows, setWorkflows] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchWorkflows = async () => {
+    try {
+      const { data, error } = await api.get('/api/workflows');
+      if (data) {
+        setWorkflows(data);
+      } else {
+        console.error('Failed to fetch workflows:', error);
+      }
+    } catch (err) {
+      console.error('Error fetching workflows:', err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      setLoading(true);
+      fetchWorkflows();
+    }, [])
+  );
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    fetchWorkflows();
+  }, []);
+
   return (
     <GradientBackground>
       <Header />
@@ -15,6 +49,9 @@ const HomeScreen = ({ navigation }) => {
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />
+        }
       >
         <View style={styles.titleContainer}>
           <Text style={styles.pageTitle}>Workflow</Text>
@@ -25,18 +62,18 @@ const HomeScreen = ({ navigation }) => {
 
         <View style={styles.statsContainer}>
           <StatsCard
-            title="Executions today"
-            value="12.4k"
+            title="Total Workflows"
+            value={workflows.length.toString()}
             icon="zap"
-            trend="+12%"
+            trend={workflows.length > 0 ? "Active" : "No data"}
             colors={['#1e1b4b', '#312e81']}
           />
           <StatsCard
             title="Success Rate"
-            value="99.9%"
+            value="N/A"
             icon="activity"
             trend="Stable"
-            colors={['#1e1b4b', '#1e1b4b']} // Darker flat for contrast
+            colors={['#1e1b4b', '#1e1b4b']}
           />
         </View>
 
@@ -46,35 +83,42 @@ const HomeScreen = ({ navigation }) => {
         </View>
 
         <View style={styles.workflowList}>
-          <WorkflowItem
-            title="Social Sync"
-            lastRun="2m ago"
-            iconType="social"
-            status="Last run: 2m ago"
-            onPress={() => navigation.navigate('WorkflowDetail', { title: "Social Sync", status: "Active" })}
-          />
-          <WorkflowItem
-            title="Daily Report"
-            lastRun="5h ago"
-            iconType="mail"
-            status="Last run: 5h ago"
-            onPress={() => navigation.navigate('WorkflowDetail', { title: "Daily Report", status: "Active" })}
-          />
-          <WorkflowItem
-            title="Lead Filter"
-            lastRun="Paused"
-            iconType="filter"
-            status="Paused"
-            initialActive={false}
-            onPress={() => navigation.navigate('WorkflowDetail', { title: "Lead Filter", status: "Paused" })}
-          />
-          <WorkflowItem
-            title="DB Backup"
-            lastRun="Running now..."
-            iconType="db"
-            status="Running now..."
-            onPress={() => navigation.navigate('WorkflowDetail', { title: "DB Backup", status: "Running" })}
-          />
+          {loading && !refreshing ? (
+            <ActivityIndicator size="large" color="#3b82f6" style={{ marginTop: 20 }} />
+          ) : workflows.length === 0 ? (
+            <Text style={styles.emptyText}>No workflows created yet.</Text>
+          ) : (
+            workflows.map((workflow) => (
+              <WorkflowItem
+                key={workflow.id}
+                title={workflow.name}
+                lastRun={workflow.lastRun || "Never"}
+                iconType="filter" // TODO: Dynamic icon based on triggers
+                status={workflow.isActive ? "Active" : "Paused"}
+                initialActive={workflow.isActive}
+                onPress={() => navigation.navigate('WorkflowDetail', { id: workflow.id, title: workflow.name, status: workflow.isActive ? "Active" : "Paused" })}
+                onToggle={async (newStatus) => {
+                  // Optimistic update
+                  setWorkflows((prev) =>
+                    prev.map((w) =>
+                      w.id === workflow.id ? { ...w, isActive: newStatus } : w
+                    )
+                  );
+                  try {
+                    await api.post(`/api/workflows/${workflow.id}/${newStatus ? 'activate' : 'deactivate'}`);
+                  } catch (e) {
+                    console.error('Toggle error:', e);
+                    // Revert on error
+                    setWorkflows((prev) =>
+                      prev.map((w) =>
+                        w.id === workflow.id ? { ...w, isActive: !newStatus } : w
+                      )
+                    );
+                  }
+                }}
+              />
+            ))
+          )}
         </View>
 
         <View style={{ height: 100 }} />
@@ -127,6 +171,12 @@ const styles = StyleSheet.create({
   },
   workflowList: {
     paddingHorizontal: 20,
+  },
+  emptyText: {
+    color: '#94a3b8',
+    textAlign: 'center',
+    marginTop: 20,
+    fontSize: 16,
   },
   bottomNavContainer: {
     position: 'absolute',
