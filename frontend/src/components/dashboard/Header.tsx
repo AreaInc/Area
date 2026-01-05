@@ -51,11 +51,11 @@ export function DashboardHeader({ onSave }: DashboardHeaderProps) {
 
   const handleToggleActive = () => {
     if (activeWorkflow) {
-        if (activeWorkflow.isActive) {
-            deactivateWorkflow(activeWorkflow.id)
-        } else {
-            activateWorkflow(activeWorkflow.id)
-        }
+      if (activeWorkflow.isActive) {
+        deactivateWorkflow(activeWorkflow.id)
+      } else {
+        activateWorkflow(activeWorkflow.id)
+      }
     }
   }
 
@@ -65,15 +65,15 @@ export function DashboardHeader({ onSave }: DashboardHeaderProps) {
 
   const handleConfirmDelete = async () => {
     if (activeWorkflow) {
-        try {
-            await deleteWorkflow(String(activeWorkflow.id))
-            setIsDeleteModalOpen(false)
-            if (workflows.length === 1 && workflows[0].id === activeWorkflow.id) {
-              dispatch(clearWorkflow())
-            }
-        } catch (error) {
-            console.error("Failed to delete workflow:", error)
+      try {
+        await deleteWorkflow(String(activeWorkflow.id))
+        setIsDeleteModalOpen(false)
+        if (workflows.length === 1 && workflows[0].id === activeWorkflow.id) {
+          dispatch(clearWorkflow())
         }
+      } catch (error) {
+        console.error("Failed to delete workflow:", error)
+      }
     }
   }
 
@@ -87,8 +87,8 @@ export function DashboardHeader({ onSave }: DashboardHeaderProps) {
 
   if (!activeWorkflow) {
     return (
-      <div className="absolute top-4 left-72 right-4 h-16 bg-card/80 backdrop-blur-md border border-border/50 rounded-2xl shadow-sm z-10 flex items-center px-6 transition-all duration-300">
-        <h1 className="text-lg font-semibold text-foreground">No Workflow Selected</h1>
+      <div className="absolute top-4 left-72 right-4 h-16 bg-card/80 backdrop-blur-md border border-border/50 rounded-2xl shadow-sm z-10 flex justify-center items-center px-6 transition-all duration-300">
+        <h1 className="text-lg font-semibold text-muted-foreground">No Workflow Selected</h1>
       </div>
     )
   }
@@ -160,27 +160,27 @@ export function DashboardHeader({ onSave }: DashboardHeaderProps) {
         title="Delete Workflow"
       >
         <div className="space-y-4">
-            <div className="flex items-center gap-3 text-destructive p-4 bg-destructive/10 rounded-lg border border-destructive/20">
-                <AlertTriangle size={24} />
-                <p className="font-medium">This action cannot be undone.</p>
-            </div>
-            <p className="text-muted-foreground">
-                Are you sure you want to delete this workflow? It will be permanently removed.
-            </p>
-            <div className="flex justify-end gap-3 mt-6">
-                <button
-                    onClick={() => setIsDeleteModalOpen(false)}
-                    className="px-4 py-2 hover:bg-muted rounded-lg transition-colors text-foreground"
-                >
-                    Cancel
-                </button>
-                <button
-                    onClick={handleConfirmDelete}
-                    className="px-4 py-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-lg transition-colors"
-                >
-                    Delete Workflow
-                </button>
-            </div>
+          <div className="flex items-center gap-3 text-destructive p-4 bg-destructive/10 rounded-lg border border-destructive/20">
+            <AlertTriangle size={24} />
+            <p className="font-medium">This action cannot be undone.</p>
+          </div>
+          <p className="text-muted-foreground">
+            Are you sure you want to delete this workflow? It will be permanently removed.
+          </p>
+          <div className="flex justify-end gap-3 mt-6">
+            <button
+              onClick={() => setIsDeleteModalOpen(false)}
+              className="px-4 py-2 hover:bg-muted rounded-lg transition-colors text-foreground"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleConfirmDelete}
+              className="px-4 py-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-lg transition-colors"
+            >
+              Delete Workflow
+            </button>
+          </div>
         </div>
       </Modal>
     </div>

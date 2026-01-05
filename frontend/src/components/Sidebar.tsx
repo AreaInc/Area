@@ -18,27 +18,27 @@ export function Sidebar() {
   const handleCreateWorkflow = () => {
     // We should probably have a modal for name/desc, but for now:
     createWorkflow({
-        name: 'New Workflow',
-        description: 'Created via Sidebar',
-        nodes: INITIAL_NODES,
-        connections: {} // API expects connections object, frontend currently uses 'edges' array in Redux.
-                        // We need to adapt this. The backend schema uses 'connections'.
-                        // The frontend 'flowSlice' uses 'edges'.
-                        // For now, let's just pass empty connections.
+      name: 'New Workflow',
+      description: 'Created via Sidebar',
+      nodes: INITIAL_NODES,
+      connections: {} // API expects connections object, frontend currently uses 'edges' array in Redux.
+      // We need to adapt this. The backend schema uses 'connections'.
+      // The frontend 'flowSlice' uses 'edges'.
+      // For now, let's just pass empty connections.
     }, {
-        onSuccess: (newWorkflow) => {
-             // Optimistically update the cache
-             queryClient.setQueryData(['workflows'], (old: Workflow[] | undefined) => {
-                 return [...(old || []), newWorkflow];
-             });
+      onSuccess: (newWorkflow) => {
+        // Optimistically update the cache
+        queryClient.setQueryData(['workflows'], (old: Workflow[] | undefined) => {
+          return [...(old || []), newWorkflow];
+        });
 
-             dispatch(setWorkflow({
-                id: String(newWorkflow.id),
-                nodes: newWorkflow.nodes,
-                edges: [] // Need to convert backend connections to edges if we load it immediately
-            }))
-            navigate({ to: '/dashboard' })
-        }
+        dispatch(setWorkflow({
+          id: String(newWorkflow.id),
+          nodes: newWorkflow.nodes,
+          edges: [] // Need to convert backend connections to edges if we load it immediately
+        }))
+        navigate({ to: '/dashboard' })
+      }
     })
   }
 
@@ -52,21 +52,26 @@ export function Sidebar() {
 
       <div className="px-4 py-2">
         <button
-            onClick={handleCreateWorkflow}
-            className="w-full flex items-center gap-2 px-3 py-2 bg-primary/10 text-primary hover:bg-primary/20 rounded-lg transition-colors text-sm font-medium border border-primary/20 cursor-pointer"
+          onClick={handleCreateWorkflow}
+          className="w-full flex items-center gap-2 px-3 py-2 bg-primary/10 text-primary hover:bg-primary/20 rounded-lg transition-colors text-sm font-medium border border-primary/20 cursor-pointer"
         >
-            <Plus size={16} />
-            <span>New Workflow</span>
+          <Plus size={16} />
+          <span>New Workflow</span>
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-2 space-y-1">
+      <div className="flex-1 overflow-y-auto px-4 py-2 flex flex-col gap-1">
         <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-2">
           Your Workflows
         </div>
         {workflows.map((wf) => (
           <WorkflowItem key={wf.id} workflow={wf} />
         ))}
+        {workflows.length === 0 && (
+          <div className="flex-1 flex items-center justify-center">
+            <p className="text-muted-foreground text-sm">No workflows found</p>
+          </div>
+        )}
       </div>
 
       <UserMenu />
@@ -82,12 +87,12 @@ function WorkflowItem({ workflow }: { workflow: Workflow }) {
   const isActive = String(activeWorkflowId) === String(workflow.id)
 
   const handleWorkflowClick = () => {
-      dispatch(setWorkflow({
-          id: String(workflow.id),
-          nodes: workflow.nodes,
-          edges: workflow.edges || []
-      }))
-      navigate({ to: '/dashboard' })
+    dispatch(setWorkflow({
+      id: String(workflow.id),
+      nodes: workflow.nodes,
+      edges: workflow.edges || []
+    }))
+    navigate({ to: '/dashboard' })
   }
 
   return (
@@ -100,16 +105,16 @@ function WorkflowItem({ workflow }: { workflow: Workflow }) {
     >
       <div className="flex items-center justify-between w-full">
         <span className={clsx(
-            "font-medium text-sm transition-colors",
-            isActive ? "text-primary" : "text-foreground group-hover:text-primary"
+          "font-medium text-sm transition-colors",
+          isActive ? "text-primary" : "text-foreground group-hover:text-primary"
         )}>
-            {workflow.name}
+          {workflow.name}
         </span>
         <div className={clsx(
-            "w-2 h-2 rounded-full ring-2 ring-background transition-all",
-            workflow.isActive
-                ? "bg-emerald-500 shadow-[0_0_8px] shadow-emerald-500/50"
-                : "bg-muted-foreground/30"
+          "w-2 h-2 rounded-full ring-2 ring-background transition-all",
+          workflow.isActive
+            ? "bg-primary shadow-[0_0_8px] shadow-primary/50"
+            : "bg-muted-foreground/30"
         )} />
       </div>
       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
