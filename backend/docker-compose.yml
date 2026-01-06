@@ -1,54 +1,77 @@
 ---
-services:
-  area-postgres:
-    image: postgres:15-alpine
-    container_name: area-postgres
-    network_mode: host
-    environment:
-      POSTGRES_DB: ${POSTGRES_NAME:-area}
-      POSTGRES_USER: ${POSTGRES_USER:-area_user}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-area_password}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-area_user} -d ${POSTGRES_NAME:-area}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+include:
+  - path: ../database/docker-compose.yml
+  - path: ../redis/docker-compose.yml
+  - path: ../vault/docker-compose.yml
 
+services:
   backend:
     build:
-      context: ./backend
+      context: .
       dockerfile: Dockerfile
     container_name: area-backend
     ports:
-      - "8080:8080"
+      - "${BACKEND_PORT:-8080}:8080"
     environment:
       - NODE_ENV=production
-      - PORT=8080
-      - POSTGRES_HOST=${POSTGRES_HOST}
-      - POSTGRES_PORT=${POSTGRES_PORT}
-      - POSTGRES_NAME=${POSTGRES_NAME:-area}
-      - POSTGRES_USER=${POSTGRES_USER:-area_user}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-area_password}
-      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:area_super_secret}
+      - POSTGRES_HOST=${POSTGRES_HOST:-haproxy}
+      - POSTGRES_PORT=${POSTGRES_PORT:-5000}
+      - POSTGRES_NAME=${POSTGRES_NAME:-postgres}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+      - BACKEND_PORT=${BACKEND_PORT:-8080}
+      - REDIS_PASS=${REDIS_PASS}
+      - REDIS_HOST=${REDIS_HOST:-area-cache}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - VAULT_ADDR=http://vault:8200
     depends_on:
-      area-postgres:
+      patroni1:
+        condition: service_healthy
+      patroni2:
+        condition: service_healthy
+      patroni3:
+        condition: service_healthy
+      migration:
+        condition: service_completed_successfully
+      cache:
+        condition: service_started
+      vault:
+        condition: service_started
+    networks:
+      - area-network
+      - patroni
+
+  migration:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    container_name: area-migration
+    environment:
+      - NODE_ENV=production
+      - POSTGRES_HOST=${POSTGRES_HOST:-haproxy}
+      - POSTGRES_PORT=${POSTGRES_PORT:-5000}
+      - POSTGRES_NAME=${POSTGRES_NAME:-postgres}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+    command: pnpm db:push
+    depends_on:
+      patroni1:
+        condition: service_healthy
+      patroni2:
+        condition: service_healthy
+      patroni3:
         condition: service_healthy
     networks:
       - area-network
+      - patroni
 
-  # frontend:
-  #   build:
-  #     context: ./frontend/web
-  #     dockerfile: Dockerfile
-  #   container_name: area-frontend
-  #   ports:
-  #     - "8081:80"
-  #   depends_on:
-  #     - backend
-  #   networks:
-  #     - area-network
+networks:
+  area-network:
+    name: area-network
+  patroni:
+    name: area-patroni
 
 volumes:
   postgres_data:
