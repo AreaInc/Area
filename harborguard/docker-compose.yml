@@ -1,0 +1,52 @@
+---
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: harborguard
+      POSTGRES_PASSWORD: harborguard
+      POSTGRES_DB: harborguard
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - harborguard_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U harborguard -d harborguard -h localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  harborguard:
+    image: ghcr.io/harborguard/harborguard:v0.2b
+    container_name: harborguard
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: "postgresql://harborguard:harborguard@db:5432/harborguard"
+      PORT: "3000"
+      LOG_LEVEL: info
+      MAX_CONCURRENT_SCANS: "3"
+      ENABLED_SCANNERS: trivy,grype,syft
+      HEALTH_CHECK_ENABLED: "true"
+      NEXT_PUBLIC_DEMO_MODE: "false"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      # Mount docker socket to use local images
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # Working directories for scanners/patches
+      - harborguard_workdir:/workspace
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+
+volumes:
+  harborguard_db_data:
+  harborguard_workdir:
+
+networks:
+  default:
+    name: harborguard_net
