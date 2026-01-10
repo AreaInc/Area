@@ -158,9 +158,6 @@ export class OAuth2Service {
     }
   }
 
-  /**
-   * Refresh an expired OAuth2 token
-   */
   async refreshToken(credentialId: number): Promise<void> {
     const [credential] = await this.db
       .select()
@@ -226,9 +223,6 @@ export class OAuth2Service {
     }
   }
 
-  /**
-   * Get OAuth2 credentials for a user and provider
-   */
   async getCredentials(
     userId: string,
     provider: string,
