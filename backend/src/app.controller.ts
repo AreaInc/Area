@@ -57,7 +57,7 @@ export class AppController {
 
     return {
       client: {
-        host: "0.0.0.0",
+        host: process.env.DEPLOY_ADDRESS || "0.0.0.0",
       },
       server: {
         current_time: currentTime,
