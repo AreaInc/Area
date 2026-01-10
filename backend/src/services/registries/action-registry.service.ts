@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { IAction, ActionMetadata } from '../../common/types/action.interface';
+import { Injectable } from "@nestjs/common";
+import { IAction, ActionMetadata } from "../../common/types/action.interface";
 
 @Injectable()
 export class ActionRegistryService {
@@ -25,7 +25,10 @@ export class ActionRegistryService {
     );
   }
 
-  getMetadata(serviceProvider: string, actionId: string): ActionMetadata | undefined {
+  getMetadata(
+    serviceProvider: string,
+    actionId: string,
+  ): ActionMetadata | undefined {
     const action = this.get(serviceProvider, actionId);
     return action?.getMetadata();
   }

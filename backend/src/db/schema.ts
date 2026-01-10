@@ -170,12 +170,14 @@ export const workflows = pgTable("workflows", {
   // Trigger configuration (ONE trigger)
   triggerProvider: serviceProviderEnum("trigger_provider").notNull(),
   triggerId: varchar("trigger_id", { length: 100 }).notNull(),
-  triggerConfig: jsonb("trigger_config").notNull().default('{}'),
+  triggerConfig: jsonb("trigger_config").notNull().default("{}"),
   // Action configuration (ONE action)
   actionProvider: serviceProviderEnum("action_provider").notNull(),
   actionId: varchar("action_id", { length: 100 }).notNull(),
-  actionConfig: jsonb("action_config").notNull().default('{}'),
-  actionCredentialsId: integer("action_credentials_id").references(() => credentials.id),
+  actionConfig: jsonb("action_config").notNull().default("{}"),
+  actionCredentialsId: integer("action_credentials_id").references(
+    () => credentials.id,
+  ),
   isActive: boolean("is_active").default(false).notNull(),
   lastRun: timestamp("last_run"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -189,7 +191,9 @@ export const workflowExecutions = pgTable("workflow_executions", {
     .references(() => workflows.id),
   userId: text("user_id").notNull(),
   // Temporal workflow info
-  temporalWorkflowId: varchar("temporal_workflow_id", { length: 255 }).notNull(),
+  temporalWorkflowId: varchar("temporal_workflow_id", {
+    length: 255,
+  }).notNull(),
   temporalRunId: varchar("temporal_run_id", { length: 255 }).notNull(),
   status: varchar("status", { length: 50 }).notNull(),
   triggerData: jsonb("trigger_data"),
