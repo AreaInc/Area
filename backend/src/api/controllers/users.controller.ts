@@ -30,7 +30,6 @@ export class UsersController {
   async deleteMe(@Req() req: Request & { user: { id: string } }) {
     const userId = req.user.id;
 
-    // Delete related data first
     await db
       .delete(workflowExecutions)
       .where(eq(workflowExecutions.userId, userId));
@@ -40,11 +39,9 @@ export class UsersController {
     await db.delete(credentials).where(eq(credentials.userId, userId));
     await db.delete(workflows).where(eq(workflows.userId, userId));
 
-    // Delete auth data
     await db.delete(session).where(eq(session.userId, userId));
     await db.delete(account).where(eq(account.userId, userId));
 
-    // Finally delete user
     await db.delete(user).where(eq(user.id, userId));
 
     return { success: true };
