@@ -1,14 +1,6 @@
-/**
- * Automation Workflow
- *
- * This is the main Temporal workflow that orchestrates trigger → action execution.
- * Each workflow execution represents one trigger firing and executing one action.
- */
-
 import { proxyActivities, log } from "@temporalio/workflow";
 import type * as activities from "../activities";
 
-// Proxy activities with timeout configuration
 const { sendEmailActivity, readEmailActivity } = proxyActivities<
   typeof activities
 >({
@@ -20,43 +12,26 @@ const { sendEmailActivity, readEmailActivity } = proxyActivities<
   },
 });
 
-/**
- * Workflow input structure
- */
 export interface AutomationWorkflowInput {
-  // Workflow metadata
   workflowId: number;
   userId: string;
 
-  // Trigger information
   triggerProvider: string;
   triggerId: string;
   triggerData: Record<string, any>;
 
-  // Action information
   actionProvider: string;
   actionId: string;
   actionConfig: Record<string, any>;
   actionCredentialsId?: number;
 }
 
-/**
- * Workflow output structure
- */
 export interface AutomationWorkflowOutput {
   success: boolean;
   actionResult: any;
   error?: string;
 }
 
-/**
- * Main automation workflow
- *
- * This workflow:
- * 1. Receives trigger data
- * 2. Executes the configured action
- * 3. Returns the result
- */
 export async function automationWorkflow(
   input: AutomationWorkflowInput,
 ): Promise<AutomationWorkflowOutput> {
@@ -67,12 +42,10 @@ export async function automationWorkflow(
   });
 
   try {
-    // Execute the action based on provider and action ID
     const activityKey = `${input.actionProvider}:${input.actionId}`;
 
     let actionResult: any;
 
-    // Route to the appropriate activity
     switch (activityKey) {
       case "gmail:send-email":
         if (!input.actionCredentialsId) {
