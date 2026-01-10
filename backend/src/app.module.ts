@@ -8,8 +8,10 @@ import { AppService } from "./app.service";
 import { DrizzleModule } from "./db/drizzle.module";
 
 import { EventsModule } from "./websockets.module";
-import { ServicesModule } from "./services/services-module";
 import { ApiModule } from "./api/api.module";
+import { TemporalModule } from "./services/temporal/temporal.module";
+import { WorkflowsModule } from "./services/workflows/workflows.module";
+import { GmailModule } from "./services/gmail/gmail.module";
 
 import { AuthModule } from "@thallesp/nestjs-better-auth";
 import { auth } from "./auth";
@@ -47,7 +49,9 @@ import { auth } from "./auth";
     DrizzleModule,
     AuthModule.forRoot({ auth }),
     EventsModule,
-    ServicesModule,
+    TemporalModule,
+    WorkflowsModule, // This exports TriggerRegistry and ActionRegistry
+    GmailModule,
     ApiModule,
   ],
   controllers: [AppController],
