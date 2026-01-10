@@ -1,5 +1,3 @@
-export { BaseService } from "./base/base-service";
-export { BaseCredentials } from "./base/base-credentials";
-
-export * from "./types/interfaces";
-export * from "./types/enums";
+export * from "./types/action.interface";
+export * from "./types/trigger.interface";
+export { ServiceProvider, ActionType, CredentialType, ExecutionStatus } from "./types/enums";
