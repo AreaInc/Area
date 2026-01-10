@@ -1,11 +1,3 @@
-/**
- * Temporal Activities Entry Point
- *
- * This file exports all Temporal activities with dependency injection.
- * Activities need access to database and services, so we create them
- * with a factory function that injects dependencies.
- */
-
 import postgres from 'postgres';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import * as schema from '../../db/schema';
@@ -13,14 +5,10 @@ import { eq } from 'drizzle-orm';
 import { GmailClient } from '../../services/gmail/gmail-client';
 import { Context } from '@temporalio/activity';
 
-// Create database connection for activities
 const connectionString = `postgresql://${process.env.POSTGRES_USER}:${process.env.POSTGRES_PASSWORD}@${process.env.POSTGRES_HOST}:${process.env.POSTGRES_PORT}/${process.env.POSTGRES_NAME}`;
 const queryClient = postgres(connectionString);
 const db = drizzle(queryClient, { schema });
 
-/**
- * Template variable replacement utility
- */
 function replaceTemplateVariables(
   template: string,
   data?: Record<string, any>,
@@ -80,10 +68,8 @@ export async function sendEmailActivity(input: SendEmailInput): Promise<SendEmai
   activity.log.info('Sending email', { to: input.to, subject: input.subject });
 
   try {
-    // Load credentials
     const credential = await loadCredentials(input.credentialId, input.userId);
 
-    // Create legacy-compatible credentials object
     const gmailCredentials = {
       data: {
         accessToken: credential.accessToken,
@@ -92,10 +78,8 @@ export async function sendEmailActivity(input: SendEmailInput): Promise<SendEmai
       },
     };
 
-    // Create Gmail client
     const gmailClient = new GmailClient(gmailCredentials as any);
 
-    // Merge template variables with trigger data
     const emailParams = {
       to: replaceTemplateVariables(input.to, input.triggerData),
       subject: replaceTemplateVariables(input.subject, input.triggerData),
@@ -105,7 +89,6 @@ export async function sendEmailActivity(input: SendEmailInput): Promise<SendEmai
       isHtml: input.isHtml,
     };
 
-    // Send email
     const result = await gmailClient.sendEmail(emailParams);
 
     activity.log.info('Email sent successfully', {
@@ -158,10 +141,8 @@ export async function readEmailActivity(input: ReadEmailInput): Promise<ReadEmai
   activity.log.info('Reading emails', { query: input.query, maxResults: input.maxResults });
 
   try {
-    // Load credentials
     const credential = await loadCredentials(input.credentialId, input.userId);
 
-    // Create legacy-compatible credentials object
     const gmailCredentials = {
       data: {
         accessToken: credential.accessToken,
@@ -170,17 +151,14 @@ export async function readEmailActivity(input: ReadEmailInput): Promise<ReadEmai
       },
     };
 
-    // Create Gmail client
     const gmailClient = new GmailClient(gmailCredentials as any);
 
-    // List messages
     const { messages: messageList } = await gmailClient.listMessages({
       query: input.query,
       maxResults: input.maxResults || 10,
       labelIds: input.labelIds,
     });
 
-    // Get full details for each message
     const messages = await Promise.all(
       messageList.slice(0, input.maxResults || 10).map(async (msg) => {
         if (!msg.id) return null;
