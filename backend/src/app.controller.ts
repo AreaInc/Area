@@ -26,7 +26,10 @@ export class AppController {
 
     triggers.forEach((trigger) => {
       if (!servicesMap.has(trigger.serviceProvider)) {
-        servicesMap.set(trigger.serviceProvider, { actions: [], reactions: [] });
+        servicesMap.set(trigger.serviceProvider, {
+          actions: [],
+          reactions: [],
+        });
       }
       servicesMap.get(trigger.serviceProvider)!.actions.push({
         name: trigger.id.toLowerCase().replace(/\s+/g, "_"),
@@ -44,11 +47,13 @@ export class AppController {
       });
     });
 
-    const servicesList = Array.from(servicesMap.entries()).map(([name, data]) => ({
-      name: name.toLowerCase(),
-      actions: data.actions,
-      reactions: data.reactions,
-    }));
+    const servicesList = Array.from(servicesMap.entries()).map(
+      ([name, data]) => ({
+        name: name.toLowerCase(),
+        actions: data.actions,
+        reactions: data.reactions,
+      }),
+    );
 
     return {
       client: {
