@@ -1,9 +1,9 @@
-import { NativeConnection, Worker } from '@temporalio/worker';
-import * as activities from './temporal/activities';
-import { join } from 'path';
+import { NativeConnection, Worker } from "@temporalio/worker";
+import * as activities from "./temporal/activities";
+import { join } from "path";
 
 async function run() {
-  const temporalAddress = process.env.TEMPORAL_ADDRESS || 'localhost:7233';
+  const temporalAddress = process.env.TEMPORAL_ADDRESS || "localhost:7233";
 
   console.log(`Connecting to Temporal server at ${temporalAddress}...`);
 
@@ -11,27 +11,27 @@ async function run() {
     address: temporalAddress,
   });
 
-  console.log('Connected to Temporal server');
+  console.log("Connected to Temporal server");
 
-  const taskQueue = 'automation-workflows';
+  const taskQueue = "automation-workflows";
 
   const worker = await Worker.create({
     connection,
-    namespace: 'default',
+    namespace: "default",
     taskQueue,
-    workflowsPath: require.resolve('./temporal/workflows/automation.workflow'),
+    workflowsPath: require.resolve("./temporal/workflows/automation.workflow"),
     activities,
     maxConcurrentActivityTaskExecutions: 10,
     maxConcurrentWorkflowTaskExecutions: 10,
   });
 
   console.log(`Temporal worker started on task queue: ${taskQueue}`);
-  console.log('Listening for workflow tasks...');
+  console.log("Listening for workflow tasks...");
 
   await worker.run();
 }
 
 run().catch((err) => {
-  console.error('Worker failed:', err);
+  console.error("Worker failed:", err);
   process.exit(1);
 });

@@ -1,9 +1,9 @@
-import postgres from 'postgres';
-import { drizzle } from 'drizzle-orm/postgres-js';
-import * as schema from '../../db/schema';
-import { eq } from 'drizzle-orm';
-import { GmailClient } from '../../services/gmail/gmail-client';
-import { Context } from '@temporalio/activity';
+import postgres from "postgres";
+import { drizzle } from "drizzle-orm/postgres-js";
+import * as schema from "../../db/schema";
+import { eq } from "drizzle-orm";
+import { GmailClient } from "../../services/gmail/gmail-client";
+import { Context } from "@temporalio/activity";
 
 const connectionString = `postgresql://${process.env.POSTGRES_USER}:${process.env.POSTGRES_PASSWORD}@${process.env.POSTGRES_HOST}:${process.env.POSTGRES_PORT}/${process.env.POSTGRES_NAME}`;
 const queryClient = postgres(connectionString);
@@ -30,11 +30,11 @@ async function loadCredentials(credentialId: number, userId: string) {
     .where(eq(schema.credentials.id, credentialId));
 
   if (!credential) {
-    throw new Error('Credentials not found');
+    throw new Error("Credentials not found");
   }
 
   if (credential.userId !== userId) {
-    throw new Error('Unauthorized: Credentials do not belong to user');
+    throw new Error("Unauthorized: Credentials do not belong to user");
   }
 
   return credential;
@@ -63,9 +63,11 @@ export interface SendEmailOutput {
   error?: string;
 }
 
-export async function sendEmailActivity(input: SendEmailInput): Promise<SendEmailOutput> {
+export async function sendEmailActivity(
+  input: SendEmailInput,
+): Promise<SendEmailOutput> {
   const activity = Context.current();
-  activity.log.info('Sending email', { to: input.to, subject: input.subject });
+  activity.log.info("Sending email", { to: input.to, subject: input.subject });
 
   try {
     const credential = await loadCredentials(input.credentialId, input.userId);
@@ -74,7 +76,9 @@ export async function sendEmailActivity(input: SendEmailInput): Promise<SendEmai
       data: {
         accessToken: credential.accessToken,
         refreshToken: credential.refreshToken,
-        expiresAt: credential.expiresAt ? new Date(credential.expiresAt).getTime() : undefined,
+        expiresAt: credential.expiresAt
+          ? new Date(credential.expiresAt).getTime()
+          : undefined,
       },
     };
 
@@ -84,14 +88,18 @@ export async function sendEmailActivity(input: SendEmailInput): Promise<SendEmai
       to: replaceTemplateVariables(input.to, input.triggerData),
       subject: replaceTemplateVariables(input.subject, input.triggerData),
       body: replaceTemplateVariables(input.body, input.triggerData),
-      cc: input.cc?.map((email) => replaceTemplateVariables(email, input.triggerData)),
-      bcc: input.bcc?.map((email) => replaceTemplateVariables(email, input.triggerData)),
+      cc: input.cc?.map((email) =>
+        replaceTemplateVariables(email, input.triggerData),
+      ),
+      bcc: input.bcc?.map((email) =>
+        replaceTemplateVariables(email, input.triggerData),
+      ),
       isHtml: input.isHtml,
     };
 
     const result = await gmailClient.sendEmail(emailParams);
 
-    activity.log.info('Email sent successfully', {
+    activity.log.info("Email sent successfully", {
       messageId: result.messageId,
       threadId: result.threadId,
     });
@@ -102,13 +110,13 @@ export async function sendEmailActivity(input: SendEmailInput): Promise<SendEmai
       success: true,
     };
   } catch (error) {
-    activity.log.error('Failed to send email', { error: error.message });
+    activity.log.error("Failed to send email", { error: error.message });
 
     return {
-      messageId: '',
-      threadId: '',
+      messageId: "",
+      threadId: "",
       success: false,
-      error: error.message || 'Unknown error',
+      error: error.message || "Unknown error",
     };
   }
 }
@@ -136,9 +144,14 @@ export interface ReadEmailOutput {
   error?: string;
 }
 
-export async function readEmailActivity(input: ReadEmailInput): Promise<ReadEmailOutput> {
+export async function readEmailActivity(
+  input: ReadEmailInput,
+): Promise<ReadEmailOutput> {
   const activity = Context.current();
-  activity.log.info('Reading emails', { query: input.query, maxResults: input.maxResults });
+  activity.log.info("Reading emails", {
+    query: input.query,
+    maxResults: input.maxResults,
+  });
 
   try {
     const credential = await loadCredentials(input.credentialId, input.userId);
@@ -147,7 +160,9 @@ export async function readEmailActivity(input: ReadEmailInput): Promise<ReadEmai
       data: {
         accessToken: credential.accessToken,
         refreshToken: credential.refreshToken,
-        expiresAt: credential.expiresAt ? new Date(credential.expiresAt).getTime() : undefined,
+        expiresAt: credential.expiresAt
+          ? new Date(credential.expiresAt).getTime()
+          : undefined,
       },
     };
 
@@ -180,7 +195,9 @@ export async function readEmailActivity(input: ReadEmailInput): Promise<ReadEmai
 
     const validMessages = messages.filter((msg) => msg !== null);
 
-    activity.log.info('Emails read successfully', { count: validMessages.length });
+    activity.log.info("Emails read successfully", {
+      count: validMessages.length,
+    });
 
     return {
       messages: validMessages,
@@ -188,13 +205,13 @@ export async function readEmailActivity(input: ReadEmailInput): Promise<ReadEmai
       success: true,
     };
   } catch (error) {
-    activity.log.error('Failed to read emails', { error: error.message });
+    activity.log.error("Failed to read emails", { error: error.message });
 
     return {
       messages: [],
       totalCount: 0,
       success: false,
-      error: error.message || 'Unknown error',
+      error: error.message || "Unknown error",
     };
   }
 }

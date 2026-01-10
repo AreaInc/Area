@@ -5,14 +5,16 @@
  * Each workflow execution represents one trigger firing and executing one action.
  */
 
-import { proxyActivities, log } from '@temporalio/workflow';
-import type * as activities from '../activities';
+import { proxyActivities, log } from "@temporalio/workflow";
+import type * as activities from "../activities";
 
 // Proxy activities with timeout configuration
-const { sendEmailActivity, readEmailActivity } = proxyActivities<typeof activities>({
-  startToCloseTimeout: '5 minutes',
+const { sendEmailActivity, readEmailActivity } = proxyActivities<
+  typeof activities
+>({
+  startToCloseTimeout: "5 minutes",
   retry: {
-    initialInterval: '1s',
+    initialInterval: "1s",
     backoffCoefficient: 2,
     maximumAttempts: 3,
   },
@@ -58,7 +60,7 @@ export interface AutomationWorkflowOutput {
 export async function automationWorkflow(
   input: AutomationWorkflowInput,
 ): Promise<AutomationWorkflowOutput> {
-  log.info('Starting automation workflow', {
+  log.info("Starting automation workflow", {
     workflowId: input.workflowId,
     trigger: `${input.triggerProvider}:${input.triggerId}`,
     action: `${input.actionProvider}:${input.actionId}`,
@@ -72,9 +74,9 @@ export async function automationWorkflow(
 
     // Route to the appropriate activity
     switch (activityKey) {
-      case 'gmail:send-email':
+      case "gmail:send-email":
         if (!input.actionCredentialsId) {
-          throw new Error('Credentials required for send-email action');
+          throw new Error("Credentials required for send-email action");
         }
 
         actionResult = await sendEmailActivity({
@@ -85,9 +87,9 @@ export async function automationWorkflow(
         } as any);
         break;
 
-      case 'gmail:read-email':
+      case "gmail:read-email":
         if (!input.actionCredentialsId) {
-          throw new Error('Credentials required for read-email action');
+          throw new Error("Credentials required for read-email action");
         }
 
         actionResult = await readEmailActivity({
@@ -101,7 +103,7 @@ export async function automationWorkflow(
         throw new Error(`Unsupported action: ${activityKey}`);
     }
 
-    log.info('Automation workflow completed successfully', {
+    log.info("Automation workflow completed successfully", {
       workflowId: input.workflowId,
       actionResult,
     });
@@ -111,7 +113,7 @@ export async function automationWorkflow(
       actionResult,
     };
   } catch (error) {
-    log.error('Automation workflow failed', {
+    log.error("Automation workflow failed", {
       workflowId: input.workflowId,
       error: error.message,
     });
@@ -119,7 +121,7 @@ export async function automationWorkflow(
     return {
       success: false,
       actionResult: null,
-      error: error.message || 'Unknown error',
+      error: error.message || "Unknown error",
     };
   }
 }
