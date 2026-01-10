@@ -1,9 +1,9 @@
 export enum TriggerType {
-  MANUAL = 'manual',
-  SCHEDULED = 'scheduled',
-  WEBHOOK = 'webhook',
-  EVENT = 'event',
-  POLLING = 'polling',
+  MANUAL = "manual",
+  SCHEDULED = "scheduled",
+  WEBHOOK = "webhook",
+  EVENT = "event",
+  POLLING = "polling",
 }
 
 export interface ITrigger {
@@ -15,7 +15,11 @@ export interface ITrigger {
   configSchema: Record<string, any>;
   outputSchema?: Record<string, any>;
   requiresCredentials: boolean;
-  register(workflowId: number, config: Record<string, any>, credentialsId?: number): Promise<void>;
+  register(
+    workflowId: number,
+    config: Record<string, any>,
+    credentialsId?: number,
+  ): Promise<void>;
   unregister(workflowId: number): Promise<void>;
   validateConfig(config: Record<string, any>): Promise<boolean>;
 }
