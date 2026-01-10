@@ -1,13 +1,18 @@
-import { Injectable, BadRequestException, NotFoundException, Inject } from '@nestjs/common';
-import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import { DRIZZLE } from '../../db/drizzle.module';
-import * as schema from '../../db/schema';
-import { workflows, workflowExecutions } from '../../db/schema';
-import { eq, and, desc } from 'drizzle-orm';
-import { TemporalClientService } from '../temporal/temporal-client.service';
-import { TriggerRegistryService } from '../registries/trigger-registry.service';
-import { ActionRegistryService } from '../registries/action-registry.service';
-import { AutomationWorkflowInput } from '../../temporal/workflows/automation.workflow';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+  Inject,
+} from "@nestjs/common";
+import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import { DRIZZLE } from "../../db/drizzle.module";
+import * as schema from "../../db/schema";
+import { workflows, workflowExecutions } from "../../db/schema";
+import { eq, and, desc } from "drizzle-orm";
+import { TemporalClientService } from "../temporal/temporal-client.service";
+import { TriggerRegistryService } from "../registries/trigger-registry.service";
+import { ActionRegistryService } from "../registries/action-registry.service";
+import { AutomationWorkflowInput } from "../../temporal/workflows/automation.workflow";
 
 export interface CreateWorkflowDto {
   name: string;
@@ -51,14 +56,20 @@ export class WorkflowsService {
   ) {}
 
   async createWorkflow(userId: string, dto: CreateWorkflowDto) {
-    const trigger = this.triggerRegistry.get(dto.trigger.provider, dto.trigger.triggerId);
+    const trigger = this.triggerRegistry.get(
+      dto.trigger.provider,
+      dto.trigger.triggerId,
+    );
     if (!trigger) {
       throw new BadRequestException(
         `Trigger not found: ${dto.trigger.provider}:${dto.trigger.triggerId}`,
       );
     }
 
-    const action = this.actionRegistry.get(dto.action.provider, dto.action.actionId);
+    const action = this.actionRegistry.get(
+      dto.action.provider,
+      dto.action.actionId,
+    );
     if (!action) {
       throw new BadRequestException(
         `Action not found: ${dto.action.provider}:${dto.action.actionId}`,
@@ -96,7 +107,7 @@ export class WorkflowsService {
       .where(and(eq(workflows.id, workflowId), eq(workflows.userId, userId)));
 
     if (!workflow) {
-      throw new NotFoundException('Workflow not found');
+      throw new NotFoundException("Workflow not found");
     }
 
     return workflow;
@@ -110,11 +121,17 @@ export class WorkflowsService {
       .orderBy(desc(workflows.createdAt));
   }
 
-  async updateWorkflow(userId: string, workflowId: number, dto: UpdateWorkflowDto) {
+  async updateWorkflow(
+    userId: string,
+    workflowId: number,
+    dto: UpdateWorkflowDto,
+  ) {
     const workflow = await this.getWorkflowById(userId, workflowId);
 
     if (workflow.isActive) {
-      throw new BadRequestException('Cannot update an active workflow. Deactivate it first.');
+      throw new BadRequestException(
+        "Cannot update an active workflow. Deactivate it first.",
+      );
     }
 
     const updates: any = {};
@@ -128,7 +145,10 @@ export class WorkflowsService {
     }
 
     if (dto.trigger) {
-      const trigger = this.triggerRegistry.get(dto.trigger.provider, dto.trigger.triggerId);
+      const trigger = this.triggerRegistry.get(
+        dto.trigger.provider,
+        dto.trigger.triggerId,
+      );
       if (!trigger) {
         throw new BadRequestException(
           `Trigger not found: ${dto.trigger.provider}:${dto.trigger.triggerId}`,
@@ -143,7 +163,10 @@ export class WorkflowsService {
     }
 
     if (dto.action) {
-      const action = this.actionRegistry.get(dto.action.provider, dto.action.actionId);
+      const action = this.actionRegistry.get(
+        dto.action.provider,
+        dto.action.actionId,
+      );
       if (!action) {
         throw new BadRequestException(
           `Action not found: ${dto.action.provider}:${dto.action.actionId}`,
@@ -185,12 +208,15 @@ export class WorkflowsService {
     const workflow = await this.getWorkflowById(userId, workflowId);
 
     if (workflow.isActive) {
-      throw new BadRequestException('Workflow is already active');
+      throw new BadRequestException("Workflow is already active");
     }
 
-    const trigger = this.triggerRegistry.get(workflow.triggerProvider, workflow.triggerId);
+    const trigger = this.triggerRegistry.get(
+      workflow.triggerProvider,
+      workflow.triggerId,
+    );
     if (!trigger) {
-      throw new BadRequestException('Trigger not found');
+      throw new BadRequestException("Trigger not found");
     }
 
     await trigger.register(
@@ -211,10 +237,13 @@ export class WorkflowsService {
     const workflow = await this.getWorkflowById(userId, workflowId);
 
     if (!workflow.isActive) {
-      throw new BadRequestException('Workflow is not active');
+      throw new BadRequestException("Workflow is not active");
     }
 
-    const trigger = this.triggerRegistry.get(workflow.triggerProvider, workflow.triggerId);
+    const trigger = this.triggerRegistry.get(
+      workflow.triggerProvider,
+      workflow.triggerId,
+    );
     if (trigger) {
       await trigger.unregister(workflowId);
     }
@@ -227,7 +256,11 @@ export class WorkflowsService {
     return { success: true };
   }
 
-  async executeWorkflow(userId: string, workflowId: number, triggerData: Record<string, any> = {}) {
+  async executeWorkflow(
+    userId: string,
+    workflowId: number,
+    triggerData: Record<string, any> = {},
+  ) {
     const workflow = await this.getWorkflowById(userId, workflowId);
 
     const temporalWorkflowId = `workflow-${workflowId}-${Date.now()}`;
@@ -244,7 +277,10 @@ export class WorkflowsService {
       actionCredentialsId: workflow.actionCredentialsId || undefined,
     };
 
-    const handle = await this.temporalClient.startAutomationWorkflow(temporalWorkflowId, input);
+    const handle = await this.temporalClient.startAutomationWorkflow(
+      temporalWorkflowId,
+      input,
+    );
 
     const [execution] = await this.db
       .insert(workflowExecutions)
@@ -252,8 +288,9 @@ export class WorkflowsService {
         workflowId: workflow.id,
         userId: workflow.userId,
         temporalWorkflowId: handle.workflowId,
-        temporalRunId: (handle as any).firstExecutionRunId || temporalWorkflowId,
-        status: 'running',
+        temporalRunId:
+          (handle as any).firstExecutionRunId || temporalWorkflowId,
+        status: "running",
         triggerData,
         startedAt: new Date(),
       })
@@ -278,18 +315,21 @@ export class WorkflowsService {
       .limit(50);
   }
 
-  async triggerWorkflowExecution(workflowId: number, triggerData: Record<string, any>) {
+  async triggerWorkflowExecution(
+    workflowId: number,
+    triggerData: Record<string, any>,
+  ) {
     const [workflow] = await this.db
       .select()
       .from(workflows)
       .where(eq(workflows.id, workflowId));
 
     if (!workflow) {
-      throw new NotFoundException('Workflow not found');
+      throw new NotFoundException("Workflow not found");
     }
 
     if (!workflow.isActive) {
-      throw new BadRequestException('Workflow is not active');
+      throw new BadRequestException("Workflow is not active");
     }
 
     return this.executeWorkflow(workflow.userId, workflowId, triggerData);
