@@ -20,9 +20,6 @@ function replaceTemplateVariables(
   });
 }
 
-/**
- * Load credentials from database
- */
 async function loadCredentials(credentialId: number, userId: string) {
   const [credential] = await db
     .select()
@@ -39,10 +36,6 @@ async function loadCredentials(credentialId: number, userId: string) {
 
   return credential;
 }
-
-/**
- * Gmail Activities
- */
 
 export interface SendEmailInput {
   to: string;
