@@ -9,6 +9,7 @@ RUN npm install -g pnpm && pnpm install --frozen-lockfile
 
 COPY . .
 
+ENV NODE_OPTIONS=--max_old_space_size=3072
 RUN pnpm build
 
 FROM node:22-alpine
