@@ -8,7 +8,17 @@ import {
 import { Public } from "../decorators/public.decorator";
 import { WorkflowsService } from "../../services/workflows/workflows.service";
 import { ReceiveEmailTrigger } from "../../services/gmail/triggers/receive-email.trigger";
-import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBody,
+} from "@nestjs/swagger";
+import {
+  GmailWebhookPayloadDto,
+  GmailWebhookResponseDto,
+  TestWebhookPayloadDto,
+} from "../dtos";
 
 @ApiTags("Gmail Webhooks")
 @Controller("api/webhooks/gmail")
@@ -20,28 +30,22 @@ export class GmailWebhookController {
 
   @Post("receive")
   @Public()
-  @ApiOperation({ summary: "Receive Gmail webhook notification" })
-  @ApiResponse({ status: 200, description: "Webhook processed successfully" })
-  @ApiResponse({ status: 400, description: "Invalid webhook payload" })
-  async receiveEmail(
-    @Body()
-    payload: {
-      messageId: string;
-      threadId?: string;
-      from: string;
-      to: string;
-      subject: string;
-      body?: string;
-      htmlBody?: string;
-      date?: string;
-      attachments?: Array<{
-        filename: string;
-        mimeType: string;
-        size: number;
-        attachmentId: string;
-      }>;
-    },
-  ) {
+  @ApiOperation({
+    summary: "Receive Gmail webhook notification",
+    description:
+      "Receives Gmail push notifications for new emails. This endpoint is called by Google's Pub/Sub service when a new email arrives. It finds all matching active workflows and triggers their execution via Temporal. This endpoint is public and does not require authentication.",
+  })
+  @ApiBody({ type: GmailWebhookPayloadDto })
+  @ApiResponse({
+    status: 200,
+    description: "Webhook processed successfully",
+    type: GmailWebhookResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: "Invalid webhook payload - missing required fields (messageId, from, to, subject)",
+  })
+  async receiveEmail(@Body() payload: GmailWebhookPayloadDto) {
     if (
       !payload.messageId ||
       !payload.from ||
@@ -103,20 +107,22 @@ export class GmailWebhookController {
 
   @Post("test")
   @Public()
-  @ApiOperation({ summary: "Test Gmail webhook with sample data" })
+  @ApiOperation({
+    summary: "Test Gmail webhook with sample data",
+    description:
+      "Test endpoint for simulating Gmail webhook notifications. Useful for testing workflows without waiting for actual emails. All fields are optional - defaults will be used if not provided.",
+  })
+  @ApiBody({ type: TestWebhookPayloadDto, required: false })
   @ApiResponse({
     status: 200,
     description: "Test webhook processed successfully",
+    type: GmailWebhookResponseDto,
   })
-  async testWebhook(
-    @Body()
-    payload?: {
-      from?: string;
-      to?: string;
-      subject?: string;
-      body?: string;
-    },
-  ) {
+  @ApiResponse({
+    status: 400,
+    description: "Invalid webhook payload",
+  })
+  async testWebhook(@Body() payload?: TestWebhookPayloadDto) {
     const testEmail = {
       messageId: `test-${Date.now()}`,
       threadId: `thread-${Date.now()}`,
