@@ -8,12 +8,7 @@ import {
 import { Public } from "../decorators/public.decorator";
 import { WorkflowsService } from "../../services/workflows/workflows.service";
 import { ReceiveEmailTrigger } from "../../services/gmail/triggers/receive-email.trigger";
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBody,
-} from "@nestjs/swagger";
+import { ApiTags, ApiOperation, ApiResponse, ApiBody } from "@nestjs/swagger";
 import {
   GmailWebhookPayloadDto,
   GmailWebhookResponseDto,
@@ -43,7 +38,8 @@ export class GmailWebhookController {
   })
   @ApiResponse({
     status: 400,
-    description: "Invalid webhook payload - missing required fields (messageId, from, to, subject)",
+    description:
+      "Invalid webhook payload - missing required fields (messageId, from, to, subject)",
   })
   async receiveEmail(@Body() payload: GmailWebhookPayloadDto) {
     if (

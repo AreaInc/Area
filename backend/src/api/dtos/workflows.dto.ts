@@ -119,7 +119,10 @@ export class WorkflowResponseDto {
   @ApiProperty({ description: "Workflow name", example: "Forward Emails" })
   name: string;
 
-  @ApiPropertyOptional({ description: "Workflow description", example: "Forwards emails" })
+  @ApiPropertyOptional({
+    description: "Workflow description",
+    example: "Forwards emails",
+  })
   description?: string | null;
 
   @ApiProperty({ description: "Trigger provider", example: "gmail" })
@@ -143,7 +146,10 @@ export class WorkflowResponseDto {
   @ApiPropertyOptional({ description: "Action credentials ID", example: 123 })
   actionCredentialsId?: number | null;
 
-  @ApiProperty({ description: "Whether the workflow is active", example: false })
+  @ApiProperty({
+    description: "Whether the workflow is active",
+    example: false,
+  })
   isActive: boolean;
 
   @ApiPropertyOptional({ description: "Last run timestamp" })
@@ -166,7 +172,10 @@ export class WorkflowExecutionResponseDto {
   @ApiProperty({ description: "User ID", example: "user_123" })
   userId: string;
 
-  @ApiProperty({ description: "Temporal workflow ID", example: "workflow-1-1234567890" })
+  @ApiProperty({
+    description: "Temporal workflow ID",
+    example: "workflow-1-1234567890",
+  })
   temporalWorkflowId: string;
 
   @ApiProperty({ description: "Temporal run ID", example: "run-123" })
@@ -220,7 +229,10 @@ export class TriggerMetadataResponseDto {
   @ApiPropertyOptional({ description: "Output schema", type: Object })
   outputSchema?: Record<string, any>;
 
-  @ApiProperty({ description: "Whether credentials are required", example: false })
+  @ApiProperty({
+    description: "Whether credentials are required",
+    example: false,
+  })
   requiresCredentials: boolean;
 }
 
@@ -243,7 +255,10 @@ export class ActionMetadataResponseDto {
   @ApiPropertyOptional({ description: "Output schema", type: Object })
   outputSchema?: Record<string, any>;
 
-  @ApiProperty({ description: "Whether credentials are required", example: true })
+  @ApiProperty({
+    description: "Whether credentials are required",
+    example: true,
+  })
   requiresCredentials: boolean;
 }
 

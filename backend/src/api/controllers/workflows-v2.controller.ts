@@ -63,7 +63,8 @@ export class WorkflowsV2Controller {
   })
   @ApiResponse({
     status: 400,
-    description: "Invalid workflow configuration - trigger or action not found, or validation failed",
+    description:
+      "Invalid workflow configuration - trigger or action not found, or validation failed",
   })
   @ApiResponse({ status: 401, description: "Unauthorized" })
   async createWorkflow(@Req() req: Request, @Body() dto: CreateWorkflowDto) {
@@ -96,7 +97,8 @@ export class WorkflowsV2Controller {
   @Get()
   @ApiOperation({
     summary: "Get all workflows for the current user",
-    description: "Returns a list of all workflows belonging to the authenticated user, ordered by creation date (newest first).",
+    description:
+      "Returns a list of all workflows belonging to the authenticated user, ordered by creation date (newest first).",
   })
   @ApiResponse({
     status: 200,
@@ -117,7 +119,8 @@ export class WorkflowsV2Controller {
   @Get(":id")
   @ApiOperation({
     summary: "Get a workflow by ID",
-    description: "Retrieves detailed information about a specific workflow. Only workflows belonging to the authenticated user can be accessed.",
+    description:
+      "Retrieves detailed information about a specific workflow. Only workflows belonging to the authenticated user can be accessed.",
   })
   @ApiParam({
     name: "id",
@@ -162,7 +165,8 @@ export class WorkflowsV2Controller {
   })
   @ApiResponse({
     status: 400,
-    description: "Invalid workflow configuration or workflow is active (must deactivate first)",
+    description:
+      "Invalid workflow configuration or workflow is active (must deactivate first)",
   })
   @ApiResponse({ status: 404, description: "Workflow not found" })
   @ApiResponse({ status: 401, description: "Unauthorized" })
@@ -197,7 +201,11 @@ export class WorkflowsV2Controller {
       };
     }
 
-    return this.workflowsService.updateWorkflow(user.id, parseInt(id), serviceDto);
+    return this.workflowsService.updateWorkflow(
+      user.id,
+      parseInt(id),
+      serviceDto,
+    );
   }
 
   @Delete(":id")
@@ -246,7 +254,10 @@ export class WorkflowsV2Controller {
     description: "Workflow activated successfully",
     type: SuccessResponseDto,
   })
-  @ApiResponse({ status: 400, description: "Workflow already active or trigger not found" })
+  @ApiResponse({
+    status: 400,
+    description: "Workflow already active or trigger not found",
+  })
   @ApiResponse({ status: 404, description: "Workflow not found" })
   @ApiResponse({ status: 401, description: "Unauthorized" })
   async activateWorkflow(@Req() req: Request, @Param("id") id: string) {

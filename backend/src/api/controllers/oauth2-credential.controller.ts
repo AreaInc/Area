@@ -45,7 +45,8 @@ export class OAuth2CredentialController {
   })
   @ApiQuery({
     name: "redirectUrl",
-    description: "Optional URL to redirect to after successful authentication. If not provided, uses the default frontend URL.",
+    description:
+      "Optional URL to redirect to after successful authentication. If not provided, uses the default frontend URL.",
     required: false,
     example: "http://localhost:3000/credentials",
   })
@@ -53,7 +54,10 @@ export class OAuth2CredentialController {
     status: 302,
     description: "Redirects to OAuth2 provider consent screen",
   })
-  @ApiResponse({ status: 400, description: "Provider is required or user not authenticated" })
+  @ApiResponse({
+    status: 400,
+    description: "Provider is required or user not authenticated",
+  })
   @ApiResponse({ status: 401, description: "Unauthorized" })
   async initiateAuth(
     @Query("provider") provider: string,
@@ -89,13 +93,15 @@ export class OAuth2CredentialController {
   })
   @ApiQuery({
     name: "code",
-    description: "Authorization code received from OAuth2 provider after user consent",
+    description:
+      "Authorization code received from OAuth2 provider after user consent",
     required: true,
     example: "4/0AeanS...",
   })
   @ApiQuery({
     name: "state",
-    description: "State token for CSRF protection. Must match the state token generated during the auth initiation.",
+    description:
+      "State token for CSRF protection. Must match the state token generated during the auth initiation.",
     required: true,
     example: "random-state-token-123",
   })
@@ -106,7 +112,8 @@ export class OAuth2CredentialController {
   })
   @ApiResponse({
     status: 400,
-    description: "Missing code or state parameter, or invalid/expired state token",
+    description:
+      "Missing code or state parameter, or invalid/expired state token",
   })
   async handleCallback(
     @Query("code") code: string,

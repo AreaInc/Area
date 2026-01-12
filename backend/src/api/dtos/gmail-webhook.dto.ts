@@ -21,10 +21,16 @@ export class GmailWebhookPayloadDto {
   @ApiPropertyOptional({ description: "Gmail thread ID", example: "thread123" })
   threadId?: string;
 
-  @ApiProperty({ description: "Sender email address", example: "sender@example.com" })
+  @ApiProperty({
+    description: "Sender email address",
+    example: "sender@example.com",
+  })
   from: string;
 
-  @ApiProperty({ description: "Recipient email address", example: "recipient@example.com" })
+  @ApiProperty({
+    description: "Recipient email address",
+    example: "recipient@example.com",
+  })
   to: string;
 
   @ApiProperty({ description: "Email subject", example: "Test Email" })
@@ -36,7 +42,10 @@ export class GmailWebhookPayloadDto {
   @ApiPropertyOptional({ description: "HTML body" })
   htmlBody?: string;
 
-  @ApiPropertyOptional({ description: "Email date", example: "2024-01-01T00:00:00Z" })
+  @ApiPropertyOptional({
+    description: "Email date",
+    example: "2024-01-01T00:00:00Z",
+  })
   date?: string;
 
   @ApiPropertyOptional({
@@ -50,26 +59,41 @@ export class GmailWebhookResponseDto {
   @ApiProperty({ description: "Success status", example: true })
   success: boolean;
 
-  @ApiProperty({ description: "Number of workflows triggered successfully", example: 2 })
+  @ApiProperty({
+    description: "Number of workflows triggered successfully",
+    example: 2,
+  })
   triggered: number;
 
   @ApiProperty({ description: "Number of workflows that failed", example: 0 })
   failed: number;
 
-  @ApiProperty({ description: "Total number of matching workflows", example: 2 })
+  @ApiProperty({
+    description: "Total number of matching workflows",
+    example: 2,
+  })
   totalWorkflows: number;
 }
 
 export class TestWebhookPayloadDto {
-  @ApiPropertyOptional({ description: "Test sender email", example: "test@example.com" })
+  @ApiPropertyOptional({
+    description: "Test sender email",
+    example: "test@example.com",
+  })
   from?: string;
 
-  @ApiPropertyOptional({ description: "Test recipient email", example: "user@example.com" })
+  @ApiPropertyOptional({
+    description: "Test recipient email",
+    example: "user@example.com",
+  })
   to?: string;
 
   @ApiPropertyOptional({ description: "Test subject", example: "Test Email" })
   subject?: string;
 
-  @ApiPropertyOptional({ description: "Test body", example: "This is a test email" })
+  @ApiPropertyOptional({
+    description: "Test body",
+    example: "This is a test email",
+  })
   body?: string;
 }
