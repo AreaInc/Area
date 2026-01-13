@@ -195,7 +195,6 @@ lerna-debug.log*
 *.cert
 *.crt
 secrets/
-credentials/
 *.asc
 
 # OAuth credentials
