@@ -14,7 +14,7 @@ import * as crypto from "crypto";
 
 interface OAuthState {
   userId: string;
-  provider: string;
+  credentialId: number;
   redirectUrl?: string;
   timestamp: number;
 }
@@ -27,41 +27,119 @@ export class OAuth2Service {
     @Inject(DRIZZLE) private readonly db: PostgresJsDatabase<typeof schema>,
   ) {}
 
-  async getAuthUrl(
-    provider: string,
+  async listCredentials(userId: string) {
+    const userCredentials = await this.db
+      .select()
+      .from(credentials)
+      .where(eq(credentials.userId, userId));
+
+    return userCredentials.map((cred) => ({
+      id: cred.id,
+      name: cred.name,
+      serviceProvider: cred.serviceProvider,
+      credentialType: cred.type,
+      isValid: cred.isValid,
+      createdAt: cred.createdAt,
+      updatedAt: cred.updatedAt,
+    }));
+  }
+
+  async getCredential(userId: string, credentialId: number) {
+    const [credential] = await this.db
+      .select()
+      .from(credentials)
+      .where(
+        and(eq(credentials.id, credentialId), eq(credentials.userId, userId)),
+      );
+
+    if (!credential) {
+      throw new BadRequestException("Credential not found");
+    }
+
+    return {
+      id: credential.id,
+      name: credential.name,
+      serviceProvider: credential.serviceProvider,
+      credentialType: credential.type,
+      isValid: credential.isValid,
+      createdAt: credential.createdAt,
+      updatedAt: credential.updatedAt,
+    };
+  }
+
+  async createCredential(
     userId: string,
+    dto: {
+      name: string;
+      provider: string;
+      clientId: string;
+      clientSecret: string;
+    },
+  ) {
+    const [credential] = await this.db
+      .insert(credentials)
+      .values({
+        userId,
+        serviceProvider: dto.provider as any,
+        type: "oauth2" as any,
+        name: dto.name,
+        clientId: dto.clientId,
+        clientSecret: dto.clientSecret,
+        isValid: false,
+      })
+      .returning();
+
+    return {
+      id: credential.id,
+      name: credential.name,
+      serviceProvider: credential.serviceProvider,
+      credentialType: credential.type,
+      isValid: credential.isValid,
+      createdAt: credential.createdAt,
+      updatedAt: credential.updatedAt,
+    };
+  }
+
+  async getAuthUrl(
+    userId: string,
+    credentialId: number,
     redirectUrl?: string,
   ): Promise<{ authUrl: string; state: string }> {
-    if (provider !== "gmail" && provider !== "google") {
-      throw new BadRequestException("Unsupported OAuth2 provider");
+    const [credential] = await this.db
+      .select()
+      .from(credentials)
+      .where(
+        and(eq(credentials.id, credentialId), eq(credentials.userId, userId)),
+      );
+
+    if (!credential) {
+      throw new BadRequestException("Credential not found");
+    }
+
+    if (!credential.clientId || !credential.clientSecret) {
+      throw new BadRequestException(
+        "Credential does not have client ID and secret configured",
+      );
     }
 
     const state = crypto.randomBytes(32).toString("hex");
 
     this.stateStore.set(state, {
       userId,
-      provider,
+      credentialId,
       redirectUrl,
       timestamp: Date.now(),
     });
 
     this.cleanupOldStates();
 
-    const clientId = process.env.GOOGLE_CLIENT_ID;
-    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
     const callbackUrl =
       process.env.OAUTH_CALLBACK_URL ||
       "http://localhost:8080/api/oauth2-credential/callback";
 
-    if (!clientId || !clientSecret) {
-      throw new BadRequestException(
-        "OAuth2 client credentials not configured. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET environment variables.",
-      );
-    }
-
     const oauth2Client = new google.auth.OAuth2(
-      clientId,
-      clientSecret,
+      credential.clientId,
+      credential.clientSecret,
       callbackUrl,
     );
 
@@ -93,19 +171,33 @@ export class OAuth2Service {
 
     this.stateStore.delete(state);
 
-    const clientId = process.env.GOOGLE_CLIENT_ID;
-    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+    const [credential] = await this.db
+      .select()
+      .from(credentials)
+      .where(
+        and(
+          eq(credentials.id, stateData.credentialId),
+          eq(credentials.userId, stateData.userId),
+        ),
+      );
+
+    if (!credential) {
+      throw new BadRequestException("Credential not found");
+    }
+
+    if (!credential.clientId || !credential.clientSecret) {
+      throw new BadRequestException(
+        "Credential does not have client ID and secret configured",
+      );
+    }
+
     const callbackUrl =
       process.env.OAUTH_CALLBACK_URL ||
       "http://localhost:8080/api/oauth2-credential/callback";
 
-    if (!clientId || !clientSecret) {
-      throw new BadRequestException("OAuth2 client credentials not configured");
-    }
-
     const oauth2Client = new google.auth.OAuth2(
-      clientId,
-      clientSecret,
+      credential.clientId,
+      credential.clientSecret,
       callbackUrl,
     );
 
@@ -128,26 +220,22 @@ export class OAuth2Service {
         ? new Date(tokens.expiry_date)
         : null;
 
-      const [credential] = await this.db
-        .insert(credentials)
-        .values({
-          userId: stateData.userId,
-          serviceProvider: stateData.provider === "gmail" ? "gmail" : "google",
-          type: "oauth2",
-          name: `${stateData.provider} - ${userEmail}`,
+      await this.db
+        .update(credentials)
+        .set({
+          name: `${credential.serviceProvider} - ${userEmail}`,
           accessToken: tokens.access_token,
           refreshToken: tokens.refresh_token,
           expiresAt: expiresAt,
           scope: tokens.scope,
-          clientId: clientId,
-          clientSecret: clientSecret,
           isValid: true,
+          updatedAt: new Date(),
         })
-        .returning();
+        .where(eq(credentials.id, stateData.credentialId));
 
       return {
         success: true,
-        credentialId: credential.id,
+        credentialId: stateData.credentialId,
       };
     } catch (error) {
       console.error("OAuth2 callback error:", error);

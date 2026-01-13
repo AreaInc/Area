@@ -33,3 +33,71 @@ export class DeleteCredentialsResponseDto {
   })
   message: string;
 }
+
+export class CreateCredentialDto {
+  @ApiProperty({
+    description: "Credential name",
+    example: "My Gmail Account",
+  })
+  name: string;
+
+  @ApiProperty({
+    description: "Service provider",
+    example: "gmail",
+  })
+  provider: string;
+
+  @ApiProperty({
+    description: "OAuth2 Client ID from provider",
+    example: "123456789-abcdef.apps.googleusercontent.com",
+  })
+  clientId: string;
+
+  @ApiProperty({
+    description: "OAuth2 Client Secret from provider",
+    example: "GOCSPX-abc123def456",
+  })
+  clientSecret: string;
+}
+
+export class CredentialResponseDto {
+  @ApiProperty({
+    description: "Credential ID",
+    example: 123,
+  })
+  id: number;
+
+  @ApiProperty({
+    description: "Credential name",
+    example: "My Gmail Account",
+  })
+  name: string;
+
+  @ApiProperty({
+    description: "Service provider",
+    example: "gmail",
+  })
+  serviceProvider: string;
+
+  @ApiProperty({
+    description: "Credential type",
+    example: "oauth2",
+  })
+  credentialType: string;
+
+  @ApiProperty({
+    description: "Whether credentials are valid/connected",
+    example: true,
+  })
+  isValid: boolean;
+
+  @ApiProperty({
+    description: "Creation timestamp",
+  })
+  createdAt: Date;
+
+  @ApiProperty({
+    description: "Last update timestamp",
+  })
+  updatedAt: Date;
+}
