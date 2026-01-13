@@ -64,6 +64,7 @@ services:
       - TEMPORAL_ADDRESS=temporal:7233
       - DEPLOY_ADDRESS=${DEPLOY_ADDRESS:-localhost}
       - OAUTH_CALLBACK_URL=${OAUTH_CALLBACK_URL:-http://localhost:8080/api/oauth2-credential/callback}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
     depends_on:
       patroni1:
         condition: service_healthy
