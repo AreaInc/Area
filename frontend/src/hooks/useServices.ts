@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import type { Service } from '../types/service'
 
-const API_BASE = 'http://localhost:8080/api'
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api'
 
 async function fetchServices(): Promise<Service[]> {
   const response = await fetch(`${API_BASE}/services`, {
