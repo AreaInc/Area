@@ -76,9 +76,28 @@ export class WorkflowsService {
       );
     }
 
-    await trigger.validateConfig(dto.trigger.config);
+    // Validation is optional during creation - workflows can be created with empty configs
+    // and configured later. Validation will be enforced during activation.
+    // Only validate if config is not empty to allow creating workflow skeletons
+    if (Object.keys(dto.trigger.config).length > 0) {
+      try {
+        await trigger.validateConfig(dto.trigger.config);
+      } catch (error) {
+        throw new BadRequestException(
+          `Invalid trigger configuration: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
+    }
 
-    await action.validateInput(dto.action.config);
+    if (Object.keys(dto.action.config).length > 0) {
+      try {
+        await action.validateInput(dto.action.config);
+      } catch (error) {
+        throw new BadRequestException(
+          `Invalid action configuration: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
+    }
 
     const [workflow] = await this.db
       .insert(workflows)
@@ -155,7 +174,13 @@ export class WorkflowsService {
         );
       }
 
-      await trigger.validateConfig(dto.trigger.config);
+      try {
+        await trigger.validateConfig(dto.trigger.config);
+      } catch (error) {
+        throw new BadRequestException(
+          `Invalid trigger configuration: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
 
       updates.triggerProvider = dto.trigger.provider;
       updates.triggerId = dto.trigger.triggerId;
@@ -173,7 +198,13 @@ export class WorkflowsService {
         );
       }
 
-      await action.validateInput(dto.action.config);
+      try {
+        await action.validateInput(dto.action.config);
+      } catch (error) {
+        throw new BadRequestException(
+          `Invalid action configuration: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
 
       updates.actionProvider = dto.action.provider;
       updates.actionId = dto.action.actionId;
@@ -217,6 +248,35 @@ export class WorkflowsService {
     );
     if (!trigger) {
       throw new BadRequestException("Trigger not found");
+    }
+
+    const action = this.actionRegistry.get(
+      workflow.actionProvider,
+      workflow.actionId,
+    );
+    if (!action) {
+      throw new BadRequestException("Action not found");
+    }
+
+    // Validate configurations before activation
+    try {
+      await trigger.validateConfig(
+        (workflow.triggerConfig as Record<string, any>) || {},
+      );
+    } catch (error) {
+      throw new BadRequestException(
+        `Cannot activate workflow: Invalid trigger configuration - ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+
+    try {
+      await action.validateInput(
+        (workflow.actionConfig as Record<string, any>) || {},
+      );
+    } catch (error) {
+      throw new BadRequestException(
+        `Cannot activate workflow: Invalid action configuration - ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
 
     await trigger.register(
