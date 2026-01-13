@@ -44,6 +44,7 @@
     "cache-manager-ioredis-yet": "^2.1.2",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.44.7",
+    "express": "^5.1.0",
     "googleapis": "^168.0.0",
     "ioredis": "^5.8.2",
     "postgres": "^3.4.7",

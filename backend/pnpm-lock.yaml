@@ -62,6 +62,9 @@ importers:
       drizzle-orm:
         specifier: ^0.44.7
         version: 0.44.7(kysely@0.28.8)(postgres@3.4.7)
+      express:
+        specifier: ^5.1.0
+        version: 5.1.0
       googleapis:
         specifier: ^168.0.0
         version: 168.0.0

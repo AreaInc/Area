@@ -39,14 +39,27 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup("api/docs", app, document);
 
-  app.connectMicroservice<MicroserviceOptions>({
-    transport: Transport.REDIS,
-    options: {
-      host: process.env.REDIS_HOST,
-      port: Number(process.env.REDIS_PORT ?? 0),
-      password: process.env.REDIS_PASS,
-    },
-  });
+  try {
+    app.connectMicroservice<MicroserviceOptions>({
+      transport: Transport.REDIS,
+      options: {
+        host: process.env.REDIS_HOST,
+        port: Number(process.env.REDIS_PORT ?? 0),
+        password: process.env.REDIS_PASS,
+        retryStrategy: (times: number) => {
+          const delay = Math.min(times * 50, 2000);
+          console.log(`[Redis Microservice] Retrying connection (attempt ${times})...`);
+          return delay;
+        },
+        maxRetriesPerRequest: 3,
+        enableReadyCheck: true,
+        lazyConnect: true,
+      },
+    });
+  } catch (error) {
+    console.error("[Redis Microservice] Failed to connect:", error);
+    // Continue without microservice if Redis is unavailable
+  }
 
   await app.listen(process.env.BACKEND_PORT ?? 8080, "0.0.0.0");
 }

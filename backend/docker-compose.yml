@@ -74,7 +74,7 @@ services:
       migration:
         condition: service_completed_successfully
       cache:
-        condition: service_started
+        condition: service_healthy
       vault:
         condition: service_started
       temporal:
@@ -112,7 +112,7 @@ services:
       migration:
         condition: service_completed_successfully
       cache:
-        condition: service_started
+        condition: service_healthy
       vault:
         condition: service_started
       temporal:

@@ -40,7 +40,28 @@ import { auth } from "./auth";
           port: Number(process.env.REDIS_PORT ?? 6379),
           password: process.env.REDIS_PASS,
           ttl: 60, // 60 seconds default TTL
+          retryStrategy: (times) => {
+            const delay = Math.min(times * 50, 2000);
+            console.log(`[Redis Cache] Retrying connection (attempt ${times})...`);
+            return delay;
+          },
+          maxRetriesPerRequest: 3,
+          enableReadyCheck: true,
+          lazyConnect: true,
         });
+        // Handle connection errors to prevent unhandled error events
+        const client = (store as any).client;
+        if (client && client.on) {
+          client.on("error", (err: Error) => {
+            console.error("[Redis Cache] Connection error:", err.message);
+          });
+          client.on("connect", () => {
+            console.log("[Redis Cache] Connected successfully");
+          });
+          client.on("ready", () => {
+            console.log("[Redis Cache] Ready to accept commands");
+          });
+        }
         return {
           store: () => store,
         };
