@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Trash2, Save, Pencil, AlertTriangle } from 'lucide-react'
 import clsx from 'clsx'
 import { useAppSelector, useAppDispatch } from '../../store/hooks'
-import { useWorkflows } from '../../hooks/useWorkflows'
+import { useWorkflows, useUpdateWorkflow, useActivateWorkflow, useDeactivateWorkflow, useDeleteWorkflow } from '../../hooks/useWorkflows'
 import { Modal } from '../ui/Modal'
 import { clearWorkflow } from '../../store/slices/flowSlice'
 
@@ -13,9 +13,13 @@ interface DashboardHeaderProps {
 export function DashboardHeader({ onSave }: DashboardHeaderProps) {
   const dispatch = useAppDispatch()
   const { activeWorkflowId } = useAppSelector((state) => state.flow)
-  const { workflows, isLoading, updateWorkflow, activateWorkflow, deactivateWorkflow, deleteWorkflow } = useWorkflows()
+  const { data: workflows, isLoading } = useWorkflows()
+  const updateMutation = useUpdateWorkflow()
+  const activateMutation = useActivateWorkflow()
+  const deactivateMutation = useDeactivateWorkflow()
+  const deleteMutation = useDeleteWorkflow()
 
-  const activeWorkflow = workflows.find(w => String(w.id) === activeWorkflowId)
+  const activeWorkflow = workflows?.find((w: any) => String(w.id) === activeWorkflowId)
 
   const [isEditing, setIsEditing] = useState(false)
   const [tempName, setTempName] = useState(activeWorkflow?.name || 'Untitled Workflow')
@@ -35,7 +39,7 @@ export function DashboardHeader({ onSave }: DashboardHeaderProps) {
   const handleBlur = () => {
     setIsEditing(false)
     if (activeWorkflow && tempName.trim() !== activeWorkflow.name) {
-      updateWorkflow({ id: activeWorkflow.id, name: tempName })
+      updateMutation.mutate({ id: activeWorkflow.id, dto: { name: tempName } })
     }
   }
 
@@ -52,9 +56,9 @@ export function DashboardHeader({ onSave }: DashboardHeaderProps) {
   const handleToggleActive = () => {
     if (activeWorkflow) {
         if (activeWorkflow.isActive) {
-            deactivateWorkflow(activeWorkflow.id)
+            deactivateMutation.mutate(activeWorkflow.id)
         } else {
-            activateWorkflow(activeWorkflow.id)
+            activateMutation.mutate(activeWorkflow.id)
         }
     }
   }
@@ -66,9 +70,9 @@ export function DashboardHeader({ onSave }: DashboardHeaderProps) {
   const handleConfirmDelete = async () => {
     if (activeWorkflow) {
         try {
-            await deleteWorkflow(String(activeWorkflow.id))
+            await deleteMutation.mutateAsync(activeWorkflow.id)
             setIsDeleteModalOpen(false)
-            if (workflows.length === 1 && workflows[0].id === activeWorkflow.id) {
+            if (workflows && workflows.length === 1 && workflows[0].id === activeWorkflow.id) {
               dispatch(clearWorkflow())
             }
         } catch (error) {

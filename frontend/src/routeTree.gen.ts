@@ -15,6 +15,8 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
 import { Route as DashboardProfileRouteImport } from './routes/dashboard/profile'
+import { Route as DashboardCredentialsRouteImport } from './routes/dashboard/credentials'
+import { Route as DashboardCallbackRouteImport } from './routes/dashboard/callback'
 import { Route as DashboardServicesIndexRouteImport } from './routes/dashboard/services/index'
 import { Route as DashboardServicesProviderRouteImport } from './routes/dashboard/services/$provider'
 
@@ -48,6 +50,16 @@ const DashboardProfileRoute = DashboardProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardCredentialsRoute = DashboardCredentialsRouteImport.update({
+  id: '/credentials',
+  path: '/credentials',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardCallbackRoute = DashboardCallbackRouteImport.update({
+  id: '/callback',
+  path: '/callback',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardServicesIndexRoute = DashboardServicesIndexRouteImport.update({
   id: '/services/',
   path: '/services/',
@@ -65,6 +77,8 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/dashboard/callback': typeof DashboardCallbackRoute
+  '/dashboard/credentials': typeof DashboardCredentialsRoute
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/dashboard/services/$provider': typeof DashboardServicesProviderRoute
@@ -74,6 +88,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/dashboard/callback': typeof DashboardCallbackRoute
+  '/dashboard/credentials': typeof DashboardCredentialsRoute
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard': typeof DashboardIndexRoute
   '/dashboard/services/$provider': typeof DashboardServicesProviderRoute
@@ -85,6 +101,8 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/dashboard/callback': typeof DashboardCallbackRoute
+  '/dashboard/credentials': typeof DashboardCredentialsRoute
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/dashboard/services/$provider': typeof DashboardServicesProviderRoute
@@ -97,6 +115,8 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/register'
+    | '/dashboard/callback'
+    | '/dashboard/credentials'
     | '/dashboard/profile'
     | '/dashboard/'
     | '/dashboard/services/$provider'
@@ -106,6 +126,8 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/register'
+    | '/dashboard/callback'
+    | '/dashboard/credentials'
     | '/dashboard/profile'
     | '/dashboard'
     | '/dashboard/services/$provider'
@@ -116,6 +138,8 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/register'
+    | '/dashboard/callback'
+    | '/dashboard/credentials'
     | '/dashboard/profile'
     | '/dashboard/'
     | '/dashboard/services/$provider'
@@ -173,6 +197,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardProfileRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/credentials': {
+      id: '/dashboard/credentials'
+      path: '/credentials'
+      fullPath: '/dashboard/credentials'
+      preLoaderRoute: typeof DashboardCredentialsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/callback': {
+      id: '/dashboard/callback'
+      path: '/callback'
+      fullPath: '/dashboard/callback'
+      preLoaderRoute: typeof DashboardCallbackRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/services/': {
       id: '/dashboard/services/'
       path: '/services'
@@ -191,6 +229,8 @@ declare module '@tanstack/react-router' {
 }
 
 interface DashboardRouteChildren {
+  DashboardCallbackRoute: typeof DashboardCallbackRoute
+  DashboardCredentialsRoute: typeof DashboardCredentialsRoute
   DashboardProfileRoute: typeof DashboardProfileRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
   DashboardServicesProviderRoute: typeof DashboardServicesProviderRoute
@@ -198,6 +238,8 @@ interface DashboardRouteChildren {
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardCallbackRoute: DashboardCallbackRoute,
+  DashboardCredentialsRoute: DashboardCredentialsRoute,
   DashboardProfileRoute: DashboardProfileRoute,
   DashboardIndexRoute: DashboardIndexRoute,
   DashboardServicesProviderRoute: DashboardServicesProviderRoute,
