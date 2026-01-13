@@ -24,7 +24,7 @@ async function bootstrap() {
 
   const expressApp = app.getHttpAdapter().getInstance() as Express;
   expressApp.set("trust proxy", true);
-  
+
   // Add JSON body parser middleware
   expressApp.use(express.json());
   expressApp.use(express.urlencoded({ extended: true }));
