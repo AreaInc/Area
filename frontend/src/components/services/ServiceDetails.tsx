@@ -8,14 +8,16 @@ interface ServiceDetailsProps {
     authStatus?: 'success' | 'error'
 }
 
+const API_BASE = `http://${import.meta.env.VITE_DEPLOY_ADDRESS ?? "localhost"}:8080/api`
+
 export function ServiceDetails({ service, authStatus }: ServiceDetailsProps) {
     const isOAuth2Service = service.credentialTypes.includes('OAUTH2')
-    const backendAuthUrl = `http://localhost:8080/api/auth/${service.provider}/authorize` // Adjust if needed
+    const backendAuthUrl = `${API_BASE}/auth/${service.provider}/authorize` // Adjust if needed
 
     return (
         <div className="max-w-5xl mx-auto">
-            <Link 
-                to="/dashboard/services" 
+            <Link
+                to="/dashboard/services"
                 className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
             >
                 <ArrowLeft size={16} />
@@ -39,7 +41,7 @@ export function ServiceDetails({ service, authStatus }: ServiceDetailsProps) {
                             </span>
                         </div>
                         <p className="text-muted-foreground text-lg mb-6">{service.description}</p>
-                        
+
                         <div className="flex flex-wrap gap-4 items-center">
                             <div className="flex items-center gap-2 px-4 py-2 bg-secondary/50 rounded-lg border border-border">
                                 <Shield size={16} className="text-muted-foreground" />
@@ -103,7 +105,7 @@ function ActionCard({ action }: { action: Action }) {
             <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
                 {action.description}
             </p>
-            
+
             <div className="space-y-3">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <Info size={14} />

@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Credential, CreateCredentialDto } from '../types/credential';
 
-const API_BASE = 'http://localhost:8080/api';
+const API_BASE = `http://${import.meta.env.VITE_DEPLOY_ADDRESS ?? "localhost"}:8080/api`;
 
 export function useCredentials() {
   return useQuery<Credential[]>({
