@@ -58,7 +58,9 @@ export function useCreateWorkflow() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create workflow');
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.message || `Failed to create workflow (${response.status})`;
+        throw new Error(errorMessage);
       }
 
       return response.json();

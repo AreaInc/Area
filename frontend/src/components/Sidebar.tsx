@@ -31,7 +31,8 @@ export function Sidebar() {
       setSelectedWorkflowId(newWorkflow.id);
       navigate({ to: '/dashboard' });
     } catch (err) {
-      alert('Failed to create workflow');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create workflow';
+      alert(`Failed to create workflow: ${errorMessage}`);
     }
   };
 
