@@ -1,0 +1,52 @@
+# Dart/Flutter specific
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+*.iml
+.idea/
+
+# Flutter platform-specific generated files
+flutter/android/.gradle/
+flutter/android/local.properties
+flutter/linux/flutter/ephemeral/
+flutter/linux/build/
+flutter/windows/flutter/ephemeral/
+flutter/macos/Flutter/ephemeral/
+flutter/ios/Flutter/ephemeral/
+flutter/web/flutter_service_worker.js
+
+# Build artifacts
+build/
+dist/
+
+# Environment files
+.env
+.env.local
+
+# Dependencies
+node_modules/
+pubspec.lock
+
+# IDE
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# React Native / Expo
+.expo/
+.expo-shared/
+dist/
+npm-debug.*
+
+# Generated files
+GeneratedPluginRegistrant.*
+generated_plugin_registrant.*
+
+# Local properties
+local.properties
