@@ -8,7 +8,7 @@ import type {
   ActionMetadata,
 } from '../types/workflow';
 
-const API_BASE = `http://${import.meta.env.VITE_DEPLOY_ADDRESS ?? "localhost"}/api`
+const API_BASE = `https://${import.meta.env.VITE_DEPLOY_ADDRESS ?? "localhost"}/api`
 
 export function useWorkflows() {
   return useQuery<Workflow[]>({

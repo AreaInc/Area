@@ -49,7 +49,7 @@ export function ProfileSettings() {
   const handleDelete = async () => {
     setIsLoading(true)
     try {
-        const response = await fetch(`http://${import.meta.env.VITE_DEPLOY_ADDRESS ?? "localhost"}/api/users/me`, {
+        const response = await fetch(`https://${import.meta.env.VITE_DEPLOY_ADDRESS ?? "localhost"}/api/users/me`, {
             method: 'DELETE',
             credentials: 'include'
         })
