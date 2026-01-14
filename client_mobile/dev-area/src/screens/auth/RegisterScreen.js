@@ -3,10 +3,10 @@ import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, ActivityInd
 import { useAuth } from '../../context/AuthContext';
 import GradientBackground from '../../components/GradientBackground';
 import GlassCard from '../../components/GlassCard';
-import { Mail, Lock, User, ArrowRight } from 'lucide-react-native';
+import { Mail, Lock, User, ArrowRight, Chrome } from 'lucide-react-native';
 
 const RegisterScreen = ({ navigation }) => {
-    const { signUp } = useAuth();
+    const { signUp, signInWithGoogle } = useAuth();
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -24,6 +24,16 @@ const RegisterScreen = ({ navigation }) => {
 
         if (result.error) {
             Alert.alert('Registration Failed', result.error.message || 'Something went wrong');
+        }
+    };
+
+    const handleGoogleRegister = async () => {
+        setLoading(true);
+        const result = await signInWithGoogle();
+        setLoading(false);
+
+        if (result.error) {
+            Alert.alert('Google Registration Failed', result.error.message);
         }
     };
 
@@ -97,6 +107,15 @@ const RegisterScreen = ({ navigation }) => {
                         )}
                     </TouchableOpacity>
 
+                    <TouchableOpacity
+                        style={[styles.button, styles.googleButton]}
+                        onPress={handleGoogleRegister}
+                        disabled={loading}
+                    >
+                        <Chrome color="#000" size={20} style={{ marginRight: 8 }} />
+                        <Text style={[styles.buttonText, { color: '#000' }]}>Sign up with Google</Text>
+                    </TouchableOpacity>
+
                     <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.linkContainer}>
                         <Text style={styles.linkText}>
                             Already have an account? <Text style={styles.linkBold}>Sign In</Text>
@@ -159,12 +178,17 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        marginBottom: 24,
+        marginBottom: 16,
         shadowColor: '#3b82f6',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 8,
         elevation: 4,
+    },
+    googleButton: {
+        backgroundColor: '#fff',
+        marginBottom: 24,
+        shadowColor: '#000',
     },
     buttonText: {
         color: '#fff',

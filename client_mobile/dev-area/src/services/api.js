@@ -7,6 +7,7 @@ const request = async (endpoint, options = {}) => {
 
     const defaultHeaders = {
         'Content-Type': 'application/json',
+        'Origin': 'area-app://',
     };
 
     console.log(`[API] Requesting: ${options.method || 'GET'} ${url}`);

@@ -3,10 +3,10 @@ import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, ActivityInd
 import { useAuth } from '../../context/AuthContext';
 import GradientBackground from '../../components/GradientBackground';
 import GlassCard from '../../components/GlassCard';
-import { Mail, Lock, ArrowRight } from 'lucide-react-native';
+import { Mail, Lock, ArrowRight, Chrome } from 'lucide-react-native';
 
 const LoginScreen = ({ navigation }) => {
-    const { signIn } = useAuth();
+    const { signIn, signInWithGoogle } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -23,6 +23,16 @@ const LoginScreen = ({ navigation }) => {
 
         if (result.error) {
             Alert.alert('Login Failed', result.error.message || 'Invalid credentials');
+        }
+    };
+
+    const handleGoogleLogin = async () => {
+        setLoading(true);
+        const result = await signInWithGoogle();
+        setLoading(false);
+
+        if (result.error) {
+            Alert.alert('Google Login Failed', result.error.message);
         }
     };
 
@@ -80,6 +90,15 @@ const LoginScreen = ({ navigation }) => {
                                 <ArrowRight color="#fff" size={20} />
                             </>
                         )}
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={[styles.button, styles.googleButton]}
+                        onPress={handleGoogleLogin}
+                        disabled={loading}
+                    >
+                        <Chrome color="#000" size={20} style={{ marginRight: 8 }} />
+                        <Text style={[styles.buttonText, { color: '#000' }]}>Sign in with Google</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity onPress={() => navigation.navigate('Register')} style={styles.linkContainer}>
@@ -144,12 +163,17 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        marginBottom: 24,
+        marginBottom: 16,
         shadowColor: '#3b82f6',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 8,
         elevation: 4,
+    },
+    googleButton: {
+        backgroundColor: '#fff',
+        marginBottom: 24,
+        shadowColor: '#000',
     },
     buttonText: {
         color: '#fff',

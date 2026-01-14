@@ -25,6 +25,8 @@ services:
       - REDIS_HOST=${REDIS_HOST:-area-cache}
       - REDIS_PORT=${REDIS_PORT:-6379}
       - VAULT_ADDR=http://vault:8200
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
     depends_on:
       patroni1:
         condition: service_healthy
