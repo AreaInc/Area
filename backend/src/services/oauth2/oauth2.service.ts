@@ -133,8 +133,9 @@ export class OAuth2Service {
 
     this.cleanupOldStates();
 
-    // TODO: Temporary hardcoded ngrok URL - replace with DEPLOY_ADDRESS when domain is ready
-    const callbackUrl = "https://nonformal-antonette-slumberously.ngrok-free.dev/api/oauth2-credential/callback";
+    const callbackUrl =
+      process.env.OAUTH_CALLBACK_URL ||
+      "http://localhost:8080/api/oauth2-credential/callback";
 
     const oauth2Client = new google.auth.OAuth2(
       credential.clientId,
@@ -190,8 +191,9 @@ export class OAuth2Service {
       );
     }
 
-    // TODO: Temporary hardcoded ngrok URL - replace with DEPLOY_ADDRESS when domain is ready
-    const callbackUrl = "https://nonformal-antonette-slumberously.ngrok-free.dev/api/oauth2-credential/callback";
+    const callbackUrl =
+      process.env.OAUTH_CALLBACK_URL ||
+      "http://localhost:8080/api/oauth2-credential/callback";
 
     const oauth2Client = new google.auth.OAuth2(
       credential.clientId,
@@ -248,8 +250,9 @@ export class OAuth2Service {
         errorCode === "invalid_request" ||
         errorMessage.includes("redirect_uri")
       ) {
-        // TODO: Temporary hardcoded ngrok URL - replace with DEPLOY_ADDRESS when domain is ready
-        const callbackUrl = "https://nonformal-antonette-slumberously.ngrok-free.dev/api/oauth2-credential/callback";
+        const callbackUrl =
+          process.env.OAUTH_CALLBACK_URL ||
+          "http://localhost:8080/api/oauth2-credential/callback";
         
         return {
           success: false,
