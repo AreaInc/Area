@@ -19,6 +19,7 @@ export const serviceProviderEnum = pgEnum("service_provider", [
   "github",
   "trello",
   "notion",
+  "scheduler",
 ]);
 
 export const credentialTypeEnum = pgEnum("credential_type", [
