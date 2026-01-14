@@ -16,13 +16,17 @@ services:
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
       - POSTGRES_PWD=${POSTGRES_PASSWORD:-postgres}
       - POSTGRES_SEEDS=haproxy
+      - SKIP_DB_CREATE=false
+      - SKIP_DEFAULT_NAMESPACE_CREATE=false
     healthcheck:
       test: ["CMD-SHELL", "pgrep -f temporal-server > /dev/null || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 30
-      start_period: 60s
+      start_period: 90s
     depends_on:
+      haproxy:
+        condition: service_healthy
       patroni1:
         condition: service_healthy
       patroni2:
@@ -94,7 +98,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.worker
-    container_name: area-worker
     environment:
       - NODE_ENV=production
       - POSTGRES_HOST=${POSTGRES_HOST:-haproxy}
@@ -123,7 +126,7 @@ services:
       vault:
         condition: service_started
       temporal:
-        condition: service_started
+        condition: service_healthy
     networks:
       - area-network
       - patroni
