@@ -1,8 +1,15 @@
 import { google } from "googleapis";
-import { GmailCredentials } from "./gmail-credentials";
 
 type OAuth2Client = any;
 type Gmail = any;
+
+interface GmailCredentials {
+  data: {
+    accessToken?: string;
+    refreshToken?: string;
+    expiresAt?: number;
+  };
+}
 
 interface GmailMessagePart {
   body?: {

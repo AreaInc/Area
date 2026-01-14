@@ -6,6 +6,7 @@ export enum ServiceProvider {
   GITHUB = "github",
   TRELLO = "trello",
   NOTION = "notion",
+  SCHEDULER = "scheduler",
 }
 
 export enum ActionType {

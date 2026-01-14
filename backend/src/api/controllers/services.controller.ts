@@ -15,14 +15,14 @@ import {
   ApiBearerAuth,
 } from "@nestjs/swagger";
 import { CacheInterceptor, CacheKey, CacheTTL } from "@nestjs/cache-manager";
-import { ServiceRegistry } from "../../services/service-registry";
-import { ServicesService } from "../../services/services-service";
+import { ServicesService } from "../../services/services/services.service";
+import { ActionRegistryService } from "../../services/registries/action-registry.service";
 import { ServiceProvider } from "../../common/types/enums";
 import { AuthGuard } from "../guards/auth.guard";
 import {
   ServiceResponseDto,
   ActionResponseDto,
-} from "../dto/service-response.dto";
+} from "../dtos/service-response.dto";
 
 @ApiTags("Services")
 @ApiBearerAuth()
@@ -30,8 +30,8 @@ import {
 @UseGuards(AuthGuard)
 export class ServicesController {
   constructor(
-    private readonly serviceRegistry: ServiceRegistry,
     private readonly servicesService: ServicesService,
+    private readonly actionRegistry: ActionRegistryService,
   ) {}
 
   @Get()
@@ -81,10 +81,9 @@ export class ServicesController {
   async getAllServices() {
     const services = await this.servicesService.getAllServices();
     return services.map((service) => {
-      const serviceInstance = this.serviceRegistry.get(
-        service.provider as ServiceProvider,
+      const actions = this.actionRegistry.getByProvider(
+        service.provider as string,
       );
-      const actions = serviceInstance?.getActions() || [];
 
       return {
         id: service.id,
@@ -99,7 +98,7 @@ export class ServicesController {
           id: action.id,
           name: action.name,
           description: action.description,
-          type: action.type,
+          type: action.id.replace(/-/g, "_"), // Convert "send-email" to "send_email"
           inputSchema: action.inputSchema,
           outputSchema: action.outputSchema,
         })),
@@ -159,15 +158,7 @@ export class ServicesController {
       );
     }
 
-    const serviceInstance = this.serviceRegistry.get(serviceProvider);
-    if (!serviceInstance) {
-      throw new HttpException(
-        `Service ${provider} not registered`,
-        HttpStatus.NOT_FOUND,
-      );
-    }
-
-    const actions = serviceInstance.getActions();
+    const actions = this.actionRegistry.getByProvider(serviceProvider);
 
     return {
       id: service.id,
@@ -182,7 +173,7 @@ export class ServicesController {
         id: action.id,
         name: action.name,
         description: action.description,
-        type: action.type,
+        type: action.id.replace(/-/g, "_"), // Convert "send-email" to "send_email"
         inputSchema: action.inputSchema,
         outputSchema: action.outputSchema,
       })),
@@ -220,24 +211,26 @@ export class ServicesController {
     ],
   })
   @ApiResponse({ status: 404, description: "Service not found" })
-  getServiceActions(@Param("provider") provider: string) {
+  async getServiceActions(@Param("provider") provider: string) {
     const serviceProvider = provider as ServiceProvider;
-    const serviceInstance = this.serviceRegistry.get(serviceProvider);
+    const actions = this.actionRegistry.getByProvider(serviceProvider);
 
-    if (!serviceInstance) {
-      throw new HttpException(
-        `Service ${provider} not found`,
-        HttpStatus.NOT_FOUND,
-      );
+    if (actions.length === 0) {
+      // Check if service exists in database
+      const service = await this.servicesService.getService(serviceProvider);
+      if (!service) {
+        throw new HttpException(
+          `Service ${provider} not found`,
+          HttpStatus.NOT_FOUND,
+        );
+      }
     }
-
-    const actions = serviceInstance.getActions();
 
     return actions.map((action) => ({
       id: action.id,
       name: action.name,
       description: action.description,
-      type: action.type,
+      type: action.id.replace(/-/g, "_"), // Convert "send-email" to "send_email"
       inputSchema: action.inputSchema,
       outputSchema: action.outputSchema,
     }));
@@ -278,16 +271,7 @@ export class ServicesController {
     @Param("actionId") actionId: string,
   ) {
     const serviceProvider = provider as ServiceProvider;
-    const serviceInstance = this.serviceRegistry.get(serviceProvider);
-
-    if (!serviceInstance) {
-      throw new HttpException(
-        `Service ${provider} not found`,
-        HttpStatus.NOT_FOUND,
-      );
-    }
-
-    const action = serviceInstance.getAction(actionId);
+    const action = this.actionRegistry.get(serviceProvider, actionId);
 
     if (!action) {
       throw new HttpException(
@@ -300,7 +284,7 @@ export class ServicesController {
       id: action.id,
       name: action.name,
       description: action.description,
-      type: action.type,
+      type: action.id.replace(/-/g, "_"), // Convert "send-email" to "send_email"
       inputSchema: action.inputSchema,
       outputSchema: action.outputSchema,
     };

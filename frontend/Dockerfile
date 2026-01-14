@@ -12,6 +12,10 @@ RUN pnpm install --frozen-lockfile
 
 COPY . .
 
+# Accept build arguments for Vite environment variables
+ARG VITE_DEPLOY_ADDRESS
+ENV VITE_DEPLOY_ADDRESS=$VITE_DEPLOY_ADDRESS
+
 RUN pnpm build
 
 # Stage 2: Serve
