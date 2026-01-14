@@ -141,7 +141,9 @@ services:
       - POSTGRES_NAME=${POSTGRES_NAME:-postgres}
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
-    command: pnpm db:push
+    command: pnpm drizzle-kit push --force
+    tty: false
+    stdin_open: false
     depends_on:
       patroni1:
         condition: service_healthy
