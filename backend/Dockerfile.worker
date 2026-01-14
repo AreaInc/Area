@@ -1,11 +1,16 @@
 FROM node:22-slim AS builder
 
+ARG TARGETARCH
+ENV NODE_ARCH=$TARGETARCH
+
 WORKDIR /app
 
 COPY package.json ./
 COPY pnpm-lock.yaml* ./
 
-RUN npm install -g pnpm && pnpm install --frozen-lockfile
+RUN npm install -g pnpm \
+  && arch_env=$([ "$NODE_ARCH" = "amd64" ] && echo x64 || echo "$NODE_ARCH") \
+  && npm_config_arch=$arch_env npm_config_platform=linux pnpm install --frozen-lockfile
 
 COPY . .
 
@@ -14,12 +19,17 @@ RUN pnpm build
 
 FROM node:22-slim
 
+ARG TARGETARCH
+ENV NODE_ARCH=$TARGETARCH
+
 WORKDIR /app
 
 COPY package.json ./
 COPY pnpm-lock.yaml* ./
 
-RUN npm install -g pnpm && pnpm install --prod --frozen-lockfile
+RUN npm install -g pnpm \
+  && arch_env=$([ "$NODE_ARCH" = "amd64" ] && echo x64 || echo "$NODE_ARCH") \
+  && npm_config_arch=$arch_env npm_config_platform=linux pnpm install --prod --frozen-lockfile
 
 COPY --from=builder /app/dist ./dist
 
