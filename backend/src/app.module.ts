@@ -12,6 +12,9 @@ import { ApiModule } from "./api/api.module";
 import { TemporalModule } from "./services/temporal/temporal.module";
 import { WorkflowsModule } from "./services/workflows/workflows.module";
 import { GmailModule } from "./services/gmail/gmail.module";
+import { WebhookModule } from "./services/webhook/webhook.module";
+import { SchedulerModule } from "./services/scheduler/scheduler.module";
+import { DiscordModule } from "./services/discord/discord.module";
 
 import { AuthModule } from "@thallesp/nestjs-better-auth";
 import { auth } from "./auth";
@@ -73,6 +76,9 @@ import { auth } from "./auth";
     TemporalModule,
     WorkflowsModule, // This exports TriggerRegistry and ActionRegistry
     GmailModule,
+    WebhookModule,
+    SchedulerModule,
+    DiscordModule,
     ApiModule,
   ],
   controllers: [AppController],

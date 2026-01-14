@@ -2,145 +2,10 @@ import { ActionRegistryService } from "./action-registry.service";
 import { TriggerRegistryService } from "./trigger-registry.service";
 import { SendEmailAction } from "../gmail/actions/send-email.action";
 import { ReceiveEmailTrigger } from "../gmail/triggers/receive-email.trigger";
-import { IAction } from "../../common/types/action.interface";
-import { ITrigger, TriggerType } from "../../common/types/trigger.interface";
-
-class DiscordWebhookAction implements IAction {
-  id = "send-webhook";
-  name = "Send Discord Webhook";
-  description = "Post a message to a Discord webhook URL";
-  serviceProvider = "discord";
-  requiresCredentials = false;
-
-  inputSchema = {
-    type: "object",
-    required: ["webhookUrl", "content"],
-    properties: {
-      webhookUrl: { type: "string" },
-      content: { type: "string" },
-    },
-  };
-
-  outputSchema = {
-    type: "object",
-    properties: {
-      delivered: { type: "boolean" },
-      status: { type: "number" },
-    },
-  };
-
-  async validateInput(config: Record<string, any>): Promise<boolean> {
-    if (!config.webhookUrl || typeof config.webhookUrl !== "string") {
-      throw new Error("webhookUrl is required");
-    }
-    if (!config.content || typeof config.content !== "string") {
-      throw new Error("content is required");
-    }
-    return true;
-  }
-
-  getMetadata() {
-    return {
-      id: this.id,
-      name: this.name,
-      description: this.description,
-      serviceProvider: this.serviceProvider,
-      inputSchema: this.inputSchema,
-      outputSchema: this.outputSchema,
-      requiresCredentials: this.requiresCredentials,
-    };
-  }
-}
-
-class PublicWebhookTrigger implements ITrigger {
-  id = "incoming-webhook";
-  name = "Public Webhook";
-  description = "Fire workflows from any HTTP POST";
-  serviceProvider = "webhook";
-  triggerType = TriggerType.WEBHOOK;
-  requiresCredentials = false;
-
-  configSchema = {
-    type: "object",
-    required: ["path"],
-    properties: {
-      path: { type: "string" },
-      secret: { type: "string" },
-    },
-  };
-
-  outputSchema = {
-    type: "object",
-    properties: {
-      payload: { type: "object" },
-      headers: { type: "object" },
-    },
-  };
-
-  private registrations = new Map<number, Record<string, any>>();
-
-  async register(workflowId: number, config: Record<string, any>) {
-    this.registrations.set(workflowId, config);
-  }
-
-  async unregister(workflowId: number) {
-    this.registrations.delete(workflowId);
-  }
-
-  async validateConfig(config: Record<string, any>) {
-    if (!config.path || typeof config.path !== "string") {
-      throw new Error("path is required");
-    }
-    return true;
-  }
-
-  isRegistered(workflowId: number) {
-    return this.registrations.has(workflowId);
-  }
-}
-
-class ScheduledTrigger implements ITrigger {
-  id = "every-hour";
-  name = "Every hour";
-  description = "Run on a fixed schedule";
-  serviceProvider = "scheduler";
-  triggerType = TriggerType.SCHEDULED;
-  requiresCredentials = false;
-
-  configSchema = {
-    type: "object",
-    required: ["cron"],
-    properties: {
-      cron: { type: "string" },
-    },
-  };
-
-  outputSchema = { type: "object", properties: {} };
-
-  private registrations = new Set<number>();
-
-  async register(workflowId: number, config: Record<string, any>) {
-    if (!config.cron) {
-      throw new Error("cron expression required");
-    }
-    this.registrations.add(workflowId);
-  }
-
-  async unregister(workflowId: number) {
-    this.registrations.delete(workflowId);
-  }
-
-  async validateConfig(config: Record<string, any>) {
-    if (!config.cron || typeof config.cron !== "string") {
-      throw new Error("cron expression required");
-    }
-    return true;
-  }
-
-  isRegistered(workflowId: number) {
-    return this.registrations.has(workflowId);
-  }
-}
+import { SendDiscordWebhookAction } from "../discord/actions/send-webhook.action";
+import { PublicWebhookTrigger } from "../webhook/triggers/public-webhook.trigger";
+import { CronTrigger } from "../scheduler/triggers/cron.trigger";
+import { TriggerType } from "../../common/types/trigger.interface";
 
 describe("Action and Trigger registry integration", () => {
   let actionRegistry: ActionRegistryService;
@@ -222,9 +87,9 @@ describe("Action and Trigger registry integration", () => {
   });
 
   it("handles webhook-style and scheduled providers alongside Gmail", async () => {
-    const discordAction = new DiscordWebhookAction();
+    const discordAction = new SendDiscordWebhookAction();
     const webhookTrigger = new PublicWebhookTrigger();
-    const scheduledTrigger = new ScheduledTrigger();
+    const scheduledTrigger = new CronTrigger();
 
     actionRegistry.register(gmailAction);
     actionRegistry.register(discordAction);
@@ -239,10 +104,11 @@ describe("Action and Trigger registry integration", () => {
     await webhookTrigger.register(42, webhookConfig);
     expect(webhookTrigger.isRegistered(42)).toBe(true);
 
-    await expect(
-      scheduledTrigger.validateConfig({ cron: "0 * * * *" }),
-    ).resolves.toBe(true);
-    await scheduledTrigger.register(7, { cron: "0 * * * *" });
+    const cronConfig = { cron: "0 * * * *" };
+    await expect(scheduledTrigger.validateConfig(cronConfig)).resolves.toBe(
+      true,
+    );
+    await scheduledTrigger.register(7, cronConfig);
     expect(scheduledTrigger.isRegistered(7)).toBe(true);
 
     await expect(
