@@ -38,7 +38,7 @@ function Login() {
         return
       }
 
-      navigate({ to: '/dashboard' })
+      navigate({ to: '/dashboard', search: { workflow: null } })
     } catch (err: any) {
       const errorMsg = err?.message || 'Invalid email or password'
       setError(errorMsg)

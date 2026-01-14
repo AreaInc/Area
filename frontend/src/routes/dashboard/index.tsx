@@ -129,7 +129,7 @@ function Dashboard() {
     const slug = workflowSlug(current.id, current.name);
     if (workflowSlugParam !== slug) {
       navigate({
-        to: '/dashboard/',
+        to: '/dashboard',
         search: { workflow: slug },
         replace: true,
       });

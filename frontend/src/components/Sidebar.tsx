@@ -29,7 +29,7 @@ export function Sidebar() {
         },
       });
       navigate({
-        to: '/dashboard/',
+        to: '/dashboard',
         search: { workflow: workflowSlug(newWorkflow.id, newWorkflow.name) },
       });
     } catch (err) {
@@ -84,7 +84,7 @@ export function Sidebar() {
             isSelected={selectedWorkflowSlug === workflowSlug(wf.id, wf.name)}
             onSelect={() => {
               navigate({
-                to: '/dashboard/',
+                to: '/dashboard',
                 search: { workflow: workflowSlug(wf.id, wf.name) },
               });
             }}
