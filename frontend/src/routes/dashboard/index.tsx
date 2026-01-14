@@ -6,6 +6,7 @@ import {
   useDeleteWorkflow,
   useActivateWorkflow,
   useDeactivateWorkflow,
+  useActions,
 } from '../../hooks/useWorkflows';
 import { Button } from '../../components/ui/button';
 import { TriggerSelector } from '../../components/workflow/TriggerSelector';
@@ -18,6 +19,7 @@ export const Route = createFileRoute('/dashboard/')({
 
 function Dashboard() {
   const { data: workflows, isLoading, error } = useWorkflows();
+  const { data: actions } = useActions();
   const [selectedWorkflowId, setSelectedWorkflowId] = useState<number | null>(null);
 
   const selectedWorkflow = workflows?.find((w) => w.id === selectedWorkflowId);
@@ -61,6 +63,27 @@ function Dashboard() {
       return;
     }
 
+    // Validate action has credentials if required
+    const selectedActionMeta = actions?.find(
+      (a) => a.serviceProvider === action.provider && a.id === action.actionId
+    );
+
+    if (selectedActionMeta?.requiresCredentials && !action.credentialsId) {
+      alert('Please select credentials for this action');
+      return;
+    }
+
+    // Validate required action config fields
+    if (selectedActionMeta?.inputSchema?.required) {
+      const missingFields = selectedActionMeta.inputSchema.required.filter(
+        (field: string) => !action.config[field] || action.config[field] === ''
+      );
+      if (missingFields.length > 0) {
+        alert(`Please fill in required fields: ${missingFields.join(', ')}`);
+        return;
+      }
+    }
+
     setIsSaving(true);
     try {
       await updateMutation.mutateAsync({
@@ -72,8 +95,9 @@ function Dashboard() {
         },
       });
       alert('Workflow saved successfully!');
-    } catch (err) {
-      alert('Failed to save workflow');
+    } catch (err: any) {
+      const errorMessage = err?.message || 'Failed to save workflow';
+      alert(`Failed to save workflow: ${errorMessage}`);
     } finally {
       setIsSaving(false);
     }
@@ -97,14 +121,44 @@ function Dashboard() {
   const handleToggleActive = async () => {
     if (!selectedWorkflow) return;
 
+    // Validate before activating
+    if (!selectedWorkflow.isActive) {
+      if (!trigger || !action) {
+        alert('Please configure both trigger and action before activating');
+        return;
+      }
+
+      // Check if action requires credentials
+      const selectedActionMeta = actions?.find(
+        (a) => a.serviceProvider === action?.provider && a.id === action?.actionId
+      );
+
+      if (selectedActionMeta?.requiresCredentials && !action?.credentialsId) {
+        alert('Please select credentials for this action before activating');
+        return;
+      }
+
+      // Validate required action config fields
+      if (selectedActionMeta?.inputSchema?.required && action) {
+        const missingFields = selectedActionMeta.inputSchema.required.filter(
+          (field: string) => !action.config[field] || action.config[field] === ''
+        );
+        if (missingFields.length > 0) {
+          alert(`Please fill in required fields before activating: ${missingFields.join(', ')}`);
+          return;
+        }
+      }
+    }
+
     try {
       if (selectedWorkflow.isActive) {
         await deactivateMutation.mutateAsync(selectedWorkflow.id);
       } else {
         await activateMutation.mutateAsync(selectedWorkflow.id);
       }
-    } catch (err) {
-      alert('Failed to toggle workflow status');
+    } catch (err: any) {
+      const errorMessage = err?.message || 'Failed to toggle workflow status';
+      alert(`Failed to toggle workflow status: ${errorMessage}`);
     }
   };
 
