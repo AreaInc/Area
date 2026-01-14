@@ -146,9 +146,9 @@ export class OAuth2CredentialController {
     },
   })
   getCallbackUrl() {
+    // TODO: Temporary hardcoded ngrok URL - replace with DEPLOY_ADDRESS when domain is ready
     const callbackUrl =
-      process.env.OAUTH_CALLBACK_URL ||
-      "http://localhost:8080/api/oauth2-credential/callback";
+      "https://nonformal-antonette-slumberously.ngrok-free.dev/api/oauth2-credential/callback";
 
     return {
       callbackUrl,
@@ -260,9 +260,7 @@ export class OAuth2CredentialController {
   @ApiOperation({
     summary: "Create new OAuth2 credential with client ID and secret",
     description:
-      "Creates a new OAuth2 credential entry with user-provided client ID and client secret. This credential can then be used to initiate the OAuth flow and connect to the service. The callback URL for OAuth configuration is: " +
-      (process.env.OAUTH_CALLBACK_URL ||
-        "http://localhost:8080/api/oauth2-credential/callback"),
+      "Creates a new OAuth2 credential entry with user-provided client ID and client secret. This credential can then be used to initiate the OAuth flow and connect to the service. The callback URL for OAuth configuration is: https://nonformal-antonette-slumberously.ngrok-free.dev/api/oauth2-credential/callback",
   })
   @ApiBody({ type: CreateCredentialDto })
   @ApiResponse({
