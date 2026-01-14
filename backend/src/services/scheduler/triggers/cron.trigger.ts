@@ -1,6 +1,6 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Inject, Injectable, Logger } from "@nestjs/common";
 import { ITrigger, TriggerType } from "../../../common/types/trigger.interface";
-import { WorkflowsService } from "../../workflows/workflows.service";
+import { WORKFLOWS_SERVICE } from "../../workflows/workflows.constants";
 
 @Injectable()
 export class CronTrigger implements ITrigger {
@@ -32,10 +32,13 @@ export class CronTrigger implements ITrigger {
   >();
 
   constructor(
-    private readonly workflowsService: Pick<
-      WorkflowsService,
-      "triggerWorkflowExecution"
-    >,
+    @Inject(WORKFLOWS_SERVICE)
+    private readonly workflowsService: {
+      triggerWorkflowExecution: (
+        workflowId: number,
+        triggerData: Record<string, any>,
+      ) => Promise<any>;
+    },
   ) {}
 
   async register(workflowId: number, config: Record<string, any>) {
