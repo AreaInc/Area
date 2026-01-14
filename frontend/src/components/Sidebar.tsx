@@ -1,16 +1,16 @@
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigate, useSearch } from '@tanstack/react-router';
 import { Clock, Plus, Key, Grid } from 'lucide-react';
 import clsx from 'clsx';
 import { UserMenu } from './UserMenu';
 import { type Workflow } from '../types/workflow';
 import { useWorkflows, useCreateWorkflow } from '../hooks/useWorkflows';
-import { useState } from 'react';
+import { workflowSlug } from '../lib/slug';
 
 export function Sidebar() {
   const { data: workflows } = useWorkflows();
   const createMutation = useCreateWorkflow();
   const navigate = useNavigate();
-  const [selectedWorkflowId, setSelectedWorkflowId] = useState<number | null>(null);
+  const { workflow: selectedWorkflowSlug } = useSearch({ from: '/dashboard/' });
 
   const handleCreateWorkflow = async () => {
     try {
@@ -28,8 +28,10 @@ export function Sidebar() {
           config: {},
         },
       });
-      setSelectedWorkflowId(newWorkflow.id);
-      navigate({ to: '/dashboard' });
+      navigate({
+        to: '/dashboard/',
+        search: { workflow: workflowSlug(newWorkflow.id, newWorkflow.name) },
+      });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to create workflow';
       alert(`Failed to create workflow: ${errorMessage}`);
@@ -79,10 +81,12 @@ export function Sidebar() {
           <WorkflowItem
             key={wf.id}
             workflow={wf}
-            isSelected={selectedWorkflowId === wf.id}
+            isSelected={selectedWorkflowSlug === workflowSlug(wf.id, wf.name)}
             onSelect={() => {
-              setSelectedWorkflowId(wf.id);
-              navigate({ to: '/dashboard' });
+              navigate({
+                to: '/dashboard/',
+                search: { workflow: workflowSlug(wf.id, wf.name) },
+              });
             }}
           />
         ))}

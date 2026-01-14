@@ -12,6 +12,7 @@ import { Button } from '../../components/ui/button';
 import { TriggerSelector } from '../../components/workflow/TriggerSelector';
 import { ActionSelector } from '../../components/workflow/ActionSelector';
 import type { TriggerConfig, ActionConfig } from '../../types/workflow';
+import { parseWorkflowIdFromSlug, workflowSlug } from '../../lib/slug';
 
 const QUICK_TEMPLATES: {
   name: string;
@@ -76,9 +77,14 @@ const QUICK_TEMPLATES: {
 
 export const Route = createFileRoute('/dashboard/')({
   component: Dashboard,
+  validateSearch: (search) => ({
+    workflow: typeof search.workflow === 'string' ? search.workflow : null,
+  }),
 });
 
 function Dashboard() {
+  const { workflow: workflowSlugParam } = Route.useSearch();
+  const navigate = Route.useNavigate();
   const { data: workflows, isLoading, error } = useWorkflows();
   const { data: actions } = useActions();
   const [selectedWorkflowId, setSelectedWorkflowId] = useState<number | null>(null);
@@ -95,11 +101,40 @@ function Dashboard() {
   const [action, setAction] = useState<ActionConfig | undefined>();
   const [isSaving, setIsSaving] = useState(false);
 
+  // Keep selection in sync with URL slug and available workflows
   useEffect(() => {
-    if (workflows && workflows.length > 0 && !selectedWorkflowId) {
+    if (!workflows || workflows.length === 0) return;
+
+    const desiredId = parseWorkflowIdFromSlug(workflowSlugParam);
+    const desiredWorkflow = desiredId
+      ? workflows.find((w) => w.id === desiredId)
+      : undefined;
+
+    if (desiredWorkflow) {
+      setSelectedWorkflowId(desiredWorkflow.id);
+      return;
+    }
+
+    if (!selectedWorkflowId || !workflows.some((w) => w.id === selectedWorkflowId)) {
       setSelectedWorkflowId(workflows[0].id);
     }
-  }, [workflows, selectedWorkflowId]);
+  }, [workflows, workflowSlugParam, selectedWorkflowId]);
+
+  // Ensure URL slug reflects the selected workflow (helps bookmarking/sharing)
+  useEffect(() => {
+    if (!workflows || workflows.length === 0 || !selectedWorkflowId) return;
+    const current = workflows.find((w) => w.id === selectedWorkflowId);
+    if (!current) return;
+
+    const slug = workflowSlug(current.id, current.name);
+    if (workflowSlugParam !== slug) {
+      navigate({
+        to: '/dashboard/',
+        search: { workflow: slug },
+        replace: true,
+      });
+    }
+  }, [workflows, selectedWorkflowId, workflowSlugParam, navigate]);
 
   useEffect(() => {
     if (selectedWorkflow) {
