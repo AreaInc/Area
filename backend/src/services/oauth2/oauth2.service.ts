@@ -27,6 +27,18 @@ export class OAuth2Service {
     @Inject(DRIZZLE) private readonly db: PostgresJsDatabase<typeof schema>,
   ) {}
 
+  private getCallbackUrl(): string {
+    if (process.env.OAUTH_CALLBACK_URL) {
+      return process.env.OAUTH_CALLBACK_URL;
+    }
+
+    if (process.env.DEPLOY_ADDRESS) {
+      return `http://${process.env.DEPLOY_ADDRESS}:8080/api/oauth2-credential/callback`;
+    }
+
+    return "http://localhost:8080/api/oauth2-credential/callback";
+  }
+
   async listCredentials(userId: string) {
     const userCredentials = await this.db
       .select()
@@ -133,9 +145,7 @@ export class OAuth2Service {
 
     this.cleanupOldStates();
 
-    const callbackUrl =
-      process.env.OAUTH_CALLBACK_URL ||
-      "http://localhost:8080/api/oauth2-credential/callback";
+    const callbackUrl = this.getCallbackUrl();
 
     const oauth2Client = new google.auth.OAuth2(
       credential.clientId,
@@ -191,9 +201,7 @@ export class OAuth2Service {
       );
     }
 
-    const callbackUrl =
-      process.env.OAUTH_CALLBACK_URL ||
-      "http://localhost:8080/api/oauth2-credential/callback";
+    const callbackUrl = this.getCallbackUrl();
 
     const oauth2Client = new google.auth.OAuth2(
       credential.clientId,
@@ -250,10 +258,8 @@ export class OAuth2Service {
         errorCode === "invalid_request" ||
         errorMessage.includes("redirect_uri")
       ) {
-        const callbackUrl =
-          process.env.OAUTH_CALLBACK_URL ||
-          "http://localhost:8080/api/oauth2-credential/callback";
-        
+        const callbackUrl = this.getCallbackUrl();
+
         return {
           success: false,
           error: `Redirect URI mismatch. Please ensure the following URL is added to your Google Cloud Console OAuth 2.0 Client ID settings under "Authorized redirect URIs": ${callbackUrl}. The URL must match exactly, including protocol (http/https) and port.`,

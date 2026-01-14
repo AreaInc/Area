@@ -36,6 +36,18 @@ import {
 export class OAuth2CredentialController {
   constructor(private readonly oauth2Service: OAuth2Service) {}
 
+  private buildCallbackUrl(): string {
+    if (process.env.OAUTH_CALLBACK_URL) {
+      return process.env.OAUTH_CALLBACK_URL;
+    }
+
+    if (process.env.DEPLOY_ADDRESS) {
+      return `http://${process.env.DEPLOY_ADDRESS}:8080/api/oauth2-credential/callback`;
+    }
+
+    return "http://localhost:8080/api/oauth2-credential/callback";
+  }
+
   @Get()
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
@@ -146,9 +158,7 @@ export class OAuth2CredentialController {
     },
   })
   getCallbackUrl() {
-    const callbackUrl =
-      process.env.OAUTH_CALLBACK_URL ||
-      "http://localhost:8080/api/oauth2-credential/callback";
+    const callbackUrl = this.buildCallbackUrl();
 
     return {
       callbackUrl,
