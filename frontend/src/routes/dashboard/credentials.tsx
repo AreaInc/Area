@@ -114,7 +114,7 @@ function CredentialsPage() {
                 {!credential.isValid && (
                   <Button
                     onClick={() => {
-                      window.location.href = `http://${import.meta.env.VITE_DEPLOY_ADDRESS ?? "localhost"}:8080/api/oauth2-credential/auth?credentialId=${credential.id}&redirectUrl=${encodeURIComponent(window.location.href)}`;
+                      window.location.href = `http://${import.meta.env.VITE_DEPLOY_ADDRESS ?? "localhost"}/api/oauth2-credential/auth?credentialId=${credential.id}&redirectUrl=${encodeURIComponent(window.location.href)}`;
                     }}
                   >
                     Connect

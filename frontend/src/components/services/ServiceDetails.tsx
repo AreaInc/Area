@@ -8,7 +8,7 @@ interface ServiceDetailsProps {
     authStatus?: 'success' | 'error'
 }
 
-const API_BASE = `http://${import.meta.env.VITE_DEPLOY_ADDRESS ?? "localhost"}:8080/api`
+const API_BASE = `http://${import.meta.env.VITE_DEPLOY_ADDRESS ?? "localhost"}/api`
 
 export function ServiceDetails({ service, authStatus }: ServiceDetailsProps) {
     const isOAuth2Service = service.credentialTypes.includes('OAUTH2')
