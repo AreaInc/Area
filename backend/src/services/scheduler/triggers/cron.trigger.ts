@@ -1,6 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ITrigger, TriggerType } from "../../../common/types/trigger.interface";
-import type { WorkflowsService } from "../../workflows/workflows.service";
+import { WorkflowsService } from "../../workflows/workflows.service";
 
 @Injectable()
 export class CronTrigger implements ITrigger {
