@@ -94,7 +94,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.worker
-    container_name: area-worker
     environment:
       - NODE_ENV=production
       - POSTGRES_HOST=${POSTGRES_HOST:-haproxy}
@@ -123,7 +122,7 @@ services:
       vault:
         condition: service_started
       temporal:
-        condition: service_started
+        condition: service_healthy
     networks:
       - area-network
       - patroni
