@@ -7,7 +7,11 @@ import {
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { DRIZZLE } from "../../db/drizzle.module";
 import * as schema from "../../db/schema";
-import { workflows, workflowExecutions } from "../../db/schema";
+import {
+  workflows,
+  workflowExecutions,
+  credentials as credentialsTable,
+} from "../../db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { TemporalClientService } from "../temporal/temporal-client.service";
 import { TriggerRegistryService } from "../registries/trigger-registry.service";
@@ -279,10 +283,43 @@ export class WorkflowsService {
       );
     }
 
+    const triggerCredentialsId = (workflow.triggerConfig as any)?.credentialsId;
+    if (trigger.requiresCredentials && !triggerCredentialsId) {
+      throw new BadRequestException(
+        "Trigger requires credentials, but none were provided in triggerConfig.credentialsId",
+      );
+    }
+
+    if (triggerCredentialsId) {
+      const [credential] = await this.db
+        .select()
+        .from(credentialsTable)
+        .where(
+          and(
+            eq(credentialsTable.id, triggerCredentialsId),
+            eq(credentialsTable.userId, userId),
+          ),
+        );
+
+      if (!credential) {
+        throw new BadRequestException(
+          "Trigger credentials not found or do not belong to user",
+        );
+      }
+    }
+
+    console.log("[WorkflowsService] Activating workflow", {
+      workflowId,
+      trigger: `${workflow.triggerProvider}:${workflow.triggerId}`,
+      triggerCredentialsId,
+      action: `${workflow.actionProvider}:${workflow.actionId}`,
+      actionCredentialsId: workflow.actionCredentialsId,
+    });
+
     await trigger.register(
       workflowId,
       workflow.triggerConfig as Record<string, any>,
-      workflow.actionCredentialsId || undefined,
+      triggerCredentialsId || undefined,
     );
 
     await this.db
@@ -336,6 +373,15 @@ export class WorkflowsService {
       actionConfig: workflow.actionConfig as Record<string, any>,
       actionCredentialsId: workflow.actionCredentialsId || undefined,
     };
+
+    console.log("[WorkflowsService] Starting automation workflow", {
+      workflowId,
+      temporalWorkflowId,
+      triggerProvider: workflow.triggerProvider,
+      triggerId: workflow.triggerId,
+      actionProvider: workflow.actionProvider,
+      actionId: workflow.actionId,
+    });
 
     const handle = await this.temporalClient.startAutomationWorkflow(
       temporalWorkflowId,
@@ -391,6 +437,13 @@ export class WorkflowsService {
     if (!workflow.isActive) {
       throw new BadRequestException("Workflow is not active");
     }
+
+    console.log("[WorkflowsService] Triggering workflow execution", {
+      workflowId,
+      triggerProvider: workflow.triggerProvider,
+      triggerId: workflow.triggerId,
+      triggerData,
+    });
 
     return this.executeWorkflow(workflow.userId, workflowId, triggerData);
   }

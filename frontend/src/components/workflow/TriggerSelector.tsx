@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTriggers } from '../../hooks/useWorkflows';
+import { useCredentials } from '../../hooks/useCredentials';
 import type { TriggerConfig } from '../../types/workflow';
 
 interface TriggerSelectorProps {
@@ -9,6 +10,7 @@ interface TriggerSelectorProps {
 
 export function TriggerSelector({ value, onChange }: TriggerSelectorProps) {
   const { data: triggers, isLoading } = useTriggers();
+  const { data: credentials, isLoading: credentialsLoading } = useCredentials();
   const [config, setConfig] = useState<Record<string, any>>(value?.config || {});
 
   useEffect(() => {
@@ -17,7 +19,7 @@ export function TriggerSelector({ value, onChange }: TriggerSelectorProps) {
     }
   }, [value?.config]);
 
-  if (isLoading) {
+  if (isLoading || credentialsLoading) {
     return <div className="text-gray-400">Loading triggers...</div>;
   }
 
@@ -25,15 +27,24 @@ export function TriggerSelector({ value, onChange }: TriggerSelectorProps) {
     (t) => t.serviceProvider === value?.provider && t.id === value?.triggerId
   );
 
+  const availableCredentials = credentials?.filter(
+    (c) => c.serviceProvider === value?.provider && c.isValid
+  );
+
   const configSchema = selectedTrigger?.configSchema as any;
 
   const handleTriggerChange = (provider: string, triggerId: string) => {
+    const baseConfig =
+      value?.provider === provider && value?.config?.credentialsId
+        ? { credentialsId: value.config.credentialsId }
+        : {};
+
     onChange({
       provider,
       triggerId,
-      config: {},
+      config: baseConfig,
     });
-    setConfig({});
+    setConfig(baseConfig);
   };
 
   const handleConfigChange = (key: string, newValue: any) => {
@@ -140,6 +151,37 @@ export function TriggerSelector({ value, onChange }: TriggerSelectorProps) {
             <h3 className="font-semibold text-white mb-2">{selectedTrigger.name}</h3>
             <p className="text-sm text-gray-400">{selectedTrigger.description}</p>
           </div>
+
+          {selectedTrigger.requiresCredentials && (
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Credentials <span className="text-red-400">*</span>
+              </label>
+              {!availableCredentials || availableCredentials.length === 0 ? (
+                <p className="text-sm text-yellow-400">
+                  No connected credentials found for {value?.provider}. Please create and connect
+                  credentials first.
+                </p>
+              ) : (
+                <select
+                  value={config.credentialsId || ''}
+                  onChange={(e) => {
+                    const credentialsId = e.target.value ? parseInt(e.target.value) : undefined;
+                    handleConfigChange('credentialsId', credentialsId);
+                  }}
+                  required
+                  className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select credentials...</option>
+                  {availableCredentials.map((cred) => (
+                    <option key={cred.id} value={cred.id}>
+                      {cred.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+          )}
 
           {configSchema?.properties && (
             <div className="border-t border-gray-700 pt-4">

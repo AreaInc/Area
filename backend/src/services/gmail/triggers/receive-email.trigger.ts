@@ -88,6 +88,9 @@ export class ReceiveEmailTrigger implements ITrigger {
   async unregister(workflowId: number): Promise<void> {
     console.log(
       `[ReceiveEmailTrigger] Unregistering trigger for workflow ${workflowId}`,
+      {
+        existingRegistration: this.workflowRegistrations.get(workflowId),
+      },
     );
 
     // Remove the registration
