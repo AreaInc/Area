@@ -178,6 +178,9 @@ export const workflows = pgTable("workflows", {
   actionCredentialsId: integer("action_credentials_id").references(
     () => credentials.id,
   ),
+  // Gmail watch information (for push notifications)
+  gmailHistoryId: text("gmail_history_id"),
+  gmailWatchExpiration: timestamp("gmail_watch_expiration"),
   isActive: boolean("is_active").default(false).notNull(),
   lastRun: timestamp("last_run"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
