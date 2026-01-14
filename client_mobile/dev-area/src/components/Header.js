@@ -1,8 +1,13 @@
 import React from 'react';
 import { StyleSheet, Text, View, Image, TouchableOpacity } from 'react-native';
 import { Settings } from 'lucide-react-native';
+import { useAuth } from '../context/AuthContext';
+import { useNavigation } from '@react-navigation/native';
 
 const Header = () => {
+    const { user } = useAuth();
+    const navigation = useNavigation();
+
     return (
         <View style={styles.container}>
             <View style={styles.userInfo}>
@@ -15,10 +20,13 @@ const Header = () => {
                 </View>
                 <View>
                     <Text style={styles.greeting}>WELCOME BACK</Text>
-                    <Text style={styles.name}>Alex Morgan</Text>
+                    <Text style={styles.name}>{user?.name?.toUpperCase() || 'USER'}</Text>
                 </View>
             </View>
-            <TouchableOpacity style={styles.settingsButton}>
+            <TouchableOpacity
+                style={styles.settingsButton}
+                onPress={() => navigation.navigate('Profile')}
+            >
                 <Settings color="#fff" size={24} />
             </TouchableOpacity>
         </View>
