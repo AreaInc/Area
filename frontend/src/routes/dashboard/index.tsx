@@ -13,6 +13,67 @@ import { TriggerSelector } from '../../components/workflow/TriggerSelector';
 import { ActionSelector } from '../../components/workflow/ActionSelector';
 import type { TriggerConfig, ActionConfig } from '../../types/workflow';
 
+const QUICK_TEMPLATES: {
+  name: string;
+  description: string;
+  trigger: TriggerConfig;
+  action: ActionConfig;
+}[] = [
+  {
+    name: 'Public webhook → Discord',
+    description: 'Start from an unauthenticated webhook and fan out to a Discord channel.',
+    trigger: {
+      provider: 'webhook',
+      triggerId: 'incoming-webhook',
+      config: { path: '/hooks/public', secret: '' },
+    },
+    action: {
+      provider: 'discord',
+      actionId: 'send-webhook',
+      config: {
+        webhookUrl: 'https://discord.com/api/webhooks/xxx/yyy',
+        content: 'Hello from AREA!',
+      },
+    },
+  },
+  {
+    name: 'Cron (hourly) → Gmail send',
+    description: 'Run every hour and send a status email through Gmail.',
+    trigger: {
+      provider: 'scheduler',
+      triggerId: 'cron',
+      config: { cron: '0 * * * *' },
+    },
+    action: {
+      provider: 'gmail',
+      actionId: 'send-email',
+      config: {
+        to: 'you@example.com',
+        subject: 'Hourly ping from AREA',
+        body: 'This is a scheduled notification.',
+      },
+    },
+  },
+  {
+    name: 'Gmail inbound → Gmail auto-reply',
+    description: 'Use Gmail receive trigger to auto-reply to matching emails.',
+    trigger: {
+      provider: 'gmail',
+      triggerId: 'receive-email',
+      config: { from: '' },
+    },
+    action: {
+      provider: 'gmail',
+      actionId: 'send-email',
+      config: {
+        to: '{{from}}',
+        subject: 'Re: {{subject}}',
+        body: 'Thanks for reaching out!',
+      },
+    },
+  },
+];
+
 export const Route = createFileRoute('/dashboard/')({
   component: Dashboard,
 });
@@ -56,6 +117,15 @@ function Dashboard() {
       });
     }
   }, [selectedWorkflow]);
+
+  const applyTemplate = (templateIndex: number) => {
+    const template = QUICK_TEMPLATES[templateIndex];
+    if (!template) return;
+
+    setWorkflowName(template.name);
+    setTrigger({ ...template.trigger });
+    setAction({ ...template.action });
+  };
 
   const handleSave = async () => {
     if (!selectedWorkflow || !trigger || !action) {
@@ -222,6 +292,40 @@ function Dashboard() {
             <Button onClick={handleDelete} disabled={deleteMutation.isPending}>
               {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
             </Button>
+          </div>
+        </div>
+
+        <div className="bg-gray-800 rounded-lg p-4 border border-gray-700/60">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h3 className="text-sm font-semibold text-gray-200 uppercase tracking-wide">
+                Quick templates
+              </h3>
+              <p className="text-xs text-gray-400">
+                Apply a ready-to-test trigger/action pair (webhook, Discord, cron, Gmail).
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {QUICK_TEMPLATES.map((template, idx) => (
+              <button
+                key={template.name}
+                onClick={() => applyTemplate(idx)}
+                className="text-left bg-gray-900/60 hover:bg-gray-900 border border-gray-700 rounded-lg p-4 transition-colors"
+              >
+                <div className="text-sm font-semibold text-white mb-1">{template.name}</div>
+                <p className="text-xs text-gray-400 mb-3 leading-relaxed">{template.description}</p>
+                <div className="flex items-center text-xs text-gray-300 gap-2">
+                  <span className="px-2 py-1 rounded-full bg-gray-800 border border-gray-700">
+                    {template.trigger.provider}:{template.trigger.triggerId}
+                  </span>
+                  <span className="text-gray-500">→</span>
+                  <span className="px-2 py-1 rounded-full bg-gray-800 border border-gray-700">
+                    {template.action.provider}:{template.action.actionId}
+                  </span>
+                </div>
+              </button>
+            ))}
           </div>
         </div>
 

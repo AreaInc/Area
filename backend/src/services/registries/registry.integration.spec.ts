@@ -12,12 +12,16 @@ describe("Action and Trigger registry integration", () => {
   let triggerRegistry: TriggerRegistryService;
   let gmailAction: SendEmailAction;
   let gmailTrigger: ReceiveEmailTrigger;
+  let mockWorkflowService: { triggerWorkflowExecution: jest.Mock };
 
   beforeEach(() => {
     actionRegistry = new ActionRegistryService();
     triggerRegistry = new TriggerRegistryService();
     gmailAction = new SendEmailAction();
     gmailTrigger = new ReceiveEmailTrigger();
+    mockWorkflowService = {
+      triggerWorkflowExecution: jest.fn(),
+    };
   });
 
   it("registers Gmail definitions and exposes consistent metadata", async () => {
@@ -89,7 +93,9 @@ describe("Action and Trigger registry integration", () => {
   it("handles webhook-style and scheduled providers alongside Gmail", async () => {
     const discordAction = new SendDiscordWebhookAction();
     const webhookTrigger = new PublicWebhookTrigger();
-    const scheduledTrigger = new CronTrigger();
+    const scheduledTrigger = new CronTrigger(
+      mockWorkflowService as any,
+    );
 
     actionRegistry.register(gmailAction);
     actionRegistry.register(discordAction);
@@ -110,6 +116,7 @@ describe("Action and Trigger registry integration", () => {
     );
     await scheduledTrigger.register(7, cronConfig);
     expect(scheduledTrigger.isRegistered(7)).toBe(true);
+    await scheduledTrigger.unregister(7);
 
     await expect(
       discordAction.validateInput({
