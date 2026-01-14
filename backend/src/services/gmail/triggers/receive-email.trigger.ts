@@ -1,11 +1,5 @@
-import { Injectable, Inject } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { ITrigger, TriggerType } from "../../../common/types/trigger.interface";
-import { GmailWatchService } from "../gmail-watch.service";
-import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import { DRIZZLE } from "../../../db/drizzle.module";
-import * as schema from "../../../db/schema";
-import { workflows } from "../../../db/schema";
-import { eq } from "drizzle-orm";
 
 @Injectable()
 export class ReceiveEmailTrigger implements ITrigger {
@@ -15,11 +9,6 @@ export class ReceiveEmailTrigger implements ITrigger {
   serviceProvider = "gmail";
   triggerType = TriggerType.EVENT;
   requiresCredentials = true;
-
-  constructor(
-    private readonly gmailWatchService: GmailWatchService,
-    @Inject(DRIZZLE) private readonly db: PostgresJsDatabase<typeof schema>,
-  ) {}
 
   configSchema = {
     type: "object",
@@ -84,51 +73,12 @@ export class ReceiveEmailTrigger implements ITrigger {
       },
     );
 
-    if (!credentialsId) {
-      throw new Error(
-        "Credentials are required to set up Gmail push notifications",
-      );
-    }
-
-    // Store registration
     this.workflowRegistrations.set(workflowId, { config, credentialsId });
 
-    // Set up Gmail Push API watch
-    try {
-      const labelIds = config.labelIds as string[] | undefined;
-      const watchInfo = await this.gmailWatchService.setupWatch(
-        credentialsId,
-        labelIds,
-      );
-
-      // Update workflow with watch information
-      await this.db
-        .update(workflows)
-        .set({
-          gmailHistoryId: watchInfo.historyId,
-          gmailWatchExpiration: new Date(parseInt(watchInfo.expiration)),
-          updatedAt: new Date(),
-        })
-        .where(eq(workflows.id, workflowId));
-
-      console.log(
-        `[ReceiveEmailTrigger] Gmail watch set up successfully for workflow ${workflowId}`,
-        {
-          historyId: watchInfo.historyId,
-          expiration: watchInfo.expiration,
-        },
-      );
-    } catch (error: any) {
-      console.error(
-        `[ReceiveEmailTrigger] Failed to set up Gmail watch for workflow ${workflowId}:`,
-        error,
-      );
-      // Don't throw - allow workflow to be registered even if watch setup fails
-      // User can still use test endpoint or manual webhook calls
-      console.warn(
-        `[ReceiveEmailTrigger] Workflow ${workflowId} registered but Gmail watch not set up. You can still trigger workflows manually via the test endpoint.`,
-      );
-    }
+    // In a real implementation, here you would:
+    // 1. Set up Gmail Push API watch for the user's mailbox
+    // 2. Configure the Pub/Sub subscription to send notifications to your webhook
+    // 3. Store the watch information to allow unregistering later
 
     console.log(
       `[ReceiveEmailTrigger] Trigger registered successfully for workflow ${workflowId}`,
@@ -140,36 +90,12 @@ export class ReceiveEmailTrigger implements ITrigger {
       `[ReceiveEmailTrigger] Unregistering trigger for workflow ${workflowId}`,
     );
 
-    const registration = this.workflowRegistrations.get(workflowId);
-
-    // Stop Gmail watch if credentials are available
-    if (registration?.credentialsId) {
-      try {
-        await this.gmailWatchService.stopWatch(registration.credentialsId);
-        console.log(
-          `[ReceiveEmailTrigger] Gmail watch stopped for workflow ${workflowId}`,
-        );
-      } catch (error) {
-        console.error(
-          `[ReceiveEmailTrigger] Error stopping Gmail watch for workflow ${workflowId}:`,
-          error,
-        );
-        // Continue with unregistration even if stop fails
-      }
-    }
-
     // Remove the registration
     this.workflowRegistrations.delete(workflowId);
 
-    // Clear watch info from database
-    await this.db
-      .update(workflows)
-      .set({
-        gmailHistoryId: null,
-        gmailWatchExpiration: null,
-        updatedAt: new Date(),
-      })
-      .where(eq(workflows.id, workflowId));
+    // In a real implementation, here you would:
+    // 1. Stop the Gmail Push API watch for this workflow
+    // 2. Clean up any Pub/Sub subscriptions
 
     console.log(
       `[ReceiveEmailTrigger] Trigger unregistered successfully for workflow ${workflowId}`,

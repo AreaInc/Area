@@ -1,22 +1,14 @@
 import { Module, OnModuleInit } from "@nestjs/common";
 import { ReceiveEmailTrigger } from "./triggers/receive-email.trigger";
 import { SendEmailAction } from "./actions/send-email.action";
-import { GmailWatchService } from "./gmail-watch.service";
-import { GmailWatchRenewalService } from "./gmail-watch-renewal.service";
 import { TriggerRegistryService } from "../registries/trigger-registry.service";
 import { ActionRegistryService } from "../registries/action-registry.service";
 import { WorkflowsModule } from "../workflows/workflows.module";
-import { DrizzleModule } from "../../db/drizzle.module";
 
 @Module({
-  imports: [WorkflowsModule, DrizzleModule],
-  providers: [
-    ReceiveEmailTrigger,
-    SendEmailAction,
-    GmailWatchService,
-    GmailWatchRenewalService,
-  ],
-  exports: [ReceiveEmailTrigger, SendEmailAction, GmailWatchService],
+  imports: [WorkflowsModule],
+  providers: [ReceiveEmailTrigger, SendEmailAction],
+  exports: [ReceiveEmailTrigger, SendEmailAction],
 })
 export class GmailModule implements OnModuleInit {
   constructor(
