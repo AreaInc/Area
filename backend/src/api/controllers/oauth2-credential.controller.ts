@@ -60,74 +60,6 @@ export class OAuth2CredentialController {
     return this.oauth2Service.listCredentials(user.id);
   }
 
-  @Get(":credentialId")
-  @UseGuards(AuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({
-    summary: "Get OAuth2 callback URL",
-    description:
-      "Returns the OAuth2 callback URL that should be configured in the OAuth provider's console.",
-  })
-  @ApiParam({
-    name: "credentialId",
-    description: "Credential ID",
-    type: Number,
-    example: 123,
-  })
-  @ApiResponse({
-    status: 200,
-    description: "Credential details",
-    type: CredentialResponseDto,
-  })
-  @ApiResponse({ status: 404, description: "Credential not found" })
-  @ApiResponse({ status: 401, description: "Unauthorized" })
-  async getCredential(
-    @Param("credentialId") credentialId: string,
-    @Req() req: Request,
-  ) {
-    const user = (req as any).user;
-
-    if (!user || !user.id) {
-      throw new BadRequestException("User not authenticated");
-    }
-
-    return this.oauth2Service.getCredential(user.id, parseInt(credentialId));
-  }
-
-  @Post()
-  @UseGuards(AuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({
-    summary: "Create new OAuth2 credential with client ID and secret",
-    description:
-      "Creates a new OAuth2 credential entry with user-provided client ID and client secret. This credential can then be used to initiate the OAuth flow and connect to the service. The callback URL for OAuth configuration is: " +
-      (process.env.OAUTH_CALLBACK_URL ||
-        "http://localhost:8080/api/oauth2-credential/callback"),
-  })
-  @ApiBody({ type: CreateCredentialDto })
-  @ApiResponse({
-    status: 201,
-    description: "Credential created successfully",
-    type: CredentialResponseDto,
-  })
-  @ApiResponse({
-    status: 400,
-    description: "Invalid request - missing required fields",
-  })
-  @ApiResponse({ status: 401, description: "Unauthorized" })
-  async createCredential(
-    @Body() dto: CreateCredentialDto,
-    @Req() req: Request,
-  ) {
-    const user = (req as any).user;
-
-    if (!user || !user.id) {
-      throw new BadRequestException("User not authenticated");
-    }
-
-    return this.oauth2Service.createCredential(user.id, dto);
-  }
-
   @Get("auth")
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
@@ -174,9 +106,14 @@ export class OAuth2CredentialController {
       throw new BadRequestException("Credential ID is required");
     }
 
+    const parsedCredentialId = parseInt(credentialId, 10);
+    if (isNaN(parsedCredentialId)) {
+      throw new BadRequestException("Invalid credential ID format");
+    }
+
     const { authUrl } = await this.oauth2Service.getAuthUrl(
       user.id,
-      parseInt(credentialId),
+      parsedCredentialId,
       redirectUrl,
     );
 
@@ -241,6 +178,79 @@ export class OAuth2CredentialController {
     }
   }
 
+  @Get(":credentialId")
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: "Get OAuth2 callback URL",
+    description:
+      "Returns the OAuth2 callback URL that should be configured in the OAuth provider's console.",
+  })
+  @ApiParam({
+    name: "credentialId",
+    description: "Credential ID",
+    type: Number,
+    example: 123,
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Credential details",
+    type: CredentialResponseDto,
+  })
+  @ApiResponse({ status: 404, description: "Credential not found" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  async getCredential(
+    @Param("credentialId") credentialId: string,
+    @Req() req: Request,
+  ) {
+    const user = (req as any).user;
+
+    if (!user || !user.id) {
+      throw new BadRequestException("User not authenticated");
+    }
+
+    const parsedCredentialId = parseInt(credentialId, 10);
+    if (isNaN(parsedCredentialId)) {
+      throw new BadRequestException("Invalid credential ID format");
+    }
+
+    return this.oauth2Service.getCredential(user.id, parsedCredentialId);
+  }
+
+  @Post()
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: "Create new OAuth2 credential with client ID and secret",
+    description:
+      "Creates a new OAuth2 credential entry with user-provided client ID and client secret. This credential can then be used to initiate the OAuth flow and connect to the service. The callback URL for OAuth configuration is: " +
+      (process.env.OAUTH_CALLBACK_URL ||
+        "http://localhost:8080/api/oauth2-credential/callback"),
+  })
+  @ApiBody({ type: CreateCredentialDto })
+  @ApiResponse({
+    status: 201,
+    description: "Credential created successfully",
+    type: CredentialResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: "Invalid request - missing required fields",
+  })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  async createCredential(
+    @Body() dto: CreateCredentialDto,
+    @Req() req: Request,
+  ) {
+    const user = (req as any).user;
+
+    if (!user || !user.id) {
+      throw new BadRequestException("User not authenticated");
+    }
+
+    return this.oauth2Service.createCredential(user.id, dto);
+  }
+
   @Delete(":credentialId")
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
@@ -272,7 +282,12 @@ export class OAuth2CredentialController {
       throw new BadRequestException("User not authenticated");
     }
 
-    await this.oauth2Service.deleteCredentials(user.id, parseInt(credentialId));
+    const parsedCredentialId = parseInt(credentialId, 10);
+    if (isNaN(parsedCredentialId)) {
+      throw new BadRequestException("Invalid credential ID format");
+    }
+
+    await this.oauth2Service.deleteCredentials(user.id, parsedCredentialId);
 
     return {
       success: true,
