@@ -1,26 +1,14 @@
-# ============================================
-# AREA Project - .gitignore
-# ============================================
+# compiled output
+/backend/dist
+node_modules
+/backend/build
+.gemini
 
-# ============================================
-# Environment & Configuration
-# ============================================
-.env
-.env1
-.env2
-.env3
-.env.local
-.env.development
-.env.production
-.env.test
-.env*.local
-*.env
-
-# ============================================
-# Node.js
-# ============================================
-node_modules/
+# Logs
+logs
+*.log
 npm-debug.log*
+pnpm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
@@ -110,151 +98,24 @@ prometheus_data/
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-*.code-workspace
 
-# JetBrains IDEs
-.idea/
-*.iml
-*.iws
-*.ipr
-.idea_modules/
+# dotenv environment variable files
+.env
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
 
-# Vim
-*.swp
-*.swo
-*~
+# temp directory
+.temp
+.tmp
 
-# Emacs
-*~
-\#*\#
-/.emacs.desktop
-/.emacs.desktop.lock
-*.elc
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
 
-# ============================================
-# Operating Systems
-# ============================================
-# macOS
-.DS_Store
-.AppleDouble
-.LSOverride
-Icon
-._*
-.Spotlight-V100
-.Trashes
+# Diagnostic reports (https://nodejs.org/api/report.html)
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
-# Windows
-Thumbs.db
-ehthumbs.db
-Desktop.ini
-$RECYCLE.BIN/
-
-# Linux
-.directory
-.Trash-*
-
-# ============================================
-# Testing & Coverage
-# ============================================
-coverage/
-.nyc_output/
-*.lcov
-.jest/
-test-results/
-junit.xml
-e2e-results/
-
-# ============================================
-# Build Artifacts
-# ============================================
-dist/
-build/
-out/
-.next/
-.nuxt/
-.cache/
-tmp/
-temp/
-
-# ============================================
-# Logs & Debugging
-# ============================================
-logs/
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
-# ============================================
-# Secrets & Credentials
-# ============================================
-*.pem
-*.key
-*.cert
-*.crt
-secrets/
-credentials/
-*.asc
-
-# OAuth credentials
-client_secret_*.json
-service-account-*.json
-
-# ============================================
-# Monitoring & Profiling
-# ============================================
-.profile/
-.clinic/
-flamegraph.html
-*.cpuprofile
-*.heapprofile
-*.heapsnapshot
-
-# ============================================
-# Temporary Files
-# ============================================
-*.tmp
-*.temp
-*.bak
-*.swp
-*.swo
-
-# ============================================
-# Documentation Build
-# ============================================
-docs/_build/
-docs/.doctrees/
-site/
-
-# ============================================
-# Miscellaneous
-# ============================================
-# Terraform
-*.tfstate
-*.tfstate.*
-.terraform/
-
-# Python (if any scripts)
-__pycache__/
-*.py[cod]
-*$py.class
-.Python
-venv/
-ENV/
-
-# Ruby (if any scripts)
-.bundle/
-vendor/bundle/
-
-# Backup files
-*.backup
-*.old
-
-# ============================================
-# Keep these files
-# ============================================
-!.gitkeep
-!.env.example
-!.env.template
