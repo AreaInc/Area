@@ -1,9 +1,11 @@
 import { proxyActivities, log } from "@temporalio/workflow";
 import type * as activities from "../activities";
 
-const { sendEmailActivity, readEmailActivity } = proxyActivities<
-  typeof activities
->({
+const {
+  sendEmailActivity,
+  readEmailActivity,
+  sendDiscordWebhookActivity,
+} = proxyActivities<typeof activities>({
   startToCloseTimeout: "5 minutes",
   retry: {
     initialInterval: "1s",
@@ -69,6 +71,14 @@ export async function automationWorkflow(
           ...input.actionConfig,
           credentialId: input.actionCredentialsId,
           userId: input.userId,
+        });
+        break;
+
+      case "discord:send-webhook":
+        actionResult = await sendDiscordWebhookActivity({
+          webhookUrl: input.actionConfig.webhookUrl,
+          content: input.actionConfig.content,
+          triggerData: input.triggerData,
         });
         break;
 
