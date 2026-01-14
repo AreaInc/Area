@@ -237,11 +237,32 @@ export class OAuth2Service {
         success: true,
         credentialId: stateData.credentialId,
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error("OAuth2 callback error:", error);
+      
+      // Check for redirect URI mismatch errors
+      const errorMessage = error?.message || "";
+      const errorCode = error?.code || "";
+      
+      if (
+        errorMessage.includes("redirect_uri_mismatch") ||
+        errorMessage.includes("invalid_request") ||
+        errorCode === "invalid_request" ||
+        errorMessage.includes("redirect_uri")
+      ) {
+        const callbackUrl =
+          process.env.OAUTH_CALLBACK_URL ||
+          "http://localhost:8080/api/oauth2-credential/callback";
+        
+        return {
+          success: false,
+          error: `Redirect URI mismatch. Please ensure the following URL is added to your Google Cloud Console OAuth 2.0 Client ID settings under "Authorized redirect URIs": ${callbackUrl}. The URL must match exactly, including protocol (http/https) and port.`,
+        };
+      }
+      
       return {
         success: false,
-        error: error.message || "Failed to complete OAuth2 flow",
+        error: errorMessage || "Failed to complete OAuth2 flow",
       };
     }
   }

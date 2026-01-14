@@ -120,6 +120,43 @@ export class OAuth2CredentialController {
     return res.redirect(authUrl);
   }
 
+  @Get("callback-url")
+  @Public()
+  @ApiOperation({
+    summary: "Get OAuth2 callback URL for configuration",
+    description:
+      "Returns the callback URL that must be configured in the OAuth provider's console (e.g., Google Cloud Console). This URL must exactly match what is configured in the provider's authorized redirect URIs.",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Callback URL information",
+    schema: {
+      type: "object",
+      properties: {
+        callbackUrl: {
+          type: "string",
+          description: "The exact callback URL to add to your OAuth provider",
+          example: "http://localhost:8080/api/oauth2-credential/callback",
+        },
+        instructions: {
+          type: "string",
+          description: "Instructions on where to configure this URL",
+        },
+      },
+    },
+  })
+  getCallbackUrl() {
+    const callbackUrl =
+      process.env.OAUTH_CALLBACK_URL ||
+      "http://localhost:8080/api/oauth2-credential/callback";
+
+    return {
+      callbackUrl,
+      instructions:
+        "Add this exact URL to your Google Cloud Console OAuth 2.0 Client ID settings under 'Authorized redirect URIs'. The URL must match exactly, including the protocol (http/https) and port number.",
+    };
+  }
+
   @Get("callback")
   @Public()
   @ApiOperation({
