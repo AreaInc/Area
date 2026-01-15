@@ -10,7 +10,9 @@ export function Sidebar() {
   const { data: workflows } = useWorkflows();
   const createMutation = useCreateWorkflow();
   const navigate = useNavigate();
-  const { workflow: selectedWorkflowSlug } = useSearch({ from: '/dashboard/' });
+  const { workflow: selectedWorkflowSlug } = useSearch({ from: '/dashboard' }) as {
+    workflow?: string | null;
+  };
 
   const handleCreateWorkflow = async () => {
     try {

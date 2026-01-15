@@ -6,15 +6,14 @@ export function slugify(value: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
-export function workflowSlug(id: number, name: string): string {
+export function workflowSlug(id: number | string, name: string): string {
   const nameSlug = slugify(name || "workflow");
   return `${id}-${nameSlug}`;
 }
 
-export function parseWorkflowIdFromSlug(slug?: string | null): number | null {
+export function parseWorkflowIdFromSlug(slug?: string | null): string | null {
   if (!slug) return null;
   const match = slug.match(/^(\d+)/);
   if (!match) return null;
-  const id = Number.parseInt(match[1], 10);
-  return Number.isFinite(id) ? id : null;
+  return match[1];
 }
