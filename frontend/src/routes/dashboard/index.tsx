@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { createFileRoute, useSearch } from '@tanstack/react-router';
 import {
   useWorkflows,
@@ -86,9 +86,14 @@ function Dashboard() {
   const navigate = Route.useNavigate();
   const { data: workflows, isLoading, error } = useWorkflows();
   const { data: actions } = useActions();
-  const [selectedWorkflowId, setSelectedWorkflowId] = useState<string | null>(null);
-
-  const selectedWorkflow = workflows?.find((w) => String(w.id) === selectedWorkflowId);
+  const selectedWorkflow = useMemo(() => {
+    if (!workflows || workflows.length === 0) return undefined;
+    const desiredId = parseWorkflowIdFromSlug(workflowSlugParam);
+    const desiredWorkflow = desiredId
+      ? workflows.find((w) => String(w.id) === desiredId)
+      : undefined;
+    return desiredWorkflow ?? workflows[0];
+  }, [workflows, workflowSlugParam]);
 
   const updateMutation = useUpdateWorkflow();
   const deleteMutation = useDeleteWorkflow();
@@ -100,32 +105,10 @@ function Dashboard() {
   const [action, setAction] = useState<ActionConfig | undefined>();
   const [isSaving, setIsSaving] = useState(false);
 
-  // Keep selection in sync with URL slug and available workflows
-  useEffect(() => {
-    if (!workflows || workflows.length === 0) return;
-
-    const desiredId = parseWorkflowIdFromSlug(workflowSlugParam);
-    const desiredWorkflow = desiredId
-      ? workflows.find((w) => String(w.id) === desiredId)
-      : undefined;
-
-    if (desiredWorkflow) {
-      setSelectedWorkflowId(String(desiredWorkflow.id));
-      return;
-    }
-
-    if (!selectedWorkflowId || !workflows.some((w) => String(w.id) === selectedWorkflowId)) {
-      setSelectedWorkflowId(String(workflows[0].id));
-    }
-  }, [workflows, workflowSlugParam, selectedWorkflowId]);
-
   // Ensure URL slug reflects the selected workflow (helps bookmarking/sharing)
   useEffect(() => {
-    if (!workflows || workflows.length === 0 || !selectedWorkflowId) return;
-    const current = workflows.find((w) => String(w.id) === selectedWorkflowId);
-    if (!current) return;
-
-    const slug = workflowSlug(current.id, current.name);
+    if (!workflows || workflows.length === 0 || !selectedWorkflow) return;
+    const slug = workflowSlug(selectedWorkflow.id, selectedWorkflow.name);
     if (workflowSlugParam !== slug) {
       navigate({
         to: '/dashboard',
@@ -133,7 +116,7 @@ function Dashboard() {
         replace: true,
       });
     }
-  }, [workflows, selectedWorkflowId, workflowSlugParam, navigate]);
+  }, [workflows, selectedWorkflow, workflowSlugParam, navigate]);
 
   useEffect(() => {
     if (selectedWorkflow) {
@@ -216,7 +199,6 @@ function Dashboard() {
 
     try {
       await deleteMutation.mutateAsync(selectedWorkflow.id);
-      setSelectedWorkflowId(null);
     } catch (err) {
       alert('Failed to delete workflow');
     }
