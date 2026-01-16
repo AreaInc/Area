@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useTriggers } from '../../hooks/useWorkflows';
-import type { TriggerConfig } from '../../types/workflow';
+import { useTriggers } from '@area/shared';
+import type { TriggerConfig } from '@area/shared';
 
 interface TriggerSelectorProps {
   value?: TriggerConfig;

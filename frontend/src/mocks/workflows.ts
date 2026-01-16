@@ -1,6 +1,6 @@
-import type { Workflow } from '../types/workflow';
+import type { Workflow } from '@area/shared';
 
-export const MOCK_WORKFLOWS: Workflow[] = [
+export const mockWorkflows: Workflow[] = [
   {
     id: 1,
     userId: 'user_1',

@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { ArrowLeft, Shield, Info, Activity, Plug } from 'lucide-react'
-import type { Service, Action } from '../../types/service'
+import type { Service, Action } from '@area/shared'
 import { Button } from '../ui/button'
 
 interface ServiceDetailsProps {
@@ -8,7 +8,7 @@ interface ServiceDetailsProps {
     authStatus?: 'success' | 'error'
 }
 
-const API_BASE = `https://${import.meta.env.VITE_DEPLOY_ADDRESS ?? "localhost"}/api`
+import { API_BASE } from '@area/shared'
 
 export function ServiceDetails({ service, authStatus }: ServiceDetailsProps) {
     const isOAuth2Service = service.credentialTypes.includes('OAUTH2')

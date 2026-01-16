@@ -4,12 +4,14 @@ import { useAuth } from '../../context/AuthContext';
 import GradientBackground from '../../components/GradientBackground';
 import GlassCard from '../../components/GlassCard';
 import { Mail, Lock, ArrowRight } from 'lucide-react-native';
+import { useHello } from '@area/shared';
 
 const LoginScreen = ({ navigation }) => {
     const { signIn } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
+    const { data: helloData } = useHello();
 
     const handleLogin = async () => {
         if (!email || !password) {
@@ -36,6 +38,7 @@ const LoginScreen = ({ navigation }) => {
                     <View style={styles.header}>
                         <Text style={styles.title}>Welcome Back</Text>
                         <Text style={styles.subtitle}>Sign in to continue to Area</Text>
+                        {helloData && <Text style={{ color: '#4ade80', marginTop: 8 }}>{helloData}</Text>}
                     </View>
 
                     <GlassCard style={styles.formCard}>

@@ -1,6 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
-import { useCredentials, useDeleteCredential, getOAuthCallbackUrl } from '../../hooks/useCredentials';
+import { 
+  useCredentials, 
+  useDeleteCredential, 
+  getOAuthCallbackUrl,
+  useInitiateOAuth
+} from '@area/shared';
 import { Button } from '../../components/ui/button';
 import CreateCredentialModal from '../../components/credentials/CreateCredentialModal';
 
@@ -114,7 +119,8 @@ function CredentialsPage() {
                 {!credential.isValid && (
                   <Button
                     onClick={() => {
-                      window.location.href = `https://${import.meta.env.VITE_DEPLOY_ADDRESS ?? "localhost"}/api/oauth2-credential/auth?credentialId=${credential.id}&redirectUrl=${encodeURIComponent(window.location.href)}`;
+                      const url = useInitiateOAuth(credential.id, window.location.href);
+                      window.location.href = url;
                     }}
                   >
                     Connect

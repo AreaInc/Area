@@ -1,9 +1,9 @@
-import { useServices } from '../../hooks/useServices';
+import { useServices } from '@area/shared';
 import { ServiceCard } from './ServiceCard';
 import { Loader2 } from 'lucide-react';
 
 export function ServiceGrid() {
-    const { services, isLoading, isError } = useServices();
+  const { services, isLoading, isError } = useServices();
 
     if (isLoading) {
         return (

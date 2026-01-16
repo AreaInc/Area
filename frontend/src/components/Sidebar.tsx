@@ -2,8 +2,8 @@ import { useNavigate } from '@tanstack/react-router';
 import { Clock, Plus, Key, Grid } from 'lucide-react';
 import clsx from 'clsx';
 import { UserMenu } from './UserMenu';
-import { type Workflow } from '../types/workflow';
-import { useWorkflows, useCreateWorkflow } from '../hooks/useWorkflows';
+import { type Workflow } from '@area/shared';
+import { useWorkflows, useCreateWorkflow } from '@area/shared';
 import { useState } from 'react';
 
 export function Sidebar() {

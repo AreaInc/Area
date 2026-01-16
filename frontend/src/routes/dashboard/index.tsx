@@ -7,11 +7,11 @@ import {
   useActivateWorkflow,
   useDeactivateWorkflow,
   useActions,
-} from '../../hooks/useWorkflows';
+} from '@area/shared';
 import { Button } from '../../components/ui/button';
 import { TriggerSelector } from '../../components/workflow/TriggerSelector';
 import { ActionSelector } from '../../components/workflow/ActionSelector';
-import type { TriggerConfig, ActionConfig } from '../../types/workflow';
+import type { TriggerConfig, ActionConfig } from '@area/shared';
 
 const QUICK_TEMPLATES: {
   name: string;

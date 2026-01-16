@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { X, Zap, Box, Split, Search, ChevronLeft, Loader2 } from 'lucide-react'
+import { Search, Loader2, Zap, Split, ChevronLeft, X, Box } from 'lucide-react'
+import { useServices } from '@area/shared'
+import type { Service, Action } from '@area/shared'
 import clsx from 'clsx'
-import { useServices } from '../../hooks/useServices'
-import type { Service, Action } from '../../types/service'
 
 interface NodeDrawerProps {
   isOpen: boolean

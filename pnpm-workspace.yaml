@@ -1,0 +1,5 @@
+packages:
+  - 'frontend'
+  - 'backend'
+  - 'client_mobile/dev-area'
+  - 'packages/*'

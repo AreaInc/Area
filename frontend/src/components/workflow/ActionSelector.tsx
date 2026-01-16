@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useActions } from '../../hooks/useWorkflows';
-import { useCredentials } from '../../hooks/useCredentials';
-import type { ActionConfig } from '../../types/workflow';
+import { useActions } from '@area/shared';
+import { useCredentials } from '@area/shared';
+import type { ActionConfig } from '@area/shared';
 
 interface ActionSelectorProps {
   value?: ActionConfig;

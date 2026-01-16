@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Trash2, Save, Pencil, AlertTriangle } from 'lucide-react'
 import clsx from 'clsx'
 import { useAppSelector, useAppDispatch } from '../../store/hooks'
-import { useWorkflows, useUpdateWorkflow, useActivateWorkflow, useDeactivateWorkflow, useDeleteWorkflow } from '../../hooks/useWorkflows'
+import { useWorkflows, useUpdateWorkflow, useActivateWorkflow, useDeactivateWorkflow, useDeleteWorkflow } from '@area/shared'
 import { Modal } from '../ui/Modal'
 import { clearWorkflow } from '../../store/slices/flowSlice'
 

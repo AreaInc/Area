@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useCreateCredential } from '../../hooks/useCredentials';
+import { useCreateCredential } from '@area/shared';
 import { Button } from '../ui/button';
 
 interface CreateCredentialModalProps {

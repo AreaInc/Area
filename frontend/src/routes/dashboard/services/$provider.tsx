@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { ServiceDetails } from '../../../components/services/ServiceDetails'
-import { useService } from '../../../hooks/useServices'
+import { useService } from '@area/shared'
 import { Loader2 } from 'lucide-react'
 
 type ServiceSearch = {
