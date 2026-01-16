@@ -3,6 +3,7 @@ export enum ServiceProvider {
   GOOGLE = "google",
   SLACK = "slack",
   DISCORD = "discord",
+  TELEGRAM = "telegram",
   GITHUB = "github",
   TRELLO = "trello",
   NOTION = "notion",

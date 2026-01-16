@@ -16,6 +16,7 @@ export const serviceProviderEnum = pgEnum("service_provider", [
   "google",
   "slack",
   "discord",
+  "telegram",
   "github",
   "trello",
   "notion",

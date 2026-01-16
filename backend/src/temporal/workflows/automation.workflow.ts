@@ -5,6 +5,7 @@ const {
   sendEmailActivity,
   readEmailActivity,
   sendDiscordWebhookActivity,
+  sendTelegramMessageActivity,
 } = proxyActivities<typeof activities>({
   startToCloseTimeout: "5 minutes",
   retry: {
@@ -78,6 +79,18 @@ export async function automationWorkflow(
         actionResult = await sendDiscordWebhookActivity({
           webhookUrl: input.actionConfig.webhookUrl,
           content: input.actionConfig.content,
+          triggerData: input.triggerData,
+        });
+        break;
+
+      case "telegram:send-message":
+        actionResult = await sendTelegramMessageActivity({
+          botToken: input.actionConfig.botToken,
+          chatId: input.actionConfig.chatId,
+          text: input.actionConfig.text,
+          parseMode: input.actionConfig.parseMode,
+          disableWebPagePreview: input.actionConfig.disableWebPagePreview,
+          disableNotification: input.actionConfig.disableNotification,
           triggerData: input.triggerData,
         });
         break;

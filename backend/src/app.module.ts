@@ -15,6 +15,7 @@ import { GmailModule } from "./services/gmail/gmail.module";
 import { WebhookModule } from "./services/webhook/webhook.module";
 import { SchedulerModule } from "./services/scheduler/scheduler.module";
 import { DiscordModule } from "./services/discord/discord.module";
+import { TelegramModule } from "./services/telegram/telegram.module";
 
 import { AuthModule } from "@thallesp/nestjs-better-auth";
 import { auth } from "./auth";
@@ -79,6 +80,7 @@ import { auth } from "./auth";
     WebhookModule,
     SchedulerModule,
     DiscordModule,
+    TelegramModule,
     ApiModule,
   ],
   controllers: [AppController],
