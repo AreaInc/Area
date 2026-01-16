@@ -19,6 +19,7 @@ export const serviceProviderEnum = pgEnum("service_provider", [
   "github",
   "trello",
   "notion",
+  "scheduler",
 ]);
 
 export const credentialTypeEnum = pgEnum("credential_type", [
@@ -97,7 +98,16 @@ export const credentials = pgTable("credentials", {
   serviceProvider: serviceProviderEnum("service_provider").notNull(),
   type: credentialTypeEnum("type").notNull(),
   name: varchar("name", { length: 255 }).notNull(),
-  data: jsonb("data").notNull(),
+  // OAuth2 specific fields (encrypted)
+  accessToken: text("access_token"),
+  refreshToken: text("refresh_token"),
+  expiresAt: timestamp("expires_at"),
+  scope: text("scope"),
+  // OAuth2 app credentials (encrypted)
+  clientId: text("client_id"),
+  clientSecret: text("client_secret"),
+  // Legacy field for backward compatibility
+  data: jsonb("data"),
   isValid: boolean("is_valid").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -158,9 +168,17 @@ export const workflows = pgTable("workflows", {
     .references(() => user.id),
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
-  version: integer("version").default(1).notNull(),
-  nodes: jsonb("nodes").notNull(),
-  connections: jsonb("connections").notNull(),
+  // Trigger configuration (ONE trigger)
+  triggerProvider: serviceProviderEnum("trigger_provider").notNull(),
+  triggerId: varchar("trigger_id", { length: 100 }).notNull(),
+  triggerConfig: jsonb("trigger_config").notNull().default("{}"),
+  // Action configuration (ONE action)
+  actionProvider: serviceProviderEnum("action_provider").notNull(),
+  actionId: varchar("action_id", { length: 100 }).notNull(),
+  actionConfig: jsonb("action_config").notNull().default("{}"),
+  actionCredentialsId: integer("action_credentials_id").references(
+    () => credentials.id,
+  ),
   isActive: boolean("is_active").default(false).notNull(),
   lastRun: timestamp("last_run"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -173,10 +191,14 @@ export const workflowExecutions = pgTable("workflow_executions", {
     .notNull()
     .references(() => workflows.id),
   userId: text("user_id").notNull(),
+  // Temporal workflow info
+  temporalWorkflowId: varchar("temporal_workflow_id", {
+    length: 255,
+  }).notNull(),
+  temporalRunId: varchar("temporal_run_id", { length: 255 }).notNull(),
   status: varchar("status", { length: 50 }).notNull(),
-  inputData: jsonb("input_data"),
-  outputData: jsonb("output_data"),
-  nodeResults: jsonb("node_results"),
+  triggerData: jsonb("trigger_data"),
+  actionResult: jsonb("action_result"),
   errorMessage: text("error_message"),
   startedAt: timestamp("started_at").defaultNow().notNull(),
   completedAt: timestamp("completed_at"),

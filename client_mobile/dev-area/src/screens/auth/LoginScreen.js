@@ -36,6 +36,7 @@ const LoginScreen = ({ navigation }) => {
                     <View style={styles.header}>
                         <Text style={styles.title}>Welcome Back</Text>
                         <Text style={styles.subtitle}>Sign in to continue to Area</Text>
+                        {helloData && <Text style={{ color: '#4ade80', marginTop: 8 }}>{helloData}</Text>}
                     </View>
 
                     <GlassCard style={styles.formCard}>

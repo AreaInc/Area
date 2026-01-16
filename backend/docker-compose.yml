@@ -5,6 +5,52 @@ include:
   - path: ../vault/docker-compose.yml
 
 services:
+  temporal:
+    image: temporalio/auto-setup:1.24.2
+    container_name: area-temporal
+    ports:
+      - "7233:7233"  # gRPC endpoint
+    environment:
+      - DB=postgres12
+      - DB_PORT=5000
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PWD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_SEEDS=haproxy
+      - SKIP_DB_CREATE=false
+      - SKIP_DEFAULT_NAMESPACE_CREATE=false
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f temporal-server > /dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 90s
+    depends_on:
+      haproxy:
+        condition: service_healthy
+      patroni1:
+        condition: service_healthy
+      patroni2:
+        condition: service_healthy
+      patroni3:
+        condition: service_healthy
+    networks:
+      - area-network
+      - patroni
+
+  temporal-ui:
+    image: temporalio/ui:latest
+    container_name: area-temporal-ui
+    ports:
+      - "8233:8080"  # Web UI
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CORS_ORIGINS=http://localhost:8233
+    depends_on:
+      temporal:
+        condition: service_healthy
+    networks:
+      - area-network
+
   backend:
     build:
       context: .
@@ -25,6 +71,10 @@ services:
       - REDIS_HOST=${REDIS_HOST:-area-cache}
       - REDIS_PORT=${REDIS_PORT:-6379}
       - VAULT_ADDR=http://vault:8200
+      - TEMPORAL_ADDRESS=temporal:7233
+      - DEPLOY_ADDRESS=${DEPLOY_ADDRESS:-localhost}
+      - OAUTH_CALLBACK_URL=${OAUTH_CALLBACK_URL:-http://localhost:8080/api/oauth2-credential/callback}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
     depends_on:
       patroni1:
         condition: service_healthy
@@ -35,9 +85,48 @@ services:
       migration:
         condition: service_completed_successfully
       cache:
-        condition: service_started
+        condition: service_healthy
       vault:
         condition: service_started
+      temporal:
+        condition: service_started
+    networks:
+      - area-network
+      - patroni
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    environment:
+      - NODE_ENV=production
+      - POSTGRES_HOST=${POSTGRES_HOST:-haproxy}
+      - POSTGRES_PORT=${POSTGRES_PORT:-5000}
+      - POSTGRES_NAME=${POSTGRES_NAME:-postgres}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - REDIS_PASS=${REDIS_PASS}
+      - REDIS_HOST=${REDIS_HOST:-area-cache}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - VAULT_ADDR=http://vault:8200
+      - TEMPORAL_ADDRESS=temporal:7233
+      - DEPLOY_ADDRESS=${DEPLOY_ADDRESS:-localhost}
+      - OAUTH_CALLBACK_URL=${OAUTH_CALLBACK_URL:-http://localhost:8080/api/oauth2-credential/callback}
+    depends_on:
+      patroni1:
+        condition: service_healthy
+      patroni2:
+        condition: service_healthy
+      patroni3:
+        condition: service_healthy
+      migration:
+        condition: service_completed_successfully
+      cache:
+        condition: service_healthy
+      vault:
+        condition: service_started
+      temporal:
+        condition: service_healthy
     networks:
       - area-network
       - patroni
@@ -55,7 +144,9 @@ services:
       - POSTGRES_NAME=${POSTGRES_NAME:-postgres}
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
-    command: pnpm db:push
+    command: pnpm drizzle-kit push --force
+    tty: false
+    stdin_open: false
     depends_on:
       patroni1:
         condition: service_healthy

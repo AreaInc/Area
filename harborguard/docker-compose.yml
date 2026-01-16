@@ -1,6 +1,7 @@
 ---
 services:
   db:
+    profiles: ["debug"]
     image: postgres:17
     environment:
       POSTGRES_USER: harborguard
@@ -16,6 +17,7 @@ services:
       retries: 5
 
   harborguard:
+    profiles: ["debug"]
     image: ghcr.io/harborguard/harborguard:v0.2b
     container_name: harborguard
     ports:
