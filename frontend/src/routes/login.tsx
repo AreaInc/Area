@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { signIn } from '../lib/auth-client'
-import { useHello } from '@area/shared'
 
 export const Route = createFileRoute('/login')({
   component: Login,
@@ -13,7 +12,6 @@ function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
-  const { data: helloData } = useHello()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -57,7 +55,6 @@ function Login() {
             Welcome Back
           </h1>
           <p className="text-muted-foreground">Sign in to your automation dashboard</p>
-          {helloData && <p className="text-sm text-green-500 mt-2">{helloData}</p>}
         </div>
 
         <form onSubmit={handleLogin} className="space-y-6">

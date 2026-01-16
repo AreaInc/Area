@@ -32,7 +32,6 @@ __export(index_exports, {
   useDeleteCredential: () => useDeleteCredential,
   useDeleteWorkflow: () => useDeleteWorkflow,
   useExecuteWorkflow: () => useExecuteWorkflow,
-  useHello: () => useHello,
   useInitiateOAuth: () => useInitiateOAuth,
   useService: () => useService,
   useServices: () => useServices,
@@ -44,26 +43,13 @@ __export(index_exports, {
 });
 module.exports = __toCommonJS(index_exports);
 
-// src/hooks/useHello.ts
-var import_react_query = require("@tanstack/react-query");
-var fetchHello = async () => {
-  await new Promise((resolve) => setTimeout(resolve, 1e3));
-  return "Hello from the Shared Package!";
-};
-var useHello = () => {
-  return (0, import_react_query.useQuery)({
-    queryKey: ["hello"],
-    queryFn: fetchHello
-  });
-};
-
 // src/hooks/const.ts
 var API_BASE = "http://localhost:8080/api";
 
 // src/hooks/useCredentials.ts
-var import_react_query2 = require("@tanstack/react-query");
+var import_react_query = require("@tanstack/react-query");
 function useCredentials() {
-  return (0, import_react_query2.useQuery)({
+  return (0, import_react_query.useQuery)({
     queryKey: ["credentials"],
     queryFn: async () => {
       const response = await fetch(`${API_BASE}/oauth2-credential`, {
@@ -77,7 +63,7 @@ function useCredentials() {
   });
 }
 function useCredential(credentialId) {
-  return (0, import_react_query2.useQuery)({
+  return (0, import_react_query.useQuery)({
     queryKey: ["credentials", credentialId],
     queryFn: async () => {
       const response = await fetch(`${API_BASE}/oauth2-credential/${credentialId}`, {
@@ -92,8 +78,8 @@ function useCredential(credentialId) {
   });
 }
 function useCreateCredential() {
-  const queryClient = (0, import_react_query2.useQueryClient)();
-  return (0, import_react_query2.useMutation)({
+  const queryClient = (0, import_react_query.useQueryClient)();
+  return (0, import_react_query.useMutation)({
     mutationFn: async (dto) => {
       const response = await fetch(`${API_BASE}/oauth2-credential`, {
         method: "POST",
@@ -114,8 +100,8 @@ function useCreateCredential() {
   });
 }
 function useDeleteCredential() {
-  const queryClient = (0, import_react_query2.useQueryClient)();
-  return (0, import_react_query2.useMutation)({
+  const queryClient = (0, import_react_query.useQueryClient)();
+  return (0, import_react_query.useMutation)({
     mutationFn: async (credentialId) => {
       const response = await fetch(`${API_BASE}/oauth2-credential/${credentialId}`, {
         method: "DELETE",
@@ -144,7 +130,7 @@ function getOAuthCallbackUrl() {
 }
 
 // src/hooks/useServices.ts
-var import_react_query3 = require("@tanstack/react-query");
+var import_react_query2 = require("@tanstack/react-query");
 async function fetchServices() {
   const response = await fetch(`${API_BASE}/services`, {
     headers: {
@@ -170,7 +156,7 @@ async function fetchService(provider) {
   return response.json();
 }
 function useServices() {
-  const servicesQuery = (0, import_react_query3.useQuery)({
+  const servicesQuery = (0, import_react_query2.useQuery)({
     queryKey: ["services"],
     queryFn: fetchServices
   });
@@ -182,7 +168,7 @@ function useServices() {
   };
 }
 function useService(provider) {
-  const serviceQuery = (0, import_react_query3.useQuery)({
+  const serviceQuery = (0, import_react_query2.useQuery)({
     queryKey: ["services", provider],
     queryFn: () => fetchService(provider),
     enabled: !!provider
@@ -196,9 +182,9 @@ function useService(provider) {
 }
 
 // src/hooks/useWorkflows.ts
-var import_react_query4 = require("@tanstack/react-query");
+var import_react_query3 = require("@tanstack/react-query");
 function useWorkflows() {
-  return (0, import_react_query4.useQuery)({
+  return (0, import_react_query3.useQuery)({
     queryKey: ["workflows"],
     queryFn: async () => {
       const response = await fetch(`${API_BASE}/workflows`, {
@@ -212,7 +198,7 @@ function useWorkflows() {
   });
 }
 function useWorkflow(id) {
-  return (0, import_react_query4.useQuery)({
+  return (0, import_react_query3.useQuery)({
     queryKey: ["workflows", id],
     queryFn: async () => {
       const response = await fetch(`${API_BASE}/workflows/${id}`, {
@@ -227,8 +213,8 @@ function useWorkflow(id) {
   });
 }
 function useCreateWorkflow() {
-  const queryClient = (0, import_react_query4.useQueryClient)();
-  return (0, import_react_query4.useMutation)({
+  const queryClient = (0, import_react_query3.useQueryClient)();
+  return (0, import_react_query3.useMutation)({
     mutationFn: async (dto) => {
       const response = await fetch(`${API_BASE}/workflows`, {
         method: "POST",
@@ -249,8 +235,8 @@ function useCreateWorkflow() {
   });
 }
 function useUpdateWorkflow() {
-  const queryClient = (0, import_react_query4.useQueryClient)();
-  return (0, import_react_query4.useMutation)({
+  const queryClient = (0, import_react_query3.useQueryClient)();
+  return (0, import_react_query3.useMutation)({
     mutationFn: async ({ id, dto }) => {
       const response = await fetch(`${API_BASE}/workflows/${id}`, {
         method: "PUT",
@@ -269,8 +255,8 @@ function useUpdateWorkflow() {
   });
 }
 function useDeleteWorkflow() {
-  const queryClient = (0, import_react_query4.useQueryClient)();
-  return (0, import_react_query4.useMutation)({
+  const queryClient = (0, import_react_query3.useQueryClient)();
+  return (0, import_react_query3.useMutation)({
     mutationFn: async (id) => {
       const response = await fetch(`${API_BASE}/workflows/${id}`, {
         method: "DELETE",
@@ -287,8 +273,8 @@ function useDeleteWorkflow() {
   });
 }
 function useActivateWorkflow() {
-  const queryClient = (0, import_react_query4.useQueryClient)();
-  return (0, import_react_query4.useMutation)({
+  const queryClient = (0, import_react_query3.useQueryClient)();
+  return (0, import_react_query3.useMutation)({
     mutationFn: async (id) => {
       const response = await fetch(`${API_BASE}/workflows/${id}/activate`, {
         method: "POST",
@@ -305,8 +291,8 @@ function useActivateWorkflow() {
   });
 }
 function useDeactivateWorkflow() {
-  const queryClient = (0, import_react_query4.useQueryClient)();
-  return (0, import_react_query4.useMutation)({
+  const queryClient = (0, import_react_query3.useQueryClient)();
+  return (0, import_react_query3.useMutation)({
     mutationFn: async (id) => {
       const response = await fetch(`${API_BASE}/workflows/${id}/deactivate`, {
         method: "POST",
@@ -323,7 +309,7 @@ function useDeactivateWorkflow() {
   });
 }
 function useExecuteWorkflow() {
-  return (0, import_react_query4.useMutation)({
+  return (0, import_react_query3.useMutation)({
     mutationFn: async ({ id, triggerData }) => {
       const response = await fetch(`${API_BASE}/workflows/${id}/execute`, {
         method: "POST",
@@ -339,7 +325,7 @@ function useExecuteWorkflow() {
   });
 }
 function useWorkflowExecutions(workflowId) {
-  return (0, import_react_query4.useQuery)({
+  return (0, import_react_query3.useQuery)({
     queryKey: ["workflows", workflowId, "executions"],
     queryFn: async () => {
       const response = await fetch(`${API_BASE}/workflows/${workflowId}/executions`, {
@@ -354,7 +340,7 @@ function useWorkflowExecutions(workflowId) {
   });
 }
 function useTriggers() {
-  return (0, import_react_query4.useQuery)({
+  return (0, import_react_query3.useQuery)({
     queryKey: ["triggers"],
     queryFn: async () => {
       const response = await fetch(`${API_BASE}/workflows/metadata/triggers`, {
@@ -368,7 +354,7 @@ function useTriggers() {
   });
 }
 function useActions() {
-  return (0, import_react_query4.useQuery)({
+  return (0, import_react_query3.useQuery)({
     queryKey: ["actions"],
     queryFn: async () => {
       const response = await fetch(`${API_BASE}/workflows/metadata/actions`, {
@@ -395,7 +381,6 @@ function useActions() {
   useDeleteCredential,
   useDeleteWorkflow,
   useExecuteWorkflow,
-  useHello,
   useInitiateOAuth,
   useService,
   useServices,

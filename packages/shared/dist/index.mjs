@@ -1,23 +1,10 @@
-// src/hooks/useHello.ts
-import { useQuery } from "@tanstack/react-query";
-var fetchHello = async () => {
-  await new Promise((resolve) => setTimeout(resolve, 1e3));
-  return "Hello from the Shared Package!";
-};
-var useHello = () => {
-  return useQuery({
-    queryKey: ["hello"],
-    queryFn: fetchHello
-  });
-};
-
 // src/hooks/const.ts
 var API_BASE = "http://localhost:8080/api";
 
 // src/hooks/useCredentials.ts
-import { useMutation, useQuery as useQuery2, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 function useCredentials() {
-  return useQuery2({
+  return useQuery({
     queryKey: ["credentials"],
     queryFn: async () => {
       const response = await fetch(`${API_BASE}/oauth2-credential`, {
@@ -31,7 +18,7 @@ function useCredentials() {
   });
 }
 function useCredential(credentialId) {
-  return useQuery2({
+  return useQuery({
     queryKey: ["credentials", credentialId],
     queryFn: async () => {
       const response = await fetch(`${API_BASE}/oauth2-credential/${credentialId}`, {
@@ -98,7 +85,7 @@ function getOAuthCallbackUrl() {
 }
 
 // src/hooks/useServices.ts
-import { useQuery as useQuery3 } from "@tanstack/react-query";
+import { useQuery as useQuery2 } from "@tanstack/react-query";
 async function fetchServices() {
   const response = await fetch(`${API_BASE}/services`, {
     headers: {
@@ -124,7 +111,7 @@ async function fetchService(provider) {
   return response.json();
 }
 function useServices() {
-  const servicesQuery = useQuery3({
+  const servicesQuery = useQuery2({
     queryKey: ["services"],
     queryFn: fetchServices
   });
@@ -136,7 +123,7 @@ function useServices() {
   };
 }
 function useService(provider) {
-  const serviceQuery = useQuery3({
+  const serviceQuery = useQuery2({
     queryKey: ["services", provider],
     queryFn: () => fetchService(provider),
     enabled: !!provider
@@ -150,9 +137,9 @@ function useService(provider) {
 }
 
 // src/hooks/useWorkflows.ts
-import { useQuery as useQuery4, useMutation as useMutation2, useQueryClient as useQueryClient2 } from "@tanstack/react-query";
+import { useQuery as useQuery3, useMutation as useMutation2, useQueryClient as useQueryClient2 } from "@tanstack/react-query";
 function useWorkflows() {
-  return useQuery4({
+  return useQuery3({
     queryKey: ["workflows"],
     queryFn: async () => {
       const response = await fetch(`${API_BASE}/workflows`, {
@@ -166,7 +153,7 @@ function useWorkflows() {
   });
 }
 function useWorkflow(id) {
-  return useQuery4({
+  return useQuery3({
     queryKey: ["workflows", id],
     queryFn: async () => {
       const response = await fetch(`${API_BASE}/workflows/${id}`, {
@@ -293,7 +280,7 @@ function useExecuteWorkflow() {
   });
 }
 function useWorkflowExecutions(workflowId) {
-  return useQuery4({
+  return useQuery3({
     queryKey: ["workflows", workflowId, "executions"],
     queryFn: async () => {
       const response = await fetch(`${API_BASE}/workflows/${workflowId}/executions`, {
@@ -308,7 +295,7 @@ function useWorkflowExecutions(workflowId) {
   });
 }
 function useTriggers() {
-  return useQuery4({
+  return useQuery3({
     queryKey: ["triggers"],
     queryFn: async () => {
       const response = await fetch(`${API_BASE}/workflows/metadata/triggers`, {
@@ -322,7 +309,7 @@ function useTriggers() {
   });
 }
 function useActions() {
-  return useQuery4({
+  return useQuery3({
     queryKey: ["actions"],
     queryFn: async () => {
       const response = await fetch(`${API_BASE}/workflows/metadata/actions`, {
@@ -348,7 +335,6 @@ export {
   useDeleteCredential,
   useDeleteWorkflow,
   useExecuteWorkflow,
-  useHello,
   useInitiateOAuth,
   useService,
   useServices,

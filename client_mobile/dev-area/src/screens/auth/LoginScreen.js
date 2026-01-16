@@ -4,14 +4,12 @@ import { useAuth } from '../../context/AuthContext';
 import GradientBackground from '../../components/GradientBackground';
 import GlassCard from '../../components/GlassCard';
 import { Mail, Lock, ArrowRight } from 'lucide-react-native';
-import { useHello } from '@area/shared';
 
 const LoginScreen = ({ navigation }) => {
     const { signIn } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
-    const { data: helloData } = useHello();
 
     const handleLogin = async () => {
         if (!email || !password) {

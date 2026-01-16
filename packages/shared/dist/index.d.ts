@@ -1,7 +1,5 @@
 import * as _tanstack_react_query from '@tanstack/react-query';
 
-declare const useHello: () => _tanstack_react_query.UseQueryResult<string, Error>;
-
 declare const API_BASE = "http://localhost:8080/api";
 
 interface Credential {
@@ -153,4 +151,4 @@ declare function useWorkflowExecutions(workflowId: number): _tanstack_react_quer
 declare function useTriggers(): _tanstack_react_query.UseQueryResult<TriggerMetadata[], Error>;
 declare function useActions(): _tanstack_react_query.UseQueryResult<ActionMetadata[], Error>;
 
-export { API_BASE, type Action, type ActionConfig, type ActionMetadata, type CreateCredentialDto, type CreateWorkflowDto, type Credential, type Service, type TriggerConfig, type TriggerMetadata, type UpdateWorkflowDto, type Workflow, type WorkflowExecution, type WorkflowSummary, getOAuthCallbackUrl, useActions, useActivateWorkflow, useCreateCredential, useCreateWorkflow, useCredential, useCredentials, useDeactivateWorkflow, useDeleteCredential, useDeleteWorkflow, useExecuteWorkflow, useHello, useInitiateOAuth, useService, useServices, useTriggers, useUpdateWorkflow, useWorkflow, useWorkflowExecutions, useWorkflows };
+export { API_BASE, type Action, type ActionConfig, type ActionMetadata, type CreateCredentialDto, type CreateWorkflowDto, type Credential, type Service, type TriggerConfig, type TriggerMetadata, type UpdateWorkflowDto, type Workflow, type WorkflowExecution, type WorkflowSummary, getOAuthCallbackUrl, useActions, useActivateWorkflow, useCreateCredential, useCreateWorkflow, useCredential, useCredentials, useDeactivateWorkflow, useDeleteCredential, useDeleteWorkflow, useExecuteWorkflow, useInitiateOAuth, useService, useServices, useTriggers, useUpdateWorkflow, useWorkflow, useWorkflowExecutions, useWorkflows };

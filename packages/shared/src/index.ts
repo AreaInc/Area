@@ -1,4 +1,3 @@
-export * from './hooks/useHello';
 export { API_BASE } from './hooks/const';
 export * from './hooks/useCredentials';
 export * from './hooks/useServices';
