@@ -57,7 +57,16 @@ frontend/mobile/*.mobileprovision
 frontend/mobile/*.orig.*
 frontend/mobile/web-build/
 
+# ============================================
+# Shared (TypeScript)
+# ============================================
+packages/shared/dist/
+packages/shared/build/
+pnpm-lock.yaml
+
+# ============================================
 # Metro bundler
+# ============================================
 .metro-health-check*
 
 # ============================================
