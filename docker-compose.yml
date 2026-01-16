@@ -4,5 +4,5 @@ include:
   - path: redis/docker-compose.yml
   - path: vault/docker-compose.yml
   - path: backend/docker-compose.yml
-  - path: frontend/docker-compose.yml
+  - path: client_web/docker-compose.yml
   - path: harborguard/docker-compose.yml
