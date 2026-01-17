@@ -4,8 +4,20 @@ export type { SendEmailInput, SendEmailOutput, ReadEmailInput, ReadEmailOutput }
 export { sendDiscordWebhookActivity } from "../../services/discord/discord.activities";
 export type { SendDiscordWebhookInput, SendDiscordWebhookOutput } from "../../services/discord/discord.activities";
 
-export { sendTelegramMessageActivity } from "../../services/telegram/telegram.activities";
-export type { SendTelegramMessageInput, SendTelegramMessageOutput } from "../../services/telegram/telegram.activities";
+export {
+  sendTelegramMessageActivity,
+  sendTelegramPhotoActivity,
+  pinTelegramMessageActivity,
+  kickTelegramMemberActivity,
+  unbanTelegramMemberActivity,
+} from "../../services/telegram/telegram.activities";
+export type {
+  SendTelegramMessageInput, SendTelegramMessageOutput,
+  SendTelegramPhotoInput,
+  PinTelegramMessageInput,
+  KickTelegramMemberInput,
+  UnbanTelegramMemberInput,
+} from "../../services/telegram/telegram.activities";
 
 export {
   createSpreadsheetActivity,

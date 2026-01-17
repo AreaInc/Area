@@ -82,8 +82,7 @@ export async function sendTelegramMessageActivity(
         (typeof body?.error === "string" ? body.error : "") ||
         "";
       throw new Error(
-        `Telegram sendMessage failed with status ${response.status}${
-          description ? `: ${description}` : ""
+        `Telegram sendMessage failed with status ${response.status}${description ? `: ${description}` : ""
         }`,
       );
     }
@@ -108,5 +107,138 @@ export async function sendTelegramMessageActivity(
       status: response?.status ?? 0,
       error: (error as Error).message || "Unknown error",
     };
+  }
+}
+
+// Helper for Telegram API calls
+async function callTelegramApi(method: string, botToken: string, payload: any) {
+  const response = await fetch(
+    `https://api.telegram.org/bot${botToken}/${method}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  const body = await response.json().catch(() => null);
+
+  if (!response.ok || !body?.ok) {
+    const description = body?.description || (typeof body?.error === "string" ? body.error : "") || "";
+    throw new Error(`Telegram ${method} failed with status ${response.status}${description ? `: ${description}` : ""}`);
+  }
+
+  return { status: response.status, body };
+}
+
+// 1. Send Photo
+export interface SendTelegramPhotoInput {
+  botToken: string;
+  chatId: string;
+  photo: string; // URL
+  caption?: string;
+  disableNotification?: boolean;
+  triggerData?: Record<string, any>;
+}
+
+export async function sendTelegramPhotoActivity(input: SendTelegramPhotoInput) {
+  const activity = Context.current();
+  try {
+    const caption = input.caption ? replaceTemplateVariables(input.caption, input.triggerData) : undefined;
+    const payload: any = {
+      chat_id: input.chatId,
+      photo: input.photo,
+    };
+    if (caption) payload.caption = caption;
+    if (input.disableNotification) payload.disable_notification = true;
+
+    const res = await callTelegramApi("sendPhoto", input.botToken, payload);
+    return { delivered: true, status: res.status, messageId: res.body.result.message_id };
+  } catch (error) {
+    activity.log.error("Failed to send Telegram photo", { error: (error as Error).message });
+    throw error;
+  }
+}
+
+// 2. Pin Message
+export interface PinTelegramMessageInput {
+  botToken: string;
+  chatId: string;
+  messageId: string;
+  disableNotification?: boolean;
+  triggerData?: Record<string, any>;
+}
+
+export async function pinTelegramMessageActivity(input: PinTelegramMessageInput) {
+  const activity = Context.current();
+  try {
+    const messageId = replaceTemplateVariables(input.messageId, input.triggerData);
+    const payload: any = {
+      chat_id: input.chatId,
+      message_id: messageId,
+    };
+    if (input.disableNotification) payload.disable_notification = true;
+
+    const res = await callTelegramApi("pinChatMessage", input.botToken, payload);
+    return { success: true };
+  } catch (error) {
+    activity.log.error("Failed to pin Telegram message", { error: (error as Error).message });
+    throw error;
+  }
+}
+
+// 3. Kick Member (banChatMember)
+export interface KickTelegramMemberInput {
+  botToken: string;
+  chatId: string;
+  userId: string;
+  untilDate?: number;
+  revokeMessages?: boolean;
+  triggerData?: Record<string, any>;
+}
+
+export async function kickTelegramMemberActivity(input: KickTelegramMemberInput) {
+  const activity = Context.current();
+  try {
+    const userId = replaceTemplateVariables(input.userId, input.triggerData);
+    const payload: any = {
+      chat_id: input.chatId,
+      user_id: userId,
+    };
+    if (input.untilDate) payload.until_date = input.untilDate;
+    if (input.revokeMessages) payload.revoke_messages = input.revokeMessages;
+
+    const res = await callTelegramApi("banChatMember", input.botToken, payload);
+    return { success: true };
+  } catch (error) {
+    activity.log.error("Failed to kick Telegram member", { error: (error as Error).message });
+    throw error;
+  }
+}
+
+// 4. Unban Member (unbanChatMember)
+export interface UnbanTelegramMemberInput {
+  botToken: string;
+  chatId: string;
+  userId: string;
+  onlyIfBanned?: boolean;
+  triggerData?: Record<string, any>;
+}
+
+export async function unbanTelegramMemberActivity(input: UnbanTelegramMemberInput) {
+  const activity = Context.current();
+  try {
+    const userId = replaceTemplateVariables(input.userId, input.triggerData);
+    const payload: any = {
+      chat_id: input.chatId,
+      user_id: userId,
+    };
+    if (input.onlyIfBanned) payload.only_if_banned = true;
+
+    const res = await callTelegramApi("unbanChatMember", input.botToken, payload);
+    return { success: true };
+  } catch (error) {
+    activity.log.error("Failed to unban Telegram member", { error: (error as Error).message });
+    throw error;
   }
 }

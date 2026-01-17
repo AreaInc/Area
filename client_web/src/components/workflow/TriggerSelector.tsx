@@ -131,8 +131,12 @@ export function TriggerSelector({ value, onChange }: TriggerSelectorProps) {
           <Input
             type="number"
             value={fieldValue || ''}
-            onChange={(e) => handleConfigChange(key, Number(e.target.value))}
+            onChange={(e) => {
+              const val = e.target.value;
+              handleConfigChange(key, val === '' ? undefined : Number(val));
+            }}
             placeholder={fieldSchema.description || key}
+            step={fieldSchema.type === 'integer' ? '1' : 'any'}
           />
           {fieldSchema.description && (
             <p className="text-xs text-muted-foreground">{fieldSchema.description}</p>

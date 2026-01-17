@@ -120,20 +120,25 @@ export function ActionSelector({ value, onChange }: ActionSelectorProps) {
 
     if (fieldSchema.type === 'boolean') {
       return (
-        <div key={key} className="flex items-center space-x-2 py-2">
-          <Checkbox
-            id={key}
-            checked={fieldValue || false}
-            onCheckedChange={(checked) => handleConfigChange(key, checked)}
+        <div key={key} className="space-y-2">
+          <Label>
+            {key.charAt(0).toUpperCase() + key.slice(1)}
+            {required && <span className="text-destructive ml-1">*</span>}
+          </Label>
+          <Input
+            type="number"
+            value={fieldValue || ''}
+            onChange={(e) => {
+              const val = e.target.value;
+              handleConfigChange(key, val === '' ? undefined : Number(val));
+            }}
+            placeholder={fieldSchema.description || key}
+            required={required}
+            step={fieldSchema.type === 'integer' ? '1' : 'any'}
           />
-          <div className="grid gap-1.5 leading-none">
-            <Label htmlFor={key} className="cursor-pointer">
-                {key.charAt(0).toUpperCase() + key.slice(1)}
-            </Label>
-            {fieldSchema.description && (
-                <p className="text-xs text-muted-foreground">{fieldSchema.description}</p>
-            )}
-          </div>
+          {fieldSchema.description && (
+            <p className="text-xs text-muted-foreground">{fieldSchema.description}</p>
+          )}
         </div>
       );
     }

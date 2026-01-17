@@ -6,6 +6,10 @@ const {
   readEmailActivity,
   sendDiscordWebhookActivity,
   sendTelegramMessageActivity,
+  sendTelegramPhotoActivity,
+  pinTelegramMessageActivity,
+  kickTelegramMemberActivity,
+  unbanTelegramMemberActivity,
   createSpreadsheetActivity,
   addRowActivity,
   updateCellActivity,
@@ -118,6 +122,48 @@ export async function automationWorkflow(
           parseMode: input.actionConfig.parseMode,
           disableWebPagePreview: input.actionConfig.disableWebPagePreview,
           disableNotification: input.actionConfig.disableNotification,
+          triggerData: input.triggerData,
+        });
+        break;
+
+      case "telegram:send-photo":
+        actionResult = await sendTelegramPhotoActivity({
+          botToken: input.actionConfig.botToken,
+          chatId: input.actionConfig.chatId,
+          photo: input.actionConfig.photo,
+          caption: input.actionConfig.caption,
+          disableNotification: input.actionConfig.disableNotification,
+          triggerData: input.triggerData,
+        });
+        break;
+
+      case "telegram:pin-message":
+        actionResult = await pinTelegramMessageActivity({
+          botToken: input.actionConfig.botToken,
+          chatId: input.actionConfig.chatId,
+          messageId: input.actionConfig.messageId,
+          disableNotification: input.actionConfig.disableNotification,
+          triggerData: input.triggerData,
+        });
+        break;
+
+      case "telegram:kick-member":
+        actionResult = await kickTelegramMemberActivity({
+          botToken: input.actionConfig.botToken,
+          chatId: input.actionConfig.chatId,
+          userId: input.actionConfig.userId,
+          untilDate: input.actionConfig.untilDate,
+          revokeMessages: input.actionConfig.revokeMessages,
+          triggerData: input.triggerData,
+        });
+        break;
+
+      case "telegram:unban-member":
+        actionResult = await unbanTelegramMemberActivity({
+          botToken: input.actionConfig.botToken,
+          chatId: input.actionConfig.chatId,
+          userId: input.actionConfig.userId,
+          onlyIfBanned: input.actionConfig.onlyIfBanned,
           triggerData: input.triggerData,
         });
         break;
