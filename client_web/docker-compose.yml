@@ -5,8 +5,8 @@ include:
 services:
   frontend:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: client_web/Dockerfile
       args:
         - VITE_DEPLOY_ADDRESS=${VITE_DEPLOY_ADDRESS:-localhost}
     container_name: area-frontend

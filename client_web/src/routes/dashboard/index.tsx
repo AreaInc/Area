@@ -11,12 +11,8 @@ import {
 import { Button } from '../../components/ui/button';
 import { TriggerSelector } from '../../components/workflow/TriggerSelector';
 import { ActionSelector } from '../../components/workflow/ActionSelector';
-<<<<<<< HEAD:frontend/src/routes/dashboard/index.tsx
-import type { TriggerConfig, ActionConfig } from '../../types/workflow';
-import { parseWorkflowIdFromSlug, workflowSlug } from '../../lib/slug';
-=======
 import type { TriggerConfig, ActionConfig } from '@area/shared';
->>>>>>> origin/development:client_web/src/routes/dashboard/index.tsx
+import { parseWorkflowIdFromSlug, workflowSlug } from '../../lib/slug';
 
 const QUICK_TEMPLATES: {
   name: string;
