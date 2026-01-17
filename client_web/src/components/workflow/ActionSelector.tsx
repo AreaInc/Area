@@ -118,7 +118,7 @@ export function ActionSelector({ value, onChange }: ActionSelectorProps) {
       );
     }
 
-    if (fieldSchema.type === 'boolean') {
+    if (fieldSchema.type === 'number' || fieldSchema.type === 'integer') {
       return (
         <div key={key} className="space-y-2">
           <Label>
@@ -139,6 +139,26 @@ export function ActionSelector({ value, onChange }: ActionSelectorProps) {
           {fieldSchema.description && (
             <p className="text-xs text-muted-foreground">{fieldSchema.description}</p>
           )}
+        </div>
+      );
+    }
+
+    if (fieldSchema.type === 'boolean') {
+      return (
+        <div key={key} className="flex items-center space-x-2 py-2">
+          <Checkbox
+            id={key}
+            checked={fieldValue || false}
+            onCheckedChange={(checked) => handleConfigChange(key, checked)}
+          />
+          <div className="grid gap-1.5 leading-none">
+            <Label htmlFor={key} className="cursor-pointer">
+              {key.charAt(0).toUpperCase() + key.slice(1)}
+            </Label>
+            {fieldSchema.description && (
+              <p className="text-xs text-muted-foreground">{fieldSchema.description}</p>
+            )}
+          </div>
         </div>
       );
     }
