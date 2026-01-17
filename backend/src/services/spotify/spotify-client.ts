@@ -82,8 +82,33 @@ export class SpotifyClient {
 
     // --- Actions ---
 
+    async getAvailableDevices() {
+        const data = await this.request('GET', '/me/player/devices');
+        return data.devices || [];
+    }
+
     async playTrack(trackUri: string) {
-        await this.request('PUT', '/me/player/play', { uris: [trackUri] });
+        try {
+            await this.request('PUT', '/me/player/play', { uris: [trackUri] });
+        } catch (error: any) {
+            // Check if error is NO_ACTIVE_DEVICE (404 for this specific reason usually, or just general failure)
+            // Spotify API 404 text often contains "NO_ACTIVE_DEVICE" or "Player command failed: No active device found"
+            const errorMessage = error.message || "";
+            if (errorMessage.includes("NO_ACTIVE_DEVICE") || errorMessage.includes("No active device")) {
+                console.log("No active device found, attempting to find available device...");
+                const devices = await this.getAvailableDevices();
+                if (devices.length > 0) {
+                    // Pick the first one
+                    const deviceId = devices[0].id;
+                    console.log(`Activating device: ${devices[0].name} (${deviceId})`);
+                    await this.request('PUT', `/me/player/play?device_id=${deviceId}`, { uris: [trackUri] });
+                    return;
+                } else {
+                    throw new Error("No Spotify devices available. Please open Spotify on a device to allow playback.");
+                }
+            }
+            throw error;
+        }
     }
 
     async pausePlayback() {
