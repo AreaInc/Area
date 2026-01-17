@@ -37,12 +37,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: workflows } = useWorkflows();
   const createMutation = useCreateWorkflow();
   const navigate = useNavigate();
-  
+
   const search = useSearch({ from: '/dashboard' });
   const selectedWorkflowSlug = search.workflow;
 
@@ -104,56 +105,58 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
-      
-      <SidebarContent>
+
+      <SidebarContent className="overflow-hidden">
         <SidebarGroup>
           <SidebarMenu>
             <SidebarMenuItem>
-                <SidebarMenuButton 
-                    onClick={handleCreateWorkflow}
-                    disabled={createMutation.isPending}
-                    tooltip="New Workflow"
-                    className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground shadow-sm"
-                >
-                    <Plus className="!w-5 !h-5" />
-                    <span className="font-semibold">{createMutation.isPending ? 'Creating...' : 'New Workflow'}</span>
-                </SidebarMenuButton>
+              <SidebarMenuButton
+                onClick={handleCreateWorkflow}
+                disabled={createMutation.isPending}
+                tooltip="New Workflow"
+                className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground shadow-sm"
+              >
+                <Plus className="!w-5 !h-5" />
+                <span className="font-semibold">{createMutation.isPending ? 'Creating...' : 'New Workflow'}</span>
+              </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
+        <ScrollArea className="flex-1 min-h-0">
+          <SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel>Your Workflows</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {workflows?.map((wf) => (
-                <SidebarMenuItem key={wf.id}>
-                  <SidebarMenuButton 
-                    isActive={selectedWorkflowSlug === workflowSlug(wf.id, wf.name)}
-                    onClick={() => {
+            <SidebarGroupLabel>Your Workflows</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {workflows?.map((wf) => (
+                  <SidebarMenuItem key={wf.id}>
+                    <SidebarMenuButton
+                      isActive={selectedWorkflowSlug === workflowSlug(wf.id, wf.name)}
+                      onClick={() => {
                         navigate({
-                            to: '/dashboard',
-                            search: { workflow: workflowSlug(wf.id, wf.name) },
+                          to: '/dashboard',
+                          search: { workflow: workflowSlug(wf.id, wf.name) },
                         });
-                    }}
-                    className="h-auto py-2"
-                  >
-                    <div className="flex flex-col gap-1 w-full text-left overflow-hidden">
+                      }}
+                      className="h-auto py-2"
+                    >
+                      <div className="flex flex-col gap-1 w-full text-left overflow-hidden">
                         <div className="flex items-center justify-between">
-                            <span className="font-medium truncate">{wf.name}</span>
-                            {wf.isActive && <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />}
+                          <span className="font-medium truncate">{wf.name}</span>
+                          {wf.isActive && <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />}
                         </div>
                         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                            <Clock size={10} />
-                            <span>{formatLastRun(wf.lastRun)}</span>
+                          <Clock size={10} />
+                          <span>{formatLastRun(wf.lastRun)}</span>
                         </div>
-                    </div>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+                      </div>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </ScrollArea>
       </SidebarContent>
 
       <SidebarFooter>
@@ -167,7 +170,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 >
                   <Avatar className="h-8 w-8 rounded-lg">
                     <AvatarFallback className="rounded-lg">
-                        {user?.name?.slice(0, 2).toUpperCase() || 'CN'}
+                      {user?.name?.slice(0, 2).toUpperCase() || 'CN'}
                     </AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
