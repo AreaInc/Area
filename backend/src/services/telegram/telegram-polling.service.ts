@@ -21,6 +21,7 @@ export class TelegramPollingService implements OnModuleInit, OnModuleDestroy {
     private readonly logger = new Logger(TelegramPollingService.name);
     private readonly pollIntervalMs = 2000;
     private isPolling = false;
+    private isProcessing = false;
     private pollingIntervalId: NodeJS.Timeout | null = null;
 
     // Store offsets for each bot token: token -> last_update_id
@@ -46,7 +47,14 @@ export class TelegramPollingService implements OnModuleInit, OnModuleDestroy {
         this.logger.log(`Starting Telegram polling (interval: ${this.pollIntervalMs}ms)`);
 
         this.pollingIntervalId = setInterval(async () => {
-            if (this.isPolling) await this.poll();
+            if (this.isPolling && !this.isProcessing) {
+                this.isProcessing = true;
+                try {
+                    await this.poll();
+                } finally {
+                    this.isProcessing = false;
+                }
+            }
         }, this.pollIntervalMs);
     }
 
