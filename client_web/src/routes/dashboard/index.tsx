@@ -97,9 +97,7 @@ export const Route = createFileRoute('/dashboard/')({
 });
 
 function Dashboard() {
-  const { workflow: workflowSlugParam = null } = useSearch({ from: '/dashboard' }) as {
-    workflow?: string | null;
-  };
+  const { workflow: workflowSlugParam = null } = useSearch({ from: '/dashboard' });
   const navigate = Route.useNavigate();
   const { data: workflows, isLoading, error } = useWorkflows();
   const { data: actions } = useActions();
