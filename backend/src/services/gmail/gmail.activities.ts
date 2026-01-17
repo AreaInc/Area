@@ -1,4 +1,5 @@
 import { Context } from "@temporalio/activity";
+import { google } from "googleapis";
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { eq } from "drizzle-orm";
@@ -27,6 +28,63 @@ async function loadCredentials(credentialId: number, userId: string) {
   return credential;
 }
 
+async function ensureFreshAccessToken(credential: {
+  id: number;
+  accessToken: string | null;
+  refreshToken: string | null;
+  expiresAt: Date | null;
+  clientId: string | null;
+  clientSecret: string | null;
+}) {
+  if (!credential.accessToken) {
+    throw new Error("Missing access token");
+  }
+
+  const expiresAt = credential.expiresAt?.getTime() || 0;
+  const needsRefresh = expiresAt > 0 && expiresAt <= Date.now() + 60_000;
+
+  if (!needsRefresh) {
+    return credential;
+  }
+
+  if (
+    !credential.refreshToken ||
+    !credential.clientId ||
+    !credential.clientSecret
+  ) {
+    throw new Error("Missing OAuth2 refresh credentials");
+  }
+
+  const oauth2Client = new google.auth.OAuth2(
+    credential.clientId,
+    credential.clientSecret,
+  );
+  oauth2Client.setCredentials({ refresh_token: credential.refreshToken });
+
+  const { credentials: newTokens } = await oauth2Client.refreshAccessToken();
+  const newExpiresAt = newTokens.expiry_date
+    ? new Date(newTokens.expiry_date)
+    : null;
+
+  await db
+    .update(schema.credentials)
+    .set({
+      accessToken: newTokens.access_token || credential.accessToken,
+      refreshToken: newTokens.refresh_token || credential.refreshToken,
+      expiresAt: newExpiresAt,
+      isValid: true,
+      updatedAt: new Date(),
+    })
+    .where(eq(schema.credentials.id, credential.id));
+
+  return {
+    ...credential,
+    accessToken: newTokens.access_token || credential.accessToken,
+    refreshToken: newTokens.refresh_token || credential.refreshToken,
+    expiresAt: newExpiresAt,
+  };
+}
+
 export interface SendEmailInput {
   to: string;
   subject: string;
@@ -53,7 +111,8 @@ export async function sendEmailActivity(
   activity.log.info("Sending email", { to: input.to, subject: input.subject });
 
   try {
-    const credential = await loadCredentials(input.credentialId, input.userId);
+    const loaded = await loadCredentials(input.credentialId, input.userId);
+    const credential = await ensureFreshAccessToken(loaded);
 
     const gmailCredentials = {
       data: {
@@ -63,6 +122,8 @@ export async function sendEmailActivity(
           ? new Date(credential.expiresAt).getTime()
           : undefined,
       },
+      clientId: credential.clientId || undefined,
+      clientSecret: credential.clientSecret || undefined,
     };
 
     const gmailClient = new GmailClient(gmailCredentials as any);
@@ -137,7 +198,8 @@ export async function readEmailActivity(
   });
 
   try {
-    const credential = await loadCredentials(input.credentialId, input.userId);
+    const loaded = await loadCredentials(input.credentialId, input.userId);
+    const credential = await ensureFreshAccessToken(loaded);
 
     const gmailCredentials = {
       data: {
@@ -147,6 +209,8 @@ export async function readEmailActivity(
           ? new Date(credential.expiresAt).getTime()
           : undefined,
       },
+      clientId: credential.clientId || undefined,
+      clientSecret: credential.clientSecret || undefined,
     };
 
     const gmailClient = new GmailClient(gmailCredentials as any);

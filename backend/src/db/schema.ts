@@ -107,6 +107,7 @@ export const credentials = pgTable("credentials", {
   // OAuth2 app credentials (encrypted)
   clientId: text("client_id"),
   clientSecret: text("client_secret"),
+  lastHistoryId: text("last_history_id"),
   // Legacy field for backward compatibility
   data: jsonb("data"),
   isValid: boolean("is_valid").default(true).notNull(),

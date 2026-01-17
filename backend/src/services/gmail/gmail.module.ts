@@ -2,14 +2,25 @@ import { Module, OnModuleInit } from "@nestjs/common";
 import { ReceiveEmailTrigger } from "./triggers/receive-email.trigger";
 import { SendEmailAction } from "./actions/send-email.action";
 import { ReadEmailAction } from "./actions/read-email.action";
+import { GmailPollingService } from "./gmail-polling.service";
 import { TriggerRegistryService } from "../registries/trigger-registry.service";
 import { ActionRegistryService } from "../registries/action-registry.service";
 import { WorkflowsModule } from "../workflows/workflows.module";
 
 @Module({
   imports: [WorkflowsModule],
-  providers: [ReceiveEmailTrigger, SendEmailAction, ReadEmailAction],
-  exports: [ReceiveEmailTrigger, SendEmailAction, ReadEmailAction],
+  providers: [
+    ReceiveEmailTrigger,
+    SendEmailAction,
+    ReadEmailAction,
+    GmailPollingService,
+  ],
+  exports: [
+    ReceiveEmailTrigger,
+    SendEmailAction,
+    ReadEmailAction,
+    GmailPollingService,
+  ],
 })
 export class GmailModule implements OnModuleInit {
   constructor(
