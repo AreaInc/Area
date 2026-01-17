@@ -15,6 +15,9 @@ COPY client_web/package.json ./client_web/
 # Install all workspace dependencies
 RUN pnpm install --frozen-lockfile
 
+# Build shared package
+RUN pnpm --filter @area/shared build
+
 # Copy client_web source
 COPY client_web ./client_web
 
