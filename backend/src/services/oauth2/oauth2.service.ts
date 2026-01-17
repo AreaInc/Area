@@ -293,7 +293,25 @@ export class OAuth2Service {
         const profileRes = await fetch("https://api.spotify.com/v1/me", {
           headers: { Authorization: `Bearer ${tokens.access_token}` },
         });
-        const profile = (await profileRes.json()) as any;
+
+        const profileText = await profileRes.text();
+        let profile: any;
+        try {
+          profile = JSON.parse(profileText);
+        } catch (e) {
+          throw new Error(
+            `Failed to parse Spotify Profile response. Status: ${profileRes.status}. Body: ${profileText.substring(0, 150)}`,
+          );
+        }
+
+        if (!profileRes.ok) {
+          throw new Error(
+            profile.error?.message ||
+            profile.error_description ||
+            `Spotify Profile API Error: ${JSON.stringify(profile)}`
+          );
+        }
+
         userEmail = profile.email || profile.id;
       } else if (provider === ServiceProvider.TWITCH) {
         const body = new URLSearchParams({
