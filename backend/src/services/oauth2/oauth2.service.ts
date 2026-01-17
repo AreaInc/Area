@@ -135,8 +135,8 @@ export class OAuth2Service {
     const provider = credential.serviceProvider;
 
     if ((!clientId || !clientSecret) && this.isGoogleProvider(provider)) {
-      clientId = clientId || process.env.GOOGLE_CLIENT_ID || null;
-      clientSecret = clientSecret || process.env.GOOGLE_CLIENT_SECRET || null;
+      clientId = clientId || process.env.GOOGLE_CLIENT_ID;
+      clientSecret = clientSecret || process.env.GOOGLE_CLIENT_SECRET;
     }
 
     if (!clientId || !clientSecret) {
@@ -233,8 +233,8 @@ export class OAuth2Service {
     const provider = credential.serviceProvider;
 
     if ((!clientId || !clientSecret) && this.isGoogleProvider(provider)) {
-      clientId = clientId || process.env.GOOGLE_CLIENT_ID || null;
-      clientSecret = clientSecret || process.env.GOOGLE_CLIENT_SECRET || null;
+      clientId = clientId || process.env.GOOGLE_CLIENT_ID;
+      clientSecret = clientSecret || process.env.GOOGLE_CLIENT_SECRET;
     }
 
     if (!clientId || !clientSecret) {
@@ -426,8 +426,8 @@ export class OAuth2Service {
     const provider = credential.serviceProvider;
 
     if ((!clientId || !clientSecret) && this.isGoogleProvider(provider)) {
-      clientId = clientId || process.env.GOOGLE_CLIENT_ID || null;
-      clientSecret = clientSecret || process.env.GOOGLE_CLIENT_SECRET || null;
+      clientId = clientId || process.env.GOOGLE_CLIENT_ID;
+      clientSecret = clientSecret || process.env.GOOGLE_CLIENT_SECRET;
     }
 
     if (!credential.refreshToken || !clientId || !clientSecret) {
