@@ -220,7 +220,7 @@ export async function automationWorkflow(
       case "spotify:play_music":
         if (!input.actionCredentialsId) throw new Error("Credentials required");
         actionResult = await playMusicActivity({
-          trackName: input.actionConfig.trackName,
+          trackUri: input.actionConfig.trackUri,
           credentialId: input.actionCredentialsId,
           userId: input.userId,
         });
@@ -229,8 +229,8 @@ export async function automationWorkflow(
       case "spotify:add_to_playlist":
         if (!input.actionCredentialsId) throw new Error("Credentials required");
         actionResult = await addToPlaylistActivity({
-          playlistName: input.actionConfig.playlistName,
-          trackName: input.actionConfig.trackName,
+          playlistId: input.actionConfig.playlistId,
+          trackUri: input.actionConfig.trackUri,
           credentialId: input.actionCredentialsId,
           userId: input.userId,
         });
@@ -400,10 +400,6 @@ export async function automationWorkflow(
       error: error.message,
     });
 
-    return {
-      success: false,
-      actionResult: null,
-      error: error.message || "Unknown error",
-    };
+    throw error;
   }
 }

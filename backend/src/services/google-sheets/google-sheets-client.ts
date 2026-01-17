@@ -144,18 +144,59 @@ export class GoogleSheetsClient {
 
     async duplicateSheet(spreadsheetId: string, newTitle: string) {
         await this.refreshTokenIfNeeded();
-        // duplicateSheet is actually copying the FILE (spreadsheet) in area_a_copier logic, NOT duplicating a tab.
-        // Logic: `this.driveBaseUrl}/files/${spreadsheetId}/copy`
-        const response = await this.drive.files.copy({
-            fileId: spreadsheetId,
+        const response = await this.sheets.spreadsheets.create({
             requestBody: {
-                name: newTitle,
+                properties: { title: newTitle },
             },
         });
+
+        const newSpreadsheetId = response.data.spreadsheetId;
+
+        const originalMetadata = await this.sheets.spreadsheets.get({
+            spreadsheetId,
+            fields: 'sheets.properties'
+        });
+
+        const newMetadata = await this.sheets.spreadsheets.get({
+            spreadsheetId: newSpreadsheetId,
+            fields: 'sheets.properties'
+        });
+        const defaultSheetId = newMetadata.data.sheets?.[0]?.properties?.sheetId;
+
+        const copyRequests = originalMetadata.data.sheets?.map((sheet: any) => ({
+            sourceSpreadsheetId: spreadsheetId,
+            sourceSheetId: sheet.properties?.sheetId,
+            destinationSpreadsheetId: newSpreadsheetId,
+        })) || [];
+
+        for (const copyRequest of copyRequests) {
+            await this.sheets.spreadsheets.sheets.copyTo({
+                spreadsheetId: copyRequest.sourceSpreadsheetId,
+                sheetId: copyRequest.sourceSheetId,
+                requestBody: {
+                    destinationSpreadsheetId: copyRequest.destinationSpreadsheetId,
+                },
+            });
+        }
+
+        if (defaultSheetId !== undefined) {
+            await this.sheets.spreadsheets.batchUpdate({
+                spreadsheetId: newSpreadsheetId,
+                requestBody: {
+                    requests: [{
+                        deleteSheet: {
+                            sheetId: defaultSheetId,
+                        },
+                    }],
+                },
+            });
+        }
+
         return {
             originalSpreadsheetId: spreadsheetId,
-            newSpreadsheetId: response.data.id,
-            newTitle: response.data.name,
+            newSpreadsheetId: newSpreadsheetId,
+            newTitle: newTitle,
+            spreadsheetUrl: `https://docs.google.com/spreadsheets/d/${newSpreadsheetId}/edit`,
         };
     }
 

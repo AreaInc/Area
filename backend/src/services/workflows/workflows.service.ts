@@ -286,10 +286,18 @@ export class WorkflowsService {
       .where(eq(workflows.id, workflowId));
 
     try {
+      // Check if trigger config has a credential ID (new frontend behavior)
+      const triggerConfig = workflow.triggerConfig as Record<string, any>;
+      const triggerCredentialsId = triggerConfig.credentialsId ? Number(triggerConfig.credentialsId) : undefined;
+
+      // Fallback to legacy actionCredentialsId if not present in config (for backward compatibility)
+      // and if the trigger actually needs credentials.
+      const finalCredentialsId = triggerCredentialsId || (workflow.actionCredentialsId ? Number(workflow.actionCredentialsId) : undefined);
+
       await trigger.register(
         workflowId,
-        workflow.triggerConfig as Record<string, any>,
-        workflow.actionCredentialsId || undefined,
+        triggerConfig,
+        finalCredentialsId,
       );
     } catch (error) {
       // Revert status if registration fails

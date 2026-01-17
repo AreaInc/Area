@@ -69,10 +69,21 @@ export async function createSpreadsheetActivity(input: CreateSpreadsheetInput) {
     return { spreadsheetId: result.spreadsheetId, spreadsheetUrl: result.spreadsheetUrl, success: true };
 }
 
-export interface AddRowInput { spreadsheetId: string; sheetName?: string; values: any[]; credentialId: number; userId: string; }
+export interface AddRowInput { spreadsheetId: string; sheetName?: string; values: any[] | string; credentialId: number; userId: string; }
 export async function addRowActivity(input: AddRowInput) {
     const client = await getClient(input.credentialId, input.userId);
-    const result = await client.appendRow(input.spreadsheetId, input.sheetName, input.values);
+
+    // Handle semicolon-separated string values
+    let valuesArray: any[];
+    if (typeof input.values === 'string') {
+        valuesArray = input.values.split(';').map(v => v.trim());
+    } else if (Array.isArray(input.values)) {
+        valuesArray = input.values;
+    } else {
+        throw new Error('Values must be either a string (semicolon-separated) or an array');
+    }
+
+    const result = await client.appendRow(input.spreadsheetId, input.sheetName, valuesArray);
     return { updatedRange: result.updates?.updatedRange, success: true };
 }
 

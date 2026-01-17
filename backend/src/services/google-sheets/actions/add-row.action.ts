@@ -17,7 +17,13 @@ export class AddRowAction implements IAction {
         properties: {
             spreadsheetId: { type: "string", description: "ID of the spreadsheet" },
             sheetName: { type: "string", description: "Name of the sheet (optional)" },
-            values: { type: "array", items: { type: "string" }, description: "Row values" },
+            values: {
+                oneOf: [
+                    { type: "string", description: "Semicolon-separated values (e.g., 'value1;value2;value3')" },
+                    { type: "array", items: { type: "string" }, description: "Array of values" }
+                ],
+                description: "Row values as semicolon-separated string or array"
+            },
         },
     };
 
@@ -32,11 +38,11 @@ export class AddRowAction implements IAction {
         if (!config.spreadsheetId || typeof config.spreadsheetId !== 'string') {
             throw new Error('Invalid "spreadsheetId": must be a string');
         }
-        if (!config.values || !Array.isArray(config.values)) {
-            // Maybe we want to allow string input too as per original logic, but schema says array.
-            // Let's stick to array for now or allow both? original had complex parsing.
-            // I'll stick to validating what schema says.
-            throw new Error('Invalid "values": must be an array');
+        if (!config.values) {
+            throw new Error('Invalid "values": must be provided');
+        }
+        if (typeof config.values !== 'string' && !Array.isArray(config.values)) {
+            throw new Error('Invalid "values": must be a semicolon-separated string or an array');
         }
         return true;
     }
