@@ -13,11 +13,67 @@ export default function CreateCredentialModal({ onClose }: CreateCredentialModal
   const [clientSecret, setClientSecret] = useState('');
   const createMutation = useCreateCredential();
 
+  /* eslint-disable react/no-unescaped-entities */
+  const getProviderConfig = (p: string) => {
+    switch (p) {
+      case 'google':
+      case 'gmail':
+      case 'google_sheets':
+      case 'youtube':
+        return {
+          clientIdLabel: 'Client ID',
+          clientIdPlaceholder: 'Leave empty to use system default',
+          clientSecretLabel: 'Client Secret',
+          clientSecretPlaceholder: 'Leave empty to use system default',
+          helperText: 'Obtain these from the Google Cloud Console.',
+          dashboardUrl: 'https://console.cloud.google.com/apis/credentials',
+          isOptional: true,
+        };
+      case 'spotify':
+        return {
+          clientIdLabel: 'Client ID',
+          clientIdPlaceholder: 'e.g. 3e3a... (32 characters)',
+          clientSecretLabel: 'Client Secret',
+          clientSecretPlaceholder: 'e.g. 9b9c... (32 characters)',
+          helperText: 'Obtain these from the Spotify Developer Dashboard.',
+          dashboardUrl: 'https://developer.spotify.com/dashboard',
+          isOptional: false,
+        };
+      case 'twitch':
+        return {
+          clientIdLabel: 'Client ID',
+          clientIdPlaceholder: 'e.g. gp76... (30 characters)',
+          clientSecretLabel: 'Client Secret',
+          clientSecretPlaceholder: 'e.g. a1b2... (30 characters)',
+          helperText: 'Obtain these from the Twitch Developer Console.',
+          dashboardUrl: 'https://dev.twitch.tv/console',
+          isOptional: false,
+        };
+      default:
+        return {
+          clientIdLabel: 'Client ID',
+          clientIdPlaceholder: 'Client ID',
+          clientSecretLabel: 'Client Secret',
+          clientSecretPlaceholder: 'Client Secret',
+          helperText: '',
+          dashboardUrl: '',
+          isOptional: false,
+        };
+    }
+  };
+
+  const config = getProviderConfig(provider);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!name || !provider || !clientId || !clientSecret) {
-      alert('All fields are required');
+    if (!name || !provider) {
+      alert('Name and Provider are required');
+      return;
+    }
+
+    if (!config.isOptional && (!clientId || !clientSecret)) {
+      alert('Client ID and Secret are required for this provider');
       return;
     }
 
@@ -33,53 +89,6 @@ export default function CreateCredentialModal({ onClose }: CreateCredentialModal
       alert('Failed to create credential');
     }
   };
-
-  /* eslint-disable react/no-unescaped-entities */
-  const getProviderConfig = (p: string) => {
-    switch (p) {
-      case 'google':
-      case 'gmail':
-      case 'google_sheets':
-      case 'youtube':
-        return {
-          clientIdLabel: 'Client ID',
-          clientIdPlaceholder: '123456789-abcdef.apps.googleusercontent.com',
-          clientSecretLabel: 'Client Secret',
-          clientSecretPlaceholder: 'GOCSPX-abc123def456',
-          helperText: 'Obtain these from the Google Cloud Console.',
-          dashboardUrl: 'https://console.cloud.google.com/apis/credentials',
-        };
-      case 'spotify':
-        return {
-          clientIdLabel: 'Client ID',
-          clientIdPlaceholder: 'e.g. 3e3a... (32 characters)',
-          clientSecretLabel: 'Client Secret',
-          clientSecretPlaceholder: 'e.g. 9b9c... (32 characters)',
-          helperText: 'Obtain these from the Spotify Developer Dashboard.',
-          dashboardUrl: 'https://developer.spotify.com/dashboard',
-        };
-      case 'twitch':
-        return {
-          clientIdLabel: 'Client ID',
-          clientIdPlaceholder: 'e.g. gp76... (30 characters)',
-          clientSecretLabel: 'Client Secret',
-          clientSecretPlaceholder: 'e.g. a1b2... (30 characters)',
-          helperText: 'Obtain these from the Twitch Developer Console.',
-          dashboardUrl: 'https://dev.twitch.tv/console',
-        };
-      default:
-        return {
-          clientIdLabel: 'Client ID',
-          clientIdPlaceholder: 'Client ID',
-          clientSecretLabel: 'Client Secret',
-          clientSecretPlaceholder: 'Client Secret',
-          helperText: '',
-          dashboardUrl: '',
-        };
-    }
-  };
-
-  const config = getProviderConfig(provider);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
@@ -120,7 +129,7 @@ export default function CreateCredentialModal({ onClose }: CreateCredentialModal
 
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">
-                {config.clientIdLabel}
+                {config.clientIdLabel} {config.isOptional ? <span className="text-gray-500">(Optional)</span> : ''}
               </label>
               <input
                 type="text"
@@ -133,7 +142,7 @@ export default function CreateCredentialModal({ onClose }: CreateCredentialModal
 
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">
-                {config.clientSecretLabel}
+                {config.clientSecretLabel} {config.isOptional ? <span className="text-gray-500">(Optional)</span> : ''}
               </label>
               <input
                 type="password"

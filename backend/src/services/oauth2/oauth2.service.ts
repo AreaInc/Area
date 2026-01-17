@@ -86,8 +86,8 @@ export class OAuth2Service {
     dto: {
       name: string;
       provider: string;
-      clientId: string;
-      clientSecret: string;
+      clientId?: string;
+      clientSecret?: string;
     },
   ) {
     const [credential] = await this.db
@@ -130,7 +130,16 @@ export class OAuth2Service {
       throw new BadRequestException("Credential not found");
     }
 
-    if (!credential.clientId || !credential.clientSecret) {
+    let clientId = credential.clientId;
+    let clientSecret = credential.clientSecret;
+    const provider = credential.serviceProvider;
+
+    if ((!clientId || !clientSecret) && this.isGoogleProvider(provider)) {
+      clientId = clientId || process.env.GOOGLE_CLIENT_ID;
+      clientSecret = clientSecret || process.env.GOOGLE_CLIENT_SECRET;
+    }
+
+    if (!clientId || !clientSecret) {
       throw new BadRequestException(
         "Credential does not have client ID and secret configured",
       );
@@ -148,12 +157,11 @@ export class OAuth2Service {
     this.cleanupOldStates();
 
     const callbackUrl = this.getCallbackUrl();
-    const provider = credential.serviceProvider;
 
     if (this.isGoogleProvider(provider)) {
       const oauth2Client = new google.auth.OAuth2(
-        credential.clientId,
-        credential.clientSecret,
+        clientId,
+        clientSecret,
         callbackUrl,
       );
 
@@ -168,7 +176,7 @@ export class OAuth2Service {
       return { authUrl, state };
     } else if (provider === ServiceProvider.SPOTIFY) {
       const params = new URLSearchParams({
-        client_id: credential.clientId!,
+        client_id: clientId!,
         response_type: "code",
         redirect_uri: callbackUrl,
         scope: OAUTH_CONFIG.spotify.scopes.join(" "),
@@ -180,7 +188,7 @@ export class OAuth2Service {
       };
     } else if (provider === ServiceProvider.TWITCH) {
       const params = new URLSearchParams({
-        client_id: credential.clientId!,
+        client_id: clientId!,
         response_type: "code",
         redirect_uri: callbackUrl,
         scope: OAUTH_CONFIG.twitch.scopes.join(" "),
@@ -193,8 +201,6 @@ export class OAuth2Service {
     }
 
     throw new BadRequestException(`Unsupported provider: ${provider}`);
-
-
   }
 
   async handleCallback(
@@ -222,22 +228,30 @@ export class OAuth2Service {
       throw new BadRequestException("Credential not found");
     }
 
-    if (!credential.clientId || !credential.clientSecret) {
+    let clientId = credential.clientId;
+    let clientSecret = credential.clientSecret;
+    const provider = credential.serviceProvider;
+
+    if ((!clientId || !clientSecret) && this.isGoogleProvider(provider)) {
+      clientId = clientId || process.env.GOOGLE_CLIENT_ID;
+      clientSecret = clientSecret || process.env.GOOGLE_CLIENT_SECRET;
+    }
+
+    if (!clientId || !clientSecret) {
       throw new BadRequestException(
         "Credential does not have client ID and secret configured",
       );
     }
 
     const callbackUrl = this.getCallbackUrl();
-    const provider = credential.serviceProvider;
     let tokens: any = {};
     let userEmail = "Unknown";
 
     try {
       if (this.isGoogleProvider(provider)) {
         const oauth2Client = new google.auth.OAuth2(
-          credential.clientId,
-          credential.clientSecret,
+          clientId,
+          clientSecret,
           callbackUrl,
         );
         const { tokens: googleTokens } = await oauth2Client.getToken(code);
@@ -253,9 +267,9 @@ export class OAuth2Service {
           code,
           redirect_uri: callbackUrl,
         });
-        const auth = Buffer.from(
-          `${credential.clientId}:${credential.clientSecret}`,
-        ).toString("base64");
+        const auth = Buffer.from(`${clientId}:${clientSecret}`).toString(
+          "base64",
+        );
         const res = await fetch(OAUTH_CONFIG.spotify.tokenUrl, {
           method: "POST",
           headers: {
@@ -297,8 +311,8 @@ export class OAuth2Service {
         userEmail = profile.email || profile.id;
       } else if (provider === ServiceProvider.TWITCH) {
         const body = new URLSearchParams({
-          client_id: credential.clientId!,
-          client_secret: credential.clientSecret!,
+          client_id: clientId!,
+          client_secret: clientSecret!,
           code,
           grant_type: "authorization_code",
           redirect_uri: callbackUrl,
@@ -332,7 +346,7 @@ export class OAuth2Service {
         const profileRes = await fetch("https://api.twitch.tv/helix/users", {
           headers: {
             Authorization: `Bearer ${tokens.access_token}`,
-            "Client-Id": credential.clientId!,
+            "Client-Id": clientId!,
           },
         });
         const profileData = (await profileRes.json()) as any;
@@ -407,23 +421,24 @@ export class OAuth2Service {
       throw new BadRequestException("Credential is not OAuth2 type");
     }
 
-    if (
-      !credential.refreshToken ||
-      !credential.clientId ||
-      !credential.clientSecret
-    ) {
+    let clientId = credential.clientId;
+    let clientSecret = credential.clientSecret;
+    const provider = credential.serviceProvider;
+
+    if ((!clientId || !clientSecret) && this.isGoogleProvider(provider)) {
+      clientId = clientId || process.env.GOOGLE_CLIENT_ID;
+      clientSecret = clientSecret || process.env.GOOGLE_CLIENT_SECRET;
+    }
+
+    if (!credential.refreshToken || !clientId || !clientSecret) {
       throw new BadRequestException("Missing OAuth2 refresh credentials");
     }
 
-    const provider = credential.serviceProvider;
     let newTokens: any = {};
 
     try {
       if (this.isGoogleProvider(provider)) {
-        const oauth2Client = new google.auth.OAuth2(
-          credential.clientId,
-          credential.clientSecret,
-        );
+        const oauth2Client = new google.auth.OAuth2(clientId, clientSecret);
 
         oauth2Client.setCredentials({
           refresh_token: credential.refreshToken,
