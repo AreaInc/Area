@@ -13,14 +13,14 @@ export class PlayMusicAction implements IAction {
 
     public readonly inputSchema = {
         type: "object",
-        required: ["trackName"],
+        required: ["trackUri"],
         properties: {
-            trackName: { type: "string" },
+            trackUri: { type: "string", description: "Spotify Track URI" },
         },
     };
 
     async validateInput(config: Record<string, any>): Promise<boolean> {
-        return !!config.trackName;
+        return !!config.trackUri;
     }
     getMetadata(): ActionMetadata {
         return { id: this.id, name: this.name, description: this.description, serviceProvider: this.serviceProvider, inputSchema: this.inputSchema, requiresCredentials: this.requiresCredentials };
@@ -38,19 +38,15 @@ export class AddToPlaylistAction implements IAction {
 
     public readonly inputSchema = {
         type: "object",
-        required: [], // No strict requirements if we allow either name OR id
+        required: ["playlistId", "trackUri"],
         properties: {
-            playlistName: { type: "string", description: "Name of the playlist to search for" },
-            playlistId: { type: "string", description: "Spotify Playlist ID (overrides name)" },
-            trackName: { type: "string", description: "Name of the track to search for" },
-            trackUri: { type: "string", description: "Spotify Track URI (overrides name)" },
+            playlistId: { type: "string", description: "Spotify Playlist ID" },
+            trackUri: { type: "string", description: "Spotify Track URI" },
         },
     };
 
     async validateInput(config: Record<string, any>): Promise<boolean> {
-        const hasPlaylist = !!config.playlistName || !!config.playlistId;
-        const hasTrack = !!config.trackName || !!config.trackUri;
-        return hasPlaylist && hasTrack;
+        return !!config.playlistId && !!config.trackUri;
     }
     getMetadata(): ActionMetadata {
         return { id: this.id, name: this.name, description: this.description, serviceProvider: this.serviceProvider, inputSchema: this.inputSchema, requiresCredentials: this.requiresCredentials };
