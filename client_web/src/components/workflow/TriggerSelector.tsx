@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useTriggers } from '@area/shared';
+import { useTriggers, useCredentials } from '@area/shared';
 import type { TriggerConfig } from '@area/shared';
 
 interface TriggerSelectorProps {
@@ -8,7 +8,8 @@ interface TriggerSelectorProps {
 }
 
 export function TriggerSelector({ value, onChange }: TriggerSelectorProps) {
-  const { data: triggers, isLoading } = useTriggers();
+  const { data: triggers, isLoading: triggersLoading } = useTriggers();
+  const { data: credentials, isLoading: credentialsLoading } = useCredentials();
   const [config, setConfig] = useState<Record<string, any>>(value?.config || {});
 
   useEffect(() => {
@@ -17,7 +18,7 @@ export function TriggerSelector({ value, onChange }: TriggerSelectorProps) {
     }
   }, [value?.config]);
 
-  if (isLoading) {
+  if (triggersLoading || credentialsLoading) {
     return <div className="text-gray-400">Loading triggers...</div>;
   }
 
@@ -26,6 +27,10 @@ export function TriggerSelector({ value, onChange }: TriggerSelectorProps) {
   );
 
   const configSchema = selectedTrigger?.configSchema as any;
+
+  const availableCredentials = credentials?.filter(
+    (c) => c.serviceProvider === value?.provider && c.isValid
+  );
 
   const handleTriggerChange = (provider: string, triggerId: string) => {
     onChange({
@@ -184,6 +189,37 @@ export function TriggerSelector({ value, onChange }: TriggerSelectorProps) {
             <h3 className="font-semibold text-white mb-2">{selectedTrigger.name}</h3>
             <p className="text-sm text-gray-400">{selectedTrigger.description}</p>
           </div>
+
+          {selectedTrigger.requiresCredentials && (
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Credentials <span className="text-red-400">*</span>
+              </label>
+              {!availableCredentials || availableCredentials.length === 0 ? (
+                <p className="text-sm text-yellow-400">
+                  No connected credentials found for {value?.provider}. Please create and
+                  connect credentials first.
+                </p>
+              ) : (
+                <select
+                  value={value?.config?.credentialsId || ''}
+                  onChange={(e) => {
+                    const credId = e.target.value ? parseInt(e.target.value) : undefined;
+                    handleConfigChange('credentialsId', credId);
+                  }}
+                  required
+                  className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select credentials...</option>
+                  {availableCredentials.map((cred) => (
+                    <option key={cred.id} value={cred.id}>
+                      {cred.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+          )}
 
           {configSchema?.properties && (
             <div className="border-t border-gray-700 pt-4">
