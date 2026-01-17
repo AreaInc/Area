@@ -36,12 +36,19 @@ async function getClient(credentialId: number, userId: string) {
 
 // --- Activities ---
 
+// Helper to ensure proper URI format if user inputs raw ID
+function formatSpotifyUri(input: string, type: 'track' | 'playlist'): string {
+    if (input.startsWith("spotify:")) return input;
+    return `spotify:${type}:${input}`;
+}
+
 export interface PlayMusicInput { trackUri: string; credentialId: number; userId: string; }
 export async function playMusicActivity(input: PlayMusicInput) {
     const client = await getClient(input.credentialId, input.userId);
     if (!input.trackUri) throw new Error("Track URI is required");
 
-    await client.playTrack(input.trackUri);
+    const trackUri = formatSpotifyUri(input.trackUri, 'track');
+    await client.playTrack(trackUri);
     return { success: true };
 }
 
@@ -52,7 +59,19 @@ export async function addToPlaylistActivity(input: AddToPlaylistInput) {
     if (!input.playlistId) throw new Error("Playlist ID is required");
     if (!input.trackUri) throw new Error("Track URI is required");
 
-    await client.addTracksToPlaylist(input.playlistId, [input.trackUri]);
+    // playlistId is strictly an ID for the endpoint /playlists/{playlist_id}/tracks
+    // so we don't format it as URI. However, the track MUST be a URI.
+
+    // BUT wait, input.playlistId might be a URI (spotify:playlist:id) if user copies that.
+    // The endpoint expects ID. So we should strip it if present.
+    let cleanPlaylistId = input.playlistId;
+    if (cleanPlaylistId.startsWith("spotify:playlist:")) {
+        cleanPlaylistId = cleanPlaylistId.replace("spotify:playlist:", "");
+    }
+
+    const trackUri = formatSpotifyUri(input.trackUri, 'track');
+
+    await client.addTracksToPlaylist(cleanPlaylistId, [trackUri]);
     return { success: true };
 }
 
