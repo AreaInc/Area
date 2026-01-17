@@ -16,6 +16,10 @@ import { WebhookModule } from "./services/webhook/webhook.module";
 import { SchedulerModule } from "./services/scheduler/scheduler.module";
 import { DiscordModule } from "./services/discord/discord.module";
 import { TelegramModule } from "./services/telegram/telegram.module";
+import { GoogleSheetsModule } from "./services/google-sheets/google-sheets.module";
+import { SpotifyModule } from "./services/spotify/spotify.module";
+import { TwitchModule } from "./services/twitch/twitch.module";
+import { YouTubeModule } from "./services/youtube/youtube.module";
 
 import { AuthModule } from "@thallesp/nestjs-better-auth";
 import { auth } from "./auth";
@@ -81,9 +85,13 @@ import { auth } from "./auth";
     SchedulerModule,
     DiscordModule,
     TelegramModule,
+    GoogleSheetsModule,
+    SpotifyModule,
+    TwitchModule,
+    YouTubeModule,
     ApiModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
