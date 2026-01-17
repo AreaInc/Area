@@ -38,7 +38,7 @@ export class GmailPollingService implements OnModuleInit, OnModuleDestroy {
     @Inject(DRIZZLE) private readonly db: PostgresJsDatabase<typeof schema>,
     private readonly receiveEmailTrigger: ReceiveEmailTrigger,
     private readonly workflowsService: WorkflowsService,
-  ) {}
+  ) { }
 
   async onModuleInit() {
     await this.startPolling();
@@ -102,14 +102,14 @@ export class GmailPollingService implements OnModuleInit, OnModuleDestroy {
     const credentialRows =
       userIds.length > 0
         ? await this.db
-            .select()
-            .from(credentials)
-            .where(
-              and(
-                eq(credentials.serviceProvider, "gmail" as any),
-                inArray(credentials.userId, userIds),
-              ),
-            )
+          .select()
+          .from(credentials)
+          .where(
+            and(
+              eq(credentials.serviceProvider, "gmail" as any),
+              inArray(credentials.userId, userIds),
+            ),
+          )
         : [];
 
     const credentialsById = new Map(
@@ -377,7 +377,7 @@ export class GmailPollingService implements OnModuleInit, OnModuleDestroy {
           continue;
         }
 
-        const from = headerMap.get("from") || "";
+        const from = String(headerMap.get("from") || "");
         if (selfEmail && from.includes(selfEmail)) {
           continue;
         }
