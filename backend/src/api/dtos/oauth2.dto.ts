@@ -47,17 +47,17 @@ export class CreateCredentialDto {
   })
   provider: string;
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     description: "OAuth2 Client ID from provider",
     example: "123456789-abcdef.apps.googleusercontent.com",
   })
-  clientId?: string;
+  clientId: string;
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     description: "OAuth2 Client Secret from provider",
     example: "GOCSPX-abc123def456",
   })
-  clientSecret?: string;
+  clientSecret: string;
 }
 
 export class CredentialResponseDto {
