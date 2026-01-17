@@ -1,16 +1,24 @@
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigate, useSearch } from '@tanstack/react-router';
 import { Clock, Plus, Key, Grid } from 'lucide-react';
 import clsx from 'clsx';
 import { UserMenu } from './UserMenu';
+<<<<<<< HEAD:frontend/src/components/Sidebar.tsx
+import { type Workflow } from '../types/workflow';
+import { useWorkflows, useCreateWorkflow } from '../hooks/useWorkflows';
+import { workflowSlug } from '../lib/slug';
+=======
 import { type Workflow } from '@area/shared';
 import { useWorkflows, useCreateWorkflow } from '@area/shared';
 import { useState } from 'react';
+>>>>>>> origin/development:client_web/src/components/Sidebar.tsx
 
 export function Sidebar() {
   const { data: workflows } = useWorkflows();
   const createMutation = useCreateWorkflow();
   const navigate = useNavigate();
-  const [selectedWorkflowId, setSelectedWorkflowId] = useState<number | null>(null);
+  const { workflow: selectedWorkflowSlug } = useSearch({ from: '/dashboard' }) as {
+    workflow?: string | null;
+  };
 
   const handleCreateWorkflow = async () => {
     try {
@@ -28,8 +36,10 @@ export function Sidebar() {
           config: {},
         },
       });
-      setSelectedWorkflowId(newWorkflow.id);
-      navigate({ to: '/dashboard' });
+      navigate({
+        to: '/dashboard',
+        search: { workflow: workflowSlug(newWorkflow.id, newWorkflow.name) },
+      });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to create workflow';
       alert(`Failed to create workflow: ${errorMessage}`);
@@ -79,10 +89,12 @@ export function Sidebar() {
           <WorkflowItem
             key={wf.id}
             workflow={wf}
-            isSelected={selectedWorkflowId === wf.id}
+            isSelected={selectedWorkflowSlug === workflowSlug(wf.id, wf.name)}
             onSelect={() => {
-              setSelectedWorkflowId(wf.id);
-              navigate({ to: '/dashboard' });
+              navigate({
+                to: '/dashboard',
+                search: { workflow: workflowSlug(wf.id, wf.name) },
+              });
             }}
           />
         ))}

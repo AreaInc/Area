@@ -7,7 +7,7 @@ export class ReceiveEmailTrigger implements ITrigger {
   name = "Receive Email";
   description = "Triggers when a new email is received in Gmail";
   serviceProvider = "gmail";
-  triggerType = TriggerType.EVENT;
+  triggerType = TriggerType.POLLING;
   requiresCredentials = true;
 
   configSchema = {
@@ -150,5 +150,9 @@ export class ReceiveEmailTrigger implements ITrigger {
     }
 
     return matchingWorkflows;
+  }
+
+  getRegistrations() {
+    return this.workflowRegistrations;
   }
 }
