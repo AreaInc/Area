@@ -8,33 +8,8 @@ import {
   useDeactivateWorkflow,
   useActions,
 } from '@area/shared';
-import { Button } from '@/components/ui/button';
-import { TriggerSelector } from '@/components/workflow/TriggerSelector';
-import { ActionSelector } from '@/components/workflow/ActionSelector';
 import type { TriggerConfig, ActionConfig } from '@area/shared';
 import { parseWorkflowIdFromSlug, workflowSlug } from '@/lib/slug';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -45,16 +20,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Input } from "@/components/ui/input"
-import { Zap, Play, Settings2, Trash2, Power, Save } from 'lucide-react';
 import { toast } from 'sonner';
 
-const QUICK_TEMPLATES: {
-  name: string;
-  description: string;
-  trigger: TriggerConfig;
-  action: ActionConfig;
-}[] = [
+import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
+import { WorkflowCanvas } from '@/components/dashboard/WorkflowCanvas';
+import { TriggerCard } from '@/components/dashboard/TriggerCard';
+import { ActionCard } from '@/components/dashboard/ActionCard';
+
+const QUICK_TEMPLATES = [
     {
       name: 'Public webhook → Discord',
       description: 'Start from an unauthenticated webhook and fan out to a Discord channel.',
@@ -154,10 +127,6 @@ function Dashboard() {
   const [trigger, setTrigger] = useState<TriggerConfig | undefined>();
   const [action, setAction] = useState<ActionConfig | undefined>();
   const [isSaving, setIsSaving] = useState(false);
-  
-  const [isTriggerOpen, setIsTriggerOpen] = useState(false);
-  const [isActionOpen, setIsActionOpen] = useState(false);
-  const [isTemplateOpen, setIsTemplateOpen] = useState(false);
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
 
   // Ensure URL slug reflects the selected workflow (helps bookmarking/sharing)
@@ -197,8 +166,6 @@ function Dashboard() {
     setWorkflowName(template.name);
     setTrigger({ ...template.trigger });
     setAction({ ...template.action });
-    setIsTemplateOpen(false);
-    toast.success(`Applied template: ${template.name}`);
   };
 
   const handleSave = async () => {
@@ -247,7 +214,7 @@ function Dashboard() {
     }
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!selectedWorkflow) return;
     setIsDeleteAlertOpen(true);
   };
@@ -350,134 +317,23 @@ function Dashboard() {
   return (
     <div className="h-full overflow-y-auto p-6 flex flex-col w-full">
       <div className="w-full space-y-6">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-          <Input
-            type="text"
-            value={workflowName}
-            onChange={(e) => setWorkflowName(e.target.value)}
-            className="text-2xl font-bold bg-transparent border-transparent hover:border-input focus:border-input px-2 h-12 w-full md:w-auto"
-          />
-          <div className="flex items-center gap-2">
-            <Sheet open={isTemplateOpen} onOpenChange={setIsTemplateOpen}>
-                <SheetTrigger asChild>
-                    <Button variant="outline">
-                        <Zap className="mr-2 h-4 w-4" />
-                        Quick Templates
-                    </Button>
-                </SheetTrigger>
-                <SheetContent side="right">
-                    <SheetHeader>
-                        <SheetTitle>Quick Templates</SheetTitle>
-                        <SheetDescription>Pick a template to get started.</SheetDescription>
-                    </SheetHeader>
-                    <div className="grid gap-4 py-4">
-                        {QUICK_TEMPLATES.map((template, idx) => (
-                            <Button 
-                                key={template.name} 
-                                variant="secondary" 
-                                className="justify-start h-auto py-4 flex-col items-start gap-1 whitespace-normal text-left"
-                                onClick={() => applyTemplate(idx)}
-                            >
-                                <span className="font-semibold">{template.name}</span>
-                                <span className="text-xs text-muted-foreground font-normal leading-snug">{template.description}</span>
-                            </Button>
-                        ))}
-                    </div>
-                </SheetContent>
-            </Sheet>
+        <DashboardHeader 
+            workflowName={workflowName}
+            onNameChange={setWorkflowName}
+            isActive={selectedWorkflow.isActive}
+            onToggleActive={handleToggleActive}
+            onSave={handleSave}
+            onDelete={handleDelete}
+            isSaving={isSaving}
+            isPending={activateMutation.isPending || deactivateMutation.isPending || deleteMutation.isPending}
+            templates={QUICK_TEMPLATES}
+            onApplyTemplate={applyTemplate}
+        />
 
-            <Button
-              onClick={handleToggleActive}
-              disabled={activateMutation.isPending || deactivateMutation.isPending}
-              variant={selectedWorkflow.isActive ? "secondary" : "default"}
-            >
-              <Power className="mr-2 h-4 w-4" />
-              {selectedWorkflow.isActive ? 'Deactivate' : 'Activate'}
-            </Button>
-            <Button onClick={handleSave} disabled={isSaving}>
-              <Save className="mr-2 h-4 w-4" />
-              {isSaving ? 'Saving...' : 'Save'}
-            </Button>
-            <Button onClick={handleDelete} disabled={deleteMutation.isPending} variant="destructive" size="icon">
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-
-        {/* Workflow Canvas */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start relative">
-            {/* Connector Line (Desktop) */}
-            <div className="hidden lg:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0">
-                <div className="bg-border h-px w-8"></div>
-                <div className="bg-border h-px w-8 -rotate-90"></div> 
-                <div className="flex items-center justify-center bg-muted rounded-full p-2 border border-border">
-                    <Play className="h-4 w-4 text-muted-foreground" />
-                </div>
-            </div>
-
-            {/* Trigger Side */}
-            <div className="flex flex-col gap-4">
-                <h3 className="text-lg font-semibold text-muted-foreground uppercase tracking-wider text-center lg:text-left">Trigger</h3>
-                <Card className="border-l-4 border-l-node-webhook h-full">
-                    <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-                        <CardTitle className="text-lg font-bold">
-                            {trigger?.provider ? `${trigger.provider} / ${trigger.triggerId}` : 'Select Trigger'}
-                        </CardTitle>
-                        <Dialog open={isTriggerOpen} onOpenChange={setIsTriggerOpen}>
-                            <DialogTrigger asChild>
-                                <Button variant="ghost" size="icon"><Settings2 className="h-4 w-4" /></Button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-[425px]">
-                                <DialogHeader>
-                                    <DialogTitle>Configure Trigger</DialogTitle>
-                                    <DialogDescription>
-                                        Choose what starts your workflow.
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <TriggerSelector value={trigger} onChange={setTrigger} />
-                            </DialogContent>
-                        </Dialog>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-sm text-muted-foreground">
-                            {trigger?.provider ? 'Trigger configured' : 'No trigger selected'}
-                        </p>
-                    </CardContent>
-                </Card>
-            </div>
-
-            {/* Action Side */}
-            <div className="flex flex-col gap-4">
-                <h3 className="text-lg font-semibold text-muted-foreground uppercase tracking-wider text-center lg:text-right">Action</h3>
-                <Card className="border-l-4 border-l-node-action h-full">
-                    <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-                        <CardTitle className="text-lg font-bold">
-                            {action?.provider ? `${action.provider} / ${action.actionId}` : 'Select Action'}
-                        </CardTitle>
-                        <Dialog open={isActionOpen} onOpenChange={setIsActionOpen}>
-                            <DialogTrigger asChild>
-                                <Button variant="ghost" size="icon"><Settings2 className="h-4 w-4" /></Button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-[425px]">
-                                <DialogHeader>
-                                    <DialogTitle>Configure Action</DialogTitle>
-                                    <DialogDescription>
-                                        Choose what happens next.
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <ActionSelector value={action} onChange={setAction} />
-                            </DialogContent>
-                        </Dialog>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-sm text-muted-foreground">
-                            {action?.provider ? 'Action configured' : 'No action selected'}
-                        </p>
-                    </CardContent>
-                </Card>
-            </div>
-        </div>
+        <WorkflowCanvas 
+            triggerNode={<TriggerCard trigger={trigger} onChange={setTrigger} />}
+            actionNode={<ActionCard action={action} onChange={setAction} />}
+        />
 
         {selectedWorkflow.lastRun && (
           <div className="text-center text-sm text-muted-foreground pt-8">

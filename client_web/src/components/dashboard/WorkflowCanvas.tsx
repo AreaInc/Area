@@ -1,43 +1,33 @@
-import { 
-  ReactFlow, 
-  Background, 
-  Controls, 
-  BackgroundVariant,
-  type Connection,
-  type Node,
-  type Edge,
-  type OnNodesChange,
-  type OnEdgesChange
-} from '@xyflow/react'
-import '@xyflow/react/dist/style.css'
+import { Play } from 'lucide-react';
 
 interface WorkflowCanvasProps {
-  nodes: Node[]
-  edges: Edge[]
-  onNodesChange: OnNodesChange
-  onEdgesChange: OnEdgesChange
-  onConnect: (connection: Connection) => void
+  triggerNode: React.ReactNode;
+  actionNode: React.ReactNode;
 }
 
-export function WorkflowCanvas({ nodes, edges, onNodesChange, onEdgesChange, onConnect }: WorkflowCanvasProps) {
+export function WorkflowCanvas({ triggerNode, actionNode }: WorkflowCanvasProps) {
   return (
-    <ReactFlow
-      nodes={nodes}
-      edges={edges}
-      onNodesChange={onNodesChange}
-      onEdgesChange={onEdgesChange}
-      onConnect={onConnect}
-      fitView
-      colorMode="dark"
-    >
-      <Background color="var(--border)" gap={16} variant={BackgroundVariant.Dots} />
-      <Controls 
-        position="top-right" 
-        style={{ marginTop: 100 }}
-        showZoom={true}
-        showFitView={true}
-        showInteractive={true}
-      />
-    </ReactFlow>
-  )
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start relative">
+        {/* Connector Line (Desktop) */}
+        <div className="hidden lg:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0">
+            <div className="bg-border h-px w-8"></div>
+            <div className="bg-border h-px w-8 -rotate-90"></div> 
+            <div className="flex items-center justify-center bg-muted rounded-full p-2 border border-border">
+                <Play className="h-4 w-4 text-muted-foreground" />
+            </div>
+        </div>
+
+        {/* Trigger Side */}
+        <div className="flex flex-col gap-4">
+            <h3 className="text-lg font-semibold text-muted-foreground uppercase tracking-wider text-center lg:text-left">Trigger</h3>
+            {triggerNode}
+        </div>
+
+        {/* Action Side */}
+        <div className="flex flex-col gap-4">
+            <h3 className="text-lg font-semibold text-muted-foreground uppercase tracking-wider text-center lg:text-right">Action</h3>
+            {actionNode}
+        </div>
+    </div>
+  );
 }
