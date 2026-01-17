@@ -11,6 +11,8 @@ import * as schema from "../../db/schema";
 import { credentials } from "../../db/schema";
 import { eq, and } from "drizzle-orm";
 import * as crypto from "crypto";
+import { OAUTH_CONFIG } from "./oauth.constants";
+import { ServiceProvider } from "../../common/types/enums";
 
 interface OAuthState {
   userId: string;
@@ -25,7 +27,7 @@ export class OAuth2Service {
 
   constructor(
     @Inject(DRIZZLE) private readonly db: PostgresJsDatabase<typeof schema>,
-  ) {}
+  ) { }
 
   private getCallbackUrl(): string {
     if (process.env.OAUTH_CALLBACK_URL) {
@@ -146,28 +148,53 @@ export class OAuth2Service {
     this.cleanupOldStates();
 
     const callbackUrl = this.getCallbackUrl();
+    const provider = credential.serviceProvider;
 
-    const oauth2Client = new google.auth.OAuth2(
-      credential.clientId,
-      credential.clientSecret,
-      callbackUrl,
-    );
+    if (this.isGoogleProvider(provider)) {
+      const oauth2Client = new google.auth.OAuth2(
+        credential.clientId,
+        credential.clientSecret,
+        callbackUrl,
+      );
 
-    const scopes = [
-      "https://www.googleapis.com/auth/gmail.readonly",
-      "https://www.googleapis.com/auth/gmail.send",
-      "https://www.googleapis.com/auth/gmail.modify",
-      "https://www.googleapis.com/auth/userinfo.email",
-    ];
+      const authUrl = oauth2Client.generateAuthUrl({
+        access_type: "offline",
+        scope: OAUTH_CONFIG.google.scopes,
+        state: state,
+        prompt: "consent",
+        include_granted_scopes: true,
+      });
 
-    const authUrl = oauth2Client.generateAuthUrl({
-      access_type: "offline",
-      scope: scopes,
-      state: state,
-      prompt: "consent",
-    });
+      return { authUrl, state };
+    } else if (provider === ServiceProvider.SPOTIFY) {
+      const params = new URLSearchParams({
+        client_id: credential.clientId!,
+        response_type: "code",
+        redirect_uri: callbackUrl,
+        scope: OAUTH_CONFIG.spotify.scopes.join(" "),
+        state: state,
+      });
+      return {
+        authUrl: `${OAUTH_CONFIG.spotify.authUrl}?${params.toString()}`,
+        state,
+      };
+    } else if (provider === ServiceProvider.TWITCH) {
+      const params = new URLSearchParams({
+        client_id: credential.clientId!,
+        response_type: "code",
+        redirect_uri: callbackUrl,
+        scope: OAUTH_CONFIG.twitch.scopes.join(" "),
+        state: state,
+      });
+      return {
+        authUrl: `${OAUTH_CONFIG.twitch.authUrl}?${params.toString()}`,
+        state,
+      };
+    }
 
-    return { authUrl, state };
+    throw new BadRequestException(`Unsupported provider: ${provider}`);
+
+
   }
 
   async handleCallback(
@@ -202,27 +229,99 @@ export class OAuth2Service {
     }
 
     const callbackUrl = this.getCallbackUrl();
-
-    const oauth2Client = new google.auth.OAuth2(
-      credential.clientId,
-      credential.clientSecret,
-      callbackUrl,
-    );
+    const provider = credential.serviceProvider;
+    let tokens: any = {};
+    let userEmail = "Unknown";
 
     try {
-      const { tokens } = await oauth2Client.getToken(code);
-
-      if (!tokens.access_token || !tokens.refresh_token) {
-        throw new BadRequestException(
-          "Failed to obtain tokens from OAuth2 provider",
+      if (this.isGoogleProvider(provider)) {
+        const oauth2Client = new google.auth.OAuth2(
+          credential.clientId,
+          credential.clientSecret,
+          callbackUrl,
         );
+        const { tokens: googleTokens } = await oauth2Client.getToken(code);
+        tokens = googleTokens;
+
+        oauth2Client.setCredentials(tokens);
+        const oauth2 = google.oauth2({ version: "v2", auth: oauth2Client });
+        const userInfo = await oauth2.userinfo.get();
+        userEmail = userInfo.data.email || "Unknown";
+      } else if (provider === ServiceProvider.SPOTIFY) {
+        const body = new URLSearchParams({
+          grant_type: "authorization_code",
+          code,
+          redirect_uri: callbackUrl,
+        });
+        const auth = Buffer.from(
+          `${credential.clientId}:${credential.clientSecret}`,
+        ).toString("base64");
+        const res = await fetch(OAUTH_CONFIG.spotify.tokenUrl, {
+          method: "POST",
+          headers: {
+            Authorization: `Basic ${auth}`,
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body,
+        });
+        const data = (await res.json()) as any;
+        if (!res.ok)
+          throw new Error(
+            data.error_description || "Failed to get Spotify token",
+          );
+
+        tokens = {
+          access_token: data.access_token,
+          refresh_token: data.refresh_token,
+          expiry_date: Date.now() + data.expires_in * 1000,
+          scope: data.scope,
+        };
+
+        // Get Profile
+        const profileRes = await fetch("https://api.spotify.com/v1/me", {
+          headers: { Authorization: `Bearer ${tokens.access_token}` },
+        });
+        const profile = (await profileRes.json()) as any;
+        userEmail = profile.email || profile.id;
+      } else if (provider === ServiceProvider.TWITCH) {
+        const body = new URLSearchParams({
+          client_id: credential.clientId!,
+          client_secret: credential.clientSecret!,
+          code,
+          grant_type: "authorization_code",
+          redirect_uri: callbackUrl,
+        });
+        const res = await fetch(OAUTH_CONFIG.twitch.tokenUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body,
+        });
+        const data = (await res.json()) as any;
+        if (!res.ok)
+          throw new Error(data.message || "Failed to get Twitch token");
+
+        tokens = {
+          access_token: data.access_token,
+          refresh_token: data.refresh_token,
+          expiry_date: Date.now() + data.expires_in * 1000,
+          scope: Array.isArray(data.scope) ? data.scope.join(" ") : data.scope,
+        };
+
+        // Get Profile
+        const profileRes = await fetch("https://api.twitch.tv/helix/users", {
+          headers: {
+            Authorization: `Bearer ${tokens.access_token}`,
+            "Client-Id": credential.clientId!,
+          },
+        });
+        const profileData = (await profileRes.json()) as any;
+        userEmail =
+          profileData.data?.[0]?.email ||
+          profileData.data?.[0]?.login ||
+          "Twitch User";
+      } else {
+        throw new BadRequestException(`Unsupported provider: ${provider}`);
       }
-
-      oauth2Client.setCredentials(tokens);
-      const oauth2 = google.oauth2({ version: "v2", auth: oauth2Client });
-      const userInfo = await oauth2.userinfo.get();
-
-      const userEmail = userInfo.data.email || "Unknown";
 
       const expiresAt = tokens.expiry_date
         ? new Date(tokens.expiry_date)
@@ -247,11 +346,11 @@ export class OAuth2Service {
       };
     } catch (error: any) {
       console.error("OAuth2 callback error:", error);
-      
+
       // Check for redirect URI mismatch errors
       const errorMessage = error?.message || "";
       const errorCode = error?.code || "";
-      
+
       if (
         errorMessage.includes("redirect_uri_mismatch") ||
         errorMessage.includes("invalid_request") ||
@@ -265,7 +364,7 @@ export class OAuth2Service {
           error: `Redirect URI mismatch. Please ensure the following URL is added to your Google Cloud Console OAuth 2.0 Client ID settings under "Authorized redirect URIs": ${callbackUrl}. The URL must match exactly, including protocol (http/https) and port.`,
         };
       }
-      
+
       return {
         success: false,
         error: errorMessage || "Failed to complete OAuth2 flow",
@@ -295,28 +394,84 @@ export class OAuth2Service {
       throw new BadRequestException("Missing OAuth2 refresh credentials");
     }
 
-    const oauth2Client = new google.auth.OAuth2(
-      credential.clientId,
-      credential.clientSecret,
-    );
-
-    oauth2Client.setCredentials({
-      refresh_token: credential.refreshToken,
-    });
+    const provider = credential.serviceProvider;
+    let newTokens: any = {};
 
     try {
-      const { credentials: newTokens } =
-        await oauth2Client.refreshAccessToken();
+      if (this.isGoogleProvider(provider)) {
+        const oauth2Client = new google.auth.OAuth2(
+          credential.clientId,
+          credential.clientSecret,
+        );
 
-      const expiresAt = newTokens.expiry_date
-        ? new Date(newTokens.expiry_date)
-        : null;
+        oauth2Client.setCredentials({
+          refresh_token: credential.refreshToken,
+        });
+        const { credentials: tokens } = await oauth2Client.refreshAccessToken();
+        newTokens = {
+          access_token: tokens.access_token,
+          expires_at: tokens.expiry_date,
+        };
+      } else if (provider === ServiceProvider.SPOTIFY) {
+        const body = new URLSearchParams({
+          grant_type: "refresh_token",
+          refresh_token: credential.refreshToken,
+        });
+        const auth = Buffer.from(
+          `${credential.clientId}:${credential.clientSecret}`,
+        ).toString("base64");
+        const res = await fetch(OAUTH_CONFIG.spotify.tokenUrl, {
+          method: "POST",
+          headers: {
+            Authorization: `Basic ${auth}`,
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body,
+        });
+        const data = (await res.json()) as any;
+        if (!res.ok)
+          throw new Error(
+            data.error_description || "Failed to refresh Spotify token",
+          );
+        newTokens = {
+          access_token: data.access_token,
+          expires_at: Date.now() + data.expires_in * 1000,
+          refresh_token: data.refresh_token || credential.refreshToken,
+        };
+      } else if (provider === ServiceProvider.TWITCH) {
+        const body = new URLSearchParams({
+          client_id: credential.clientId!,
+          client_secret: credential.clientSecret!,
+          grant_type: "refresh_token",
+          refresh_token: credential.refreshToken,
+        });
+        const res = await fetch(OAUTH_CONFIG.twitch.tokenUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body,
+        });
+        const data = (await res.json()) as any;
+        if (!res.ok)
+          throw new Error(data.message || "Failed to refresh Twitch token");
+        newTokens = {
+          access_token: data.access_token,
+          expires_at: Date.now() + data.expires_in * 1000,
+          refresh_token: data.refresh_token || credential.refreshToken,
+        };
+      } else {
+        throw new BadRequestException(
+          `Unsupported provider for refresh: ${provider}`,
+        );
+      }
 
       await this.db
         .update(credentials)
         .set({
           accessToken: newTokens.access_token,
-          expiresAt: expiresAt,
+          refreshToken: newTokens.refresh_token || credential.refreshToken,
+          expiresAt: newTokens.expires_at
+            ? new Date(newTokens.expires_at)
+            : null,
           isValid: true,
           updatedAt: new Date(),
         })
@@ -376,5 +531,14 @@ export class OAuth2Service {
         this.stateStore.delete(state);
       }
     }
+  }
+
+  private isGoogleProvider(provider: string): boolean {
+    return [
+      ServiceProvider.GOOGLE,
+      ServiceProvider.GMAIL,
+      ServiceProvider.GOOGLE_SHEETS,
+      ServiceProvider.YOUTUBE,
+    ].includes(provider as ServiceProvider);
   }
 }

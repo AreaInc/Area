@@ -103,6 +103,50 @@ export function TriggerSelector({ value, onChange }: TriggerSelectorProps) {
       );
     }
 
+    if (fieldSchema.type === 'number' || fieldSchema.type === 'integer') {
+      return (
+        <div key={key} className="mb-4">
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            {key.charAt(0).toUpperCase() + key.slice(1)}
+            {!fieldSchema.description?.includes('optional') && (
+              <span className="text-red-400 ml-1">*</span>
+            )}
+          </label>
+          <input
+            type="number"
+            value={fieldValue || ''}
+            onChange={(e) => handleConfigChange(key, Number(e.target.value))}
+            placeholder={fieldSchema.description || key}
+            className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          {fieldSchema.description && (
+            <p className="text-xs text-gray-500 mt-1">{fieldSchema.description}</p>
+          )}
+        </div>
+      );
+    }
+
+    if (fieldSchema.type === 'boolean') {
+      return (
+        <div key={key} className="mb-4">
+          <label className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              checked={fieldValue || false}
+              onChange={(e) => handleConfigChange(key, e.target.checked)}
+              className="w-4 h-4 bg-gray-900 border-gray-700 rounded text-blue-600 focus:ring-2 focus:ring-blue-500"
+            />
+            <span className="text-sm font-medium text-gray-300">
+              {key.charAt(0).toUpperCase() + key.slice(1)}
+            </span>
+          </label>
+          {fieldSchema.description && (
+            <p className="text-xs text-gray-500 mt-1 ml-6">{fieldSchema.description}</p>
+          )}
+        </div>
+      );
+    }
+
     return null;
   };
 
