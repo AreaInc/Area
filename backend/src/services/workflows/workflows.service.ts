@@ -53,7 +53,7 @@ export class WorkflowsService {
     private readonly temporalClient: TemporalClientService,
     private readonly triggerRegistry: TriggerRegistryService,
     private readonly actionRegistry: ActionRegistryService,
-  ) {}
+  ) { }
 
   async createWorkflow(userId: string, dto: CreateWorkflowDto) {
     const trigger = this.triggerRegistry.get(
@@ -279,16 +279,26 @@ export class WorkflowsService {
       );
     }
 
-    await trigger.register(
-      workflowId,
-      workflow.triggerConfig as Record<string, any>,
-      workflow.actionCredentialsId || undefined,
-    );
-
+    // Update status FIRST so that immediate triggers (like On Activation) see the workflow as active
     await this.db
       .update(workflows)
       .set({ isActive: true, updatedAt: new Date() })
       .where(eq(workflows.id, workflowId));
+
+    try {
+      await trigger.register(
+        workflowId,
+        workflow.triggerConfig as Record<string, any>,
+        workflow.actionCredentialsId || undefined,
+      );
+    } catch (error) {
+      // Revert status if registration fails
+      await this.db
+        .update(workflows)
+        .set({ isActive: false, updatedAt: new Date() })
+        .where(eq(workflows.id, workflowId));
+      throw error;
+    }
 
     return { success: true };
   }
