@@ -85,7 +85,7 @@ export function ProfileSettings() {
   if (!user) return null
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="p-6 space-y-6 w-full">
       <div className="space-y-0.5">
         <h2 className="text-2xl font-bold tracking-tight">Settings</h2>
         <p className="text-muted-foreground">
