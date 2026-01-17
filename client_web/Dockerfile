@@ -1,5 +1,5 @@
 # Stage 1: Build
-FROM node:20-alpine AS builder
+FROM node:20-alpine
 
 # Enable pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate
@@ -10,12 +10,19 @@ WORKDIR /app
 COPY pnpm-workspace.yaml package.json ./
 COPY pnpm-lock.yaml* ./
 COPY packages/shared ./packages/shared
+
+# Copy client_web package.json first for dependency installation
 COPY client_web/package.json ./client_web/
 
 # Install all workspace dependencies
 RUN pnpm install --frozen-lockfile
 
-# Copy client_web source
+# Build the shared package first (required for client_web)
+WORKDIR /app/packages/shared
+RUN pnpm build
+
+# Copy all client_web source files (including config files)
+WORKDIR /app
 COPY client_web ./client_web
 
 # Set working directory to client_web for build
@@ -27,12 +34,5 @@ ENV VITE_DEPLOY_ADDRESS=$VITE_DEPLOY_ADDRESS
 
 RUN pnpm build
 
-# Stage 2: Serve
-FROM nginx:alpine
-
-COPY --from=builder /app/client_web/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-EXPOSE 80
-
-CMD ["nginx", "-g", "daemon off;"]
+# Start Vite preview server
+CMD pnpm preview --host 0.0.0.0 --port 8081

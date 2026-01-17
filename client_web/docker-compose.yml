@@ -5,15 +5,15 @@ include:
 services:
   frontend:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: client_web/Dockerfile
       args:
         - VITE_DEPLOY_ADDRESS=${VITE_DEPLOY_ADDRESS:-localhost}
     container_name: area-frontend
     environment:
       - VITE_DEPLOY_ADDRESS=${VITE_DEPLOY_ADDRESS:-localhost}
     ports:
-      - "${FRONTEND_PORT:-8081}:80"
+      - "${FRONTEND_PORT:-8081}:8081"
     depends_on:
       - backend
     networks:

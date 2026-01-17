@@ -1,0 +1,82 @@
+# Git
+.git
+.gitignore
+
+# Node modules (will be installed in container)
+**/node_modules
+node_modules
+
+# Build outputs
+**/dist
+dist
+**/.next
+.next
+**/build
+build
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose*.yml
+Dockerfile*
+.dockerignore
+
+# Database
+*.db
+*.sqlite
+
+# Documentation
+*.md
+!README.md
+
+# Test files
+**/*.test.*
+**/*.spec.*
+**/test
+**/tests
+**/__tests__
+
+# Coverage
+coverage
+.nyc_output
+
+# Temporary files
+tmp
+temp
+*.tmp
+
+# Exclude other client directories from frontend build
+client_mobile
+frontend
+
+# Exclude backend from frontend build
+backend
+
+# Exclude database configs
+database
+
+# Exclude other services
+redis
+vault
+harborguard
