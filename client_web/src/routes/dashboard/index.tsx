@@ -8,98 +8,32 @@ import {
   useDeactivateWorkflow,
   useActions,
 } from '@area/shared';
-import { Button } from '../../components/ui/button';
-import { TriggerSelector } from '../../components/workflow/TriggerSelector';
-import { ActionSelector } from '../../components/workflow/ActionSelector';
 import type { TriggerConfig, ActionConfig } from '@area/shared';
-import { parseWorkflowIdFromSlug, workflowSlug } from '../../lib/slug';
+import { parseWorkflowIdFromSlug, workflowSlug } from '@/lib/slug';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { toast } from 'sonner';
 
-const QUICK_TEMPLATES: {
-  name: string;
-  description: string;
-  trigger: TriggerConfig;
-  action: ActionConfig;
-}[] = [
-    {
-      name: 'Public webhook → Discord',
-      description: 'Start from an unauthenticated webhook and fan out to a Discord channel.',
-      trigger: {
-        provider: 'webhook',
-        triggerId: 'incoming-webhook',
-        config: { path: '/hooks/public', secret: '' },
-      },
-      action: {
-        provider: 'discord',
-        actionId: 'send-webhook',
-        config: {
-          webhookUrl: 'https://discord.com/api/webhooks/xxx/yyy',
-          content: 'Hello from AREA!',
-        },
-      },
-    },
-    {
-      name: 'Cron (hourly) → Gmail send',
-      description: 'Run every hour and send a status email through Gmail.',
-      trigger: {
-        provider: 'scheduler',
-        triggerId: 'cron',
-        config: { cron: '0 * * * *' },
-      },
-      action: {
-        provider: 'gmail',
-        actionId: 'send-email',
-        config: {
-          to: 'you@example.com',
-          subject: 'Hourly ping from AREA',
-          body: 'This is a scheduled notification.',
-        },
-      },
-    },
-    {
-      name: 'Gmail inbound → Gmail auto-reply',
-      description: 'Use Gmail receive trigger to auto-reply to matching emails.',
-      trigger: {
-        provider: 'gmail',
-        triggerId: 'receive-email',
-        config: { from: '' },
-      },
-      action: {
-        provider: 'gmail',
-        actionId: 'send-email',
-        config: {
-          to: '{{from}}',
-          subject: 'Re: {{subject}}',
-          body: 'Thanks for reaching out!',
-        },
-      },
-    },
-    {
-      name: 'One-shot Execution',
-      description: 'Run a workflow exactly once immediately upon activation.',
-      trigger: {
-        provider: 'scheduler',
-        triggerId: 'on-activation',
-        config: {},
-      },
-      action: {
-        provider: 'discord',
-        actionId: 'send-webhook',
-        config: {
-          webhookUrl: '',
-          content: 'One-shot workflow executed!',
-        },
-      },
-    },
-  ];
+import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
+import { WorkflowSteps } from '@/components/dashboard/WorkflowSteps';
+import { TriggerCard } from '@/components/dashboard/TriggerCard';
+import { ActionCard } from '@/components/dashboard/ActionCard';
+import { QUICK_TEMPLATES } from '@/lib/templates';
 
 export const Route = createFileRoute('/dashboard/')({
   component: Dashboard,
 });
 
 function Dashboard() {
-  const { workflow: workflowSlugParam = null } = useSearch({ from: '/dashboard' }) as {
-    workflow?: string | null;
-  };
+  const { workflow: workflowSlugParam = null } = useSearch({ from: '/dashboard' });
   const navigate = Route.useNavigate();
   const { data: workflows, isLoading, error } = useWorkflows();
   const { data: actions } = useActions();
@@ -121,6 +55,7 @@ function Dashboard() {
   const [trigger, setTrigger] = useState<TriggerConfig | undefined>();
   const [action, setAction] = useState<ActionConfig | undefined>();
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
 
   // Ensure URL slug reflects the selected workflow (helps bookmarking/sharing)
   useEffect(() => {
@@ -163,7 +98,7 @@ function Dashboard() {
 
   const handleSave = async () => {
     if (!selectedWorkflow || !trigger || !action) {
-      alert('Please configure both trigger and action');
+      toast.error('Please configure both trigger and action');
       return;
     }
 
@@ -173,7 +108,7 @@ function Dashboard() {
     );
 
     if (selectedActionMeta?.requiresCredentials && !action.credentialsId) {
-      alert('Please select credentials for this action');
+      toast.error('Please select credentials for this action');
       return;
     }
 
@@ -183,7 +118,7 @@ function Dashboard() {
         (field: string) => !action.config[field] || action.config[field] === ''
       );
       if (missingFields.length > 0) {
-        alert(`Please fill in required fields: ${missingFields.join(', ')}`);
+        toast.error(`Please fill in required fields: ${missingFields.join(', ')}`);
         return;
       }
     }
@@ -198,26 +133,29 @@ function Dashboard() {
           action,
         },
       });
-      alert('Workflow saved successfully!');
+      toast.success('Workflow saved successfully!');
     } catch (err: any) {
       const errorMessage = err?.message || 'Failed to save workflow';
-      alert(`Failed to save workflow: ${errorMessage}`);
+      toast.error(errorMessage);
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!selectedWorkflow) return;
+    setIsDeleteAlertOpen(true);
+  };
 
-    if (!confirm(`Are you sure you want to delete "${selectedWorkflow.name}"?`)) {
-      return;
-    }
-
+  const confirmDelete = async () => {
+    if (!selectedWorkflow) return;
     try {
       await deleteMutation.mutateAsync(selectedWorkflow.id);
+      toast.success('Workflow deleted');
     } catch (err) {
-      alert('Failed to delete workflow');
+      toast.error('Failed to delete workflow');
+    } finally {
+      setIsDeleteAlertOpen(false);
     }
   };
 
@@ -227,7 +165,7 @@ function Dashboard() {
     // Validate before activating
     if (!selectedWorkflow.isActive) {
       if (!trigger || !action) {
-        alert('Please configure both trigger and action before activating');
+        toast.error('Please configure both trigger and action before activating');
         return;
       }
 
@@ -237,7 +175,7 @@ function Dashboard() {
       );
 
       if (selectedActionMeta?.requiresCredentials && !action?.credentialsId) {
-        alert('Please select credentials for this action before activating');
+        toast.error('Please select credentials for this action before activating');
         return;
       }
 
@@ -247,7 +185,7 @@ function Dashboard() {
           (field: string) => !action.config[field] || action.config[field] === ''
         );
         if (missingFields.length > 0) {
-          alert(`Please fill in required fields before activating: ${missingFields.join(', ')}`);
+          toast.error(`Please fill in required fields before activating: ${missingFields.join(', ')}`);
           return;
         }
       }
@@ -256,19 +194,21 @@ function Dashboard() {
     try {
       if (selectedWorkflow.isActive) {
         await deactivateMutation.mutateAsync(selectedWorkflow.id);
+        toast.success('Workflow deactivated');
       } else {
         await activateMutation.mutateAsync(selectedWorkflow.id);
+        toast.success('Workflow activated');
       }
     } catch (err: any) {
       const errorMessage = err?.message || 'Failed to toggle workflow status';
-      alert(`Failed to toggle workflow status: ${errorMessage}`);
+      toast.error(errorMessage);
     }
   };
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <p className="text-gray-400">Loading workflows...</p>
+        <p className="text-muted-foreground">Loading workflows...</p>
       </div>
     );
   }
@@ -276,7 +216,7 @@ function Dashboard() {
   if (error) {
     return (
       <div className="flex items-center justify-center h-full">
-        <p className="text-red-400">Failed to load workflows</p>
+        <p className="text-destructive">Failed to load workflows</p>
       </div>
     );
   }
@@ -285,8 +225,8 @@ function Dashboard() {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
-          <p className="text-gray-400 mb-4">No workflows yet</p>
-          <p className="text-sm text-gray-500">
+          <p className="text-muted-foreground mb-4">No workflows yet</p>
+          <p className="text-sm text-muted-foreground">
             Create your first workflow using the sidebar
           </p>
         </div>
@@ -297,96 +237,54 @@ function Dashboard() {
   if (!selectedWorkflow) {
     return (
       <div className="flex items-center justify-center h-full">
-        <p className="text-gray-400">Select a workflow from the sidebar</p>
+        <p className="text-muted-foreground">Select a workflow from the sidebar</p>
       </div>
     );
   }
 
   return (
-    <div className="h-full overflow-y-auto p-6">
-      <div className="max-w-4xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <input
-            type="text"
-            value={workflowName}
-            onChange={(e) => setWorkflowName(e.target.value)}
-            className="text-2xl font-bold bg-transparent border-none text-white focus:outline-none"
-          />
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={handleToggleActive}
-              disabled={activateMutation.isPending || deactivateMutation.isPending}
-            >
-              {selectedWorkflow.isActive ? 'Deactivate' : 'Activate'}
-            </Button>
-            <Button onClick={handleSave} disabled={isSaving}>
-              {isSaving ? 'Saving...' : 'Save'}
-            </Button>
-            <Button onClick={handleDelete} disabled={deleteMutation.isPending}>
-              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
-            </Button>
-          </div>
-        </div>
+    <div className="h-full overflow-y-auto p-6 flex flex-col w-full">
+      <div className="w-full max-w-7xl mx-auto space-y-8">
+        <DashboardHeader 
+            workflowName={workflowName}
+            onNameChange={setWorkflowName}
+            isActive={selectedWorkflow.isActive}
+            onToggleActive={handleToggleActive}
+            onSave={handleSave}
+            onDelete={handleDelete}
+            isSaving={isSaving}
+            isPending={activateMutation.isPending || deactivateMutation.isPending || deleteMutation.isPending}
+            templates={QUICK_TEMPLATES}
+            onApplyTemplate={applyTemplate}
+        />
 
-        <div className="bg-gray-800 rounded-lg p-4 border border-gray-700/60">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <h3 className="text-sm font-semibold text-gray-200 uppercase tracking-wide">
-                Quick templates
-              </h3>
-              <p className="text-xs text-gray-400">
-                Apply a ready-to-test trigger/action pair (webhook, Discord, cron, Gmail).
-              </p>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {QUICK_TEMPLATES.map((template, idx) => (
-              <button
-                key={template.name}
-                onClick={() => applyTemplate(idx)}
-                className="text-left bg-gray-900/60 hover:bg-gray-900 border border-gray-700 rounded-lg p-4 transition-colors"
-              >
-                <div className="text-sm font-semibold text-white mb-1">{template.name}</div>
-                <p className="text-xs text-gray-400 mb-3 leading-relaxed">{template.description}</p>
-                <div className="flex items-center text-xs text-gray-300 gap-2">
-                  <span className="px-2 py-1 rounded-full bg-gray-800 border border-gray-700">
-                    {template.trigger.provider}:{template.trigger.triggerId}
-                  </span>
-                  <span className="text-gray-500">→</span>
-                  <span className="px-2 py-1 rounded-full bg-gray-800 border border-gray-700">
-                    {template.action.provider}:{template.action.actionId}
-                  </span>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="bg-gray-800 rounded-lg p-6">
-          <h2 className="text-lg font-semibold text-white mb-4">Trigger</h2>
-          <p className="text-sm text-gray-400 mb-4">
-            What event should start this workflow?
-          </p>
-          <TriggerSelector value={trigger} onChange={setTrigger} />
-        </div>
-
-        <div className="flex items-center justify-center">
-          <div className="text-gray-500">↓</div>
-        </div>
-
-        <div className="bg-gray-800 rounded-lg p-6">
-          <h2 className="text-lg font-semibold text-white mb-4">Action</h2>
-          <p className="text-sm text-gray-400 mb-4">
-            What should happen when the trigger fires?
-          </p>
-          <ActionSelector value={action} onChange={setAction} />
-        </div>
+        <WorkflowSteps 
+            triggerNode={<TriggerCard trigger={trigger} onChange={setTrigger} />}
+            actionNode={<ActionCard action={action} onChange={setAction} />}
+        />
 
         {selectedWorkflow.lastRun && (
-          <div className="text-center text-sm text-gray-500">
+          <div className="text-center text-sm text-muted-foreground">
             Last run: {new Date(selectedWorkflow.lastRun).toLocaleString()}
           </div>
         )}
+
+        <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete the workflow "{selectedWorkflow.name}".
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                        {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

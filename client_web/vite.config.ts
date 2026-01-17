@@ -14,6 +14,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@area/shared': path.resolve(__dirname, '../packages/shared'),
+      "@": path.resolve(__dirname, "./src"),
     },
   },
   optimizeDeps: {

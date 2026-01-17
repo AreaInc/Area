@@ -1,6 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useTriggers, useCredentials } from '@area/shared';
 import type { TriggerConfig } from '@area/shared';
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface TriggerSelectorProps {
   value?: TriggerConfig;
@@ -60,22 +70,21 @@ export function TriggerSelector({ value, onChange }: TriggerSelectorProps) {
 
     if (fieldSchema.type === 'string') {
       return (
-        <div key={key} className="mb-4">
-          <label className="block text-sm font-medium text-gray-300 mb-2">
+        <div key={key} className="space-y-2">
+          <Label>
             {key.charAt(0).toUpperCase() + key.slice(1)}
             {!fieldSchema.description?.includes('optional') && (
-              <span className="text-red-400 ml-1">*</span>
+              <span className="text-destructive ml-1">*</span>
             )}
-          </label>
-          <input
+          </Label>
+          <Input
             type="text"
             value={fieldValue || ''}
             onChange={(e) => handleConfigChange(key, e.target.value)}
             placeholder={fieldSchema.description || key}
-            className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           {fieldSchema.description && (
-            <p className="text-xs text-gray-500 mt-1">{fieldSchema.description}</p>
+            <p className="text-xs text-muted-foreground">{fieldSchema.description}</p>
           )}
         </div>
       );
@@ -84,25 +93,24 @@ export function TriggerSelector({ value, onChange }: TriggerSelectorProps) {
     if (fieldSchema.type === 'array' && fieldSchema.items?.type === 'string') {
       const arrayValue = Array.isArray(fieldValue) ? fieldValue.join(', ') : '';
       return (
-        <div key={key} className="mb-4">
-          <label className="block text-sm font-medium text-gray-300 mb-2">
+        <div key={key} className="space-y-2">
+          <Label>
             {key.charAt(0).toUpperCase() + key.slice(1)}
             {!fieldSchema.description?.includes('optional') && (
-              <span className="text-red-400 ml-1">*</span>
+              <span className="text-destructive ml-1">*</span>
             )}
-          </label>
-          <input
+          </Label>
+          <Input
             type="text"
             value={arrayValue}
             onChange={(e) => {
-              const values = e.target.value.split(',').map((v) => v.trim()).filter((v) => v);
+              const values = e.target.value.split(',').map((v: string) => v.trim()).filter((v: string) => v);
               handleConfigChange(key, values.length > 0 ? values : undefined);
             }}
             placeholder={fieldSchema.description || 'Comma-separated values'}
-            className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           {fieldSchema.description && (
-            <p className="text-xs text-gray-500 mt-1">{fieldSchema.description}</p>
+            <p className="text-xs text-muted-foreground">{fieldSchema.description}</p>
           )}
         </div>
       );
@@ -110,22 +118,21 @@ export function TriggerSelector({ value, onChange }: TriggerSelectorProps) {
 
     if (fieldSchema.type === 'number' || fieldSchema.type === 'integer') {
       return (
-        <div key={key} className="mb-4">
-          <label className="block text-sm font-medium text-gray-300 mb-2">
+        <div key={key} className="space-y-2">
+          <Label>
             {key.charAt(0).toUpperCase() + key.slice(1)}
             {!fieldSchema.description?.includes('optional') && (
-              <span className="text-red-400 ml-1">*</span>
+              <span className="text-destructive ml-1">*</span>
             )}
-          </label>
-          <input
+          </Label>
+          <Input
             type="number"
             value={fieldValue || ''}
             onChange={(e) => handleConfigChange(key, Number(e.target.value))}
             placeholder={fieldSchema.description || key}
-            className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           {fieldSchema.description && (
-            <p className="text-xs text-gray-500 mt-1">{fieldSchema.description}</p>
+            <p className="text-xs text-muted-foreground">{fieldSchema.description}</p>
           )}
         </div>
       );
@@ -133,21 +140,20 @@ export function TriggerSelector({ value, onChange }: TriggerSelectorProps) {
 
     if (fieldSchema.type === 'boolean') {
       return (
-        <div key={key} className="mb-4">
-          <label className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              checked={fieldValue || false}
-              onChange={(e) => handleConfigChange(key, e.target.checked)}
-              className="w-4 h-4 bg-gray-900 border-gray-700 rounded text-blue-600 focus:ring-2 focus:ring-blue-500"
-            />
-            <span className="text-sm font-medium text-gray-300">
-              {key.charAt(0).toUpperCase() + key.slice(1)}
-            </span>
-          </label>
-          {fieldSchema.description && (
-            <p className="text-xs text-gray-500 mt-1 ml-6">{fieldSchema.description}</p>
-          )}
+        <div key={key} className="flex items-center space-x-2 py-2">
+          <Checkbox
+            id={key}
+            checked={fieldValue || false}
+            onCheckedChange={(checked) => handleConfigChange(key, checked)}
+          />
+          <div className="grid gap-1.5 leading-none">
+            <Label htmlFor={key} className="cursor-pointer">
+                {key.charAt(0).toUpperCase() + key.slice(1)}
+            </Label>
+            {fieldSchema.description && (
+                <p className="text-xs text-muted-foreground">{fieldSchema.description}</p>
+            )}
+          </div>
         </div>
       );
     }
@@ -156,38 +162,34 @@ export function TriggerSelector({ value, onChange }: TriggerSelectorProps) {
   };
 
   return (
-    <div className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">
-          Select Trigger
-        </label>
-        <select
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <Label>Select Trigger</Label>
+        <Select
           value={value ? `${value.provider}:${value.triggerId}` : ''}
-          onChange={(e) => {
-            const [provider, triggerId] = e.target.value.split(':');
-            if (provider && triggerId) {
-              handleTriggerChange(provider, triggerId);
-            }
-          }}
-          className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          onValueChange={handleTriggerChange}
         >
-          <option value="">Select a trigger...</option>
-          {triggers?.map((trigger) => (
-            <option
-              key={`${trigger.serviceProvider}:${trigger.id}`}
-              value={`${trigger.serviceProvider}:${trigger.id}`}
-            >
-              {trigger.name} ({trigger.serviceProvider})
-            </option>
-          ))}
-        </select>
+          <SelectTrigger>
+            <SelectValue placeholder="Select a trigger..." />
+          </SelectTrigger>
+          <SelectContent>
+            {triggers?.map((trigger) => (
+              <SelectItem
+                key={`${trigger.serviceProvider}:${trigger.id}`}
+                value={`${trigger.serviceProvider}:${trigger.id}`}
+              >
+                {trigger.name} ({trigger.serviceProvider})
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {selectedTrigger && (
-        <div className="bg-gray-800 rounded-lg p-4 space-y-4">
+        <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-4 space-y-4">
           <div>
-            <h3 className="font-semibold text-white mb-2">{selectedTrigger.name}</h3>
-            <p className="text-sm text-gray-400">{selectedTrigger.description}</p>
+            <h3 className="font-semibold mb-1">{selectedTrigger.name}</h3>
+            <p className="text-sm text-muted-foreground">{selectedTrigger.description}</p>
           </div>
 
           {selectedTrigger.requiresCredentials && (
@@ -222,13 +224,11 @@ export function TriggerSelector({ value, onChange }: TriggerSelectorProps) {
           )}
 
           {configSchema?.properties && (
-            <div className="border-t border-gray-700 pt-4">
-              <h4 className="text-sm font-medium text-gray-300 mb-3">Configuration</h4>
-              <div className="space-y-2">
-                {Object.entries(configSchema.properties).map(([key, fieldSchema]: [string, any]) =>
-                  renderConfigField(key, fieldSchema)
-                )}
-              </div>
+            <div className="border-t pt-4 space-y-4">
+              <h4 className="text-sm font-medium">Configuration</h4>
+              {Object.entries(configSchema.properties).map(([key, fieldSchema]: [string, any]) =>
+                renderConfigField(key, fieldSchema)
+              )}
             </div>
           )}
         </div>

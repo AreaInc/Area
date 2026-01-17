@@ -7,7 +7,7 @@ export const Route = createFileRoute('/dashboard/services/')({
 
 function Services() {
   return (
-    <div className="p-8 pl-72">
+    <div className="py-6 pr-6 w-full">
       <h1 className="text-3xl font-bold mb-8">Services</h1>
       <ServiceGrid />
     </div>
