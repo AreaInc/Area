@@ -65,10 +65,10 @@ function Register() {
 
   return (
     <div className="flex min-h-svh flex-col items-center justify-center bg-muted p-6 md:p-10">
-      <div className="w-full max-w-sm md:max-w-3xl">
+      <div className="w-full max-w-sm md:max-w-lg">
         <div className={cn("flex flex-col gap-6")}>
           <Card className="overflow-hidden">
-            <CardContent className="grid p-0 md:grid-cols-2">
+            <CardContent>
               <form onSubmit={handleRegister} className="p-6 md:p-8">
                 <div className="flex flex-col gap-6">
                   <div className="flex flex-col items-center text-center">
@@ -129,17 +129,17 @@ function Register() {
                         </Link>
                       </FieldDescription>
                     </Field>
-                    
+
                     <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
                       Or continue with
                     </FieldSeparator>
-                    
+
                     <Field>
-                       <Button
+                      <Button
                         variant="outline"
                         type="button"
                         className="w-full"
-                         onClick={() => signIn.social({ provider: 'google', callbackURL: '/dashboard' })}
+                        onClick={() => signIn.social({ provider: 'google', callbackURL: '/dashboard' })}
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="mr-2 h-4 w-4">
                           <path
@@ -153,18 +153,9 @@ function Register() {
                   </FieldGroup>
                 </div>
               </form>
-               <div className="relative hidden bg-muted md:block">
-                <div className="absolute inset-0 h-full w-full bg-linear-to-tr from-primary to-purple-500 opacity-20" />
-                 <div className="absolute inset-0 flex items-center justify-center p-8">
-                     <div className="max-w-xs text-center">
-                         <h2 className="text-3xl font-bold mb-4 bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">Start Building</h2>
-                         <p className="text-muted-foreground">Join thousands of users automating their workflows. Create your account and get started today.</p>
-                     </div>
-                 </div>
-              </div>
             </CardContent>
           </Card>
-           <div className="text-balance text-center text-xs text-muted-foreground [&_a]:underline [&_a]:underline-offset-4 hover:[&_a]:text-primary">
+          <div className="text-balance text-center text-xs text-muted-foreground [&_a]:underline [&_a]:underline-offset-4 hover:[&_a]:text-primary">
             By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
             and <a href="#">Privacy Policy</a>.
           </div>
