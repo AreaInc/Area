@@ -42,13 +42,16 @@ export function TriggerSelector({ value, onChange }: TriggerSelectorProps) {
     (c) => c.serviceProvider === value?.provider && c.isValid
   );
 
-  const handleTriggerChange = (provider: string, triggerId: string) => {
-    onChange({
-      provider,
-      triggerId,
-      config: {},
-    });
-    setConfig({});
+  const handleTriggerChange = (value: string) => {
+    const [provider, triggerId] = value.split(':');
+    if (provider && triggerId) {
+      onChange({
+        provider,
+        triggerId,
+        config: {},
+      });
+      setConfig({});
+    }
   };
 
   const handleConfigChange = (key: string, newValue: any) => {
@@ -148,10 +151,10 @@ export function TriggerSelector({ value, onChange }: TriggerSelectorProps) {
           />
           <div className="grid gap-1.5 leading-none">
             <Label htmlFor={key} className="cursor-pointer">
-                {key.charAt(0).toUpperCase() + key.slice(1)}
+              {key.charAt(0).toUpperCase() + key.slice(1)}
             </Label>
             {fieldSchema.description && (
-                <p className="text-xs text-muted-foreground">{fieldSchema.description}</p>
+              <p className="text-xs text-muted-foreground">{fieldSchema.description}</p>
             )}
           </div>
         </div>
@@ -193,32 +196,34 @@ export function TriggerSelector({ value, onChange }: TriggerSelectorProps) {
           </div>
 
           {selectedTrigger.requiresCredentials && (
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Credentials <span className="text-red-400">*</span>
-              </label>
+            <div className="space-y-2">
+              <Label>
+                Credentials <span className="text-destructive ml-1">*</span>
+              </Label>
               {!availableCredentials || availableCredentials.length === 0 ? (
-                <p className="text-sm text-yellow-400">
+                <p className="text-sm text-yellow-500">
                   No connected credentials found for {value?.provider}. Please create and
                   connect credentials first.
                 </p>
               ) : (
-                <select
-                  value={value?.config?.credentialsId || ''}
-                  onChange={(e) => {
-                    const credId = e.target.value ? parseInt(e.target.value) : undefined;
+                <Select
+                  value={value?.config?.credentialsId?.toString() || ''}
+                  onValueChange={(val) => {
+                    const credId = val ? parseInt(val) : undefined;
                     handleConfigChange('credentialsId', credId);
                   }}
-                  required
-                  className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="">Select credentials...</option>
-                  {availableCredentials.map((cred) => (
-                    <option key={cred.id} value={cred.id}>
-                      {cred.name}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select credentials..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableCredentials.map((cred) => (
+                      <SelectItem key={cred.id} value={cred.id.toString()}>
+                        {cred.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               )}
             </div>
           )}
