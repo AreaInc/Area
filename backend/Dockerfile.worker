@@ -10,7 +10,7 @@ COPY pnpm-lock.yaml* ./
 
 RUN npm install -g pnpm \
   && arch_env=$([ "$NODE_ARCH" = "amd64" ] && echo x64 || echo "$NODE_ARCH") \
-  && npm_config_arch=$arch_env npm_config_platform=linux pnpm install --frozen-lockfile
+  && npm_config_arch=$arch_env npm_config_platform=linux pnpm install
 
 COPY . .
 
@@ -29,7 +29,7 @@ COPY pnpm-lock.yaml* ./
 
 RUN npm install -g pnpm \
   && arch_env=$([ "$NODE_ARCH" = "amd64" ] && echo x64 || echo "$NODE_ARCH") \
-  && npm_config_arch=$arch_env npm_config_platform=linux pnpm install --prod --frozen-lockfile
+  && npm_config_arch=$arch_env npm_config_platform=linux pnpm install --prod
 
 COPY --from=builder /app/dist ./dist
 

@@ -5,7 +5,7 @@ WORKDIR /app
 COPY package.json ./
 COPY pnpm-lock.yaml* ./
 
-RUN npm install -g pnpm && pnpm install --frozen-lockfile
+RUN npm install -g pnpm && pnpm install
 
 COPY . .
 
@@ -19,7 +19,7 @@ WORKDIR /app
 COPY package.json ./
 COPY pnpm-lock.yaml* ./
 
-RUN npm install -g pnpm && pnpm install --prod --frozen-lockfile
+RUN npm install -g pnpm && pnpm install --prod
 
 COPY --from=builder /app/dist ./dist
 

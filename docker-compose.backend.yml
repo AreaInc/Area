@@ -1,0 +1,9 @@
+---
+# Backend-only docker-compose (without frontend)
+# Usage: docker compose -f docker-compose.backend.yml up --build -d
+
+include:
+  - path: database/docker-compose.yml
+  - path: redis/docker-compose.yml
+  - path: vault/docker-compose.yml
+  - path: backend/docker-compose.yml
