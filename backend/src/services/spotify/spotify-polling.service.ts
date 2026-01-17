@@ -11,7 +11,7 @@ import { SpotifyClient } from "./spotify-client";
 @Injectable()
 export class SpotifyPollingService implements OnModuleInit, OnModuleDestroy {
     private readonly logger = new Logger(SpotifyPollingService.name);
-    private readonly pollIntervalMs = 20000; // Poll every 20s
+    private readonly pollIntervalMs = 5000; // Poll every 5s
     private isPolling = false;
     private pollingIntervalId: NodeJS.Timeout | null = null;
     private processingCredentials = new Set<number>();
