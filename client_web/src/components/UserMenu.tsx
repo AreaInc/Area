@@ -1,83 +1,99 @@
-import { useState } from 'react'
-import { Link, useNavigate } from '@tanstack/react-router'
+import { useNavigate } from '@tanstack/react-router'
 import {
-  User as UserIcon,
   LogOut,
   Link2,
   Settings,
-  MoreVertical
+  ChevronsUpDown
 } from 'lucide-react'
-import clsx from 'clsx'
 import { signOut, useSession } from '../lib/auth-client'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/ui/avatar"
+import { SidebarMenu, SidebarMenuItem, SidebarMenuButton, useSidebar } from "@/components/ui/sidebar"
 
 export function UserMenu() {
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const { data: session } = useSession()
   const user = session?.user
   const navigate = useNavigate()
+  const { isMobile } = useSidebar()
 
   const handleLogout = async () => {
     await signOut()
-    setIsUserMenuOpen(false)
     navigate({ to: '/login' })
   }
 
   if (!user) return null
 
   return (
-    <div className="p-4 border-t border-border relative">
-      {/* User Menu Popover */}
-      {isUserMenuOpen && (
-        <>
-          {/* Backdrop to close on click outside */}
-          <div
-              className="fixed inset-0 z-10"
-              onClick={() => setIsUserMenuOpen(false)}
-          />
-          <div className="absolute bottom-full left-4 right-4 mb-2 z-20">
-              <div className="bg-popover border border-border rounded-xl shadow-xl overflow-hidden p-1 animate-in slide-in-from-bottom-2 fade-in duration-200">
-                  <Link
-                      to="/dashboard/services"
-                      onClick={() => setIsUserMenuOpen(false)}
-                      className="flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground rounded-lg transition-colors"
-                  >
-                      <Link2 size={16} /> Services
-                  </Link>
-                  <Link
-                      to="/dashboard/profile"
-                      onClick={() => setIsUserMenuOpen(false)}
-                      className="flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground rounded-lg transition-colors"
-                  >
-                      <Settings size={16} /> Profile
-                  </Link>
-                  <div className="h-px bg-border my-1" />
-                  <button
-                      onClick={handleLogout}
-                      className="flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 rounded-lg transition-colors w-full"
-                  >
-                      <LogOut size={16} /> Logout
-                  </button>
+    <SidebarMenu>
+      <SidebarMenuItem>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <SidebarMenuButton
+              size="lg"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+            >
+              <Avatar className="h-8 w-8 rounded-lg">
+                <AvatarImage src={user.image ?? undefined} alt={user.name} />
+                <AvatarFallback className="rounded-lg bg-primary/10 text-primary font-medium">
+                    {user.name?.charAt(0) || 'U'}
+                </AvatarFallback>
+              </Avatar>
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-semibold">{user.name}</span>
+                <span className="truncate text-xs">{user.email}</span>
               </div>
-          </div>
-        </>
-      )}
-
-      <button
-          onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-          className={clsx(
-              "relative z-10 flex items-center gap-3 w-full p-2 rounded-xl transition-all border border-transparent",
-              isUserMenuOpen ? "bg-accent border-border" : "hover:bg-accent/50"
-          )}
-      >
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white shadow-lg shadow-primary/20">
-              <UserIcon size={20} />
-          </div>
-          <div className="flex-1 text-left overflow-hidden">
-              <div className="font-medium text-sm truncate text-foreground">{user.name}</div>
-              <div className="text-xs text-muted-foreground truncate">{user.email}</div>
-          </div>
-          <MoreVertical size={16} className="text-muted-foreground" />
-      </button>
-    </div>
+              <ChevronsUpDown className="ml-auto size-4" />
+            </SidebarMenuButton>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+            side={isMobile ? "bottom" : "right"}
+            align="end"
+            sideOffset={4}
+          >
+            <DropdownMenuLabel className="p-0 font-normal">
+              <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                <Avatar className="h-8 w-8 rounded-lg">
+                  <AvatarImage src={user.image ?? undefined} alt={user.name} />
+                  <AvatarFallback className="rounded-lg bg-primary/10 text-primary font-medium">{user.name?.charAt(0) || 'U'}</AvatarFallback>
+                </Avatar>
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate font-semibold">{user.name}</span>
+                  <span className="truncate text-xs">{user.email}</span>
+                </div>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <DropdownMenuItem onClick={() => navigate({ to: '/dashboard/services' })}>
+                <Link2 className="mr-2 h-4 w-4" />
+                Services
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate({ to: '/dashboard/profile' })}>
+                <Settings className="mr-2 h-4 w-4" />
+                Profile
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:bg-destructive/10 focus:text-destructive">
+              <LogOut className="mr-2 h-4 w-4" />
+              Log out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </SidebarMenuItem>
+    </SidebarMenu>
   )
 }
