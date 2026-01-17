@@ -8,11 +8,12 @@ import { google } from "googleapis";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { DRIZZLE } from "../../db/drizzle.module";
 import * as schema from "../../db/schema";
-import { credentials } from "../../db/schema";
+import { credentials, workflows } from "../../db/schema";
 import { eq, and } from "drizzle-orm";
 import * as crypto from "crypto";
 import { OAUTH_CONFIG } from "./oauth.constants";
 import { ServiceProvider } from "../../common/types/enums";
+import { WorkflowsService } from "../workflows/workflows.service";
 
 interface OAuthState {
   userId: string;
@@ -27,6 +28,7 @@ export class OAuth2Service {
 
   constructor(
     @Inject(DRIZZLE) private readonly db: PostgresJsDatabase<typeof schema>,
+    private readonly workflowsService: WorkflowsService,
   ) { }
 
   private getCallbackUrl(): string {
@@ -555,6 +557,49 @@ export class OAuth2Service {
   }
 
   async deleteCredentials(userId: string, credentialId: number): Promise<void> {
+    const [credential] = await this.db
+      .select()
+      .from(credentials)
+      .where(
+        and(eq(credentials.id, credentialId), eq(credentials.userId, userId)),
+      );
+
+    if (!credential) {
+      throw new BadRequestException("Credential not found");
+    }
+
+    const affectedWorkflows = await this.db
+      .select()
+      .from(workflows)
+      .where(eq(workflows.actionCredentialsId, credentialId));
+
+    if (affectedWorkflows.length > 0) {
+      for (const workflow of affectedWorkflows) {
+        if (workflow.isActive) {
+          try {
+            await this.workflowsService.deactivateWorkflow(userId, workflow.id);
+          } catch (error) {
+            if (
+              error instanceof BadRequestException &&
+              error.message === "Workflow is not active"
+            ) {
+              continue;
+            }
+            throw error;
+          }
+        }
+      }
+
+      await this.db
+        .update(workflows)
+        .set({
+          actionCredentialsId: null,
+          updatedAt: new Date(),
+        })
+        .where(eq(workflows.actionCredentialsId, credentialId));
+    }
+
+    // 4. Delete the credential (FK constraints now satisfied)
     await this.db
       .delete(credentials)
       .where(
