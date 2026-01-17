@@ -7,9 +7,10 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /app
 
 # Copy workspace files
-COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+COPY pnpm-workspace.yaml package.json ./
+COPY pnpm-lock.yaml* ./
 COPY packages/shared ./packages/shared
-COPY client_web/package.json client_web/pnpm-lock.yaml ./client_web/
+COPY client_web/package.json ./client_web/
 
 # Install all workspace dependencies
 RUN pnpm install --frozen-lockfile

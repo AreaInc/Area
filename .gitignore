@@ -63,7 +63,6 @@ frontend/mobile/web-build/
 # ============================================
 packages/shared/dist/
 packages/shared/build/
-pnpm-lock.yaml
 
 # ============================================
 # Metro bundler
