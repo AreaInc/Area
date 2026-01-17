@@ -230,7 +230,9 @@ export async function automationWorkflow(
         if (!input.actionCredentialsId) throw new Error("Credentials required");
         actionResult = await addToPlaylistActivity({
           playlistName: input.actionConfig.playlistName,
+          playlistId: input.actionConfig.playlistId,
           trackName: input.actionConfig.trackName,
+          trackUri: input.actionConfig.trackUri,
           credentialId: input.actionCredentialsId,
           userId: input.userId,
         });
