@@ -14,6 +14,7 @@ import { OnPinnedMessageTrigger } from "./triggers/on-pinned-message.trigger";
 import { OnNewMemberTrigger } from "./triggers/on-new-member.trigger";
 import { OnReplyMessageTrigger } from "./triggers/on-reply-message.trigger";
 import { OnVoiceMessageTrigger } from "./triggers/on-voice-message.trigger";
+import { OnVideoMessageTrigger } from "./triggers/on-video-message.trigger";
 
 import { TelegramPollingService } from "./telegram-polling.service";
 
@@ -32,6 +33,7 @@ import { TelegramPollingService } from "./telegram-polling.service";
     OnNewMemberTrigger,
     OnReplyMessageTrigger,
     OnVoiceMessageTrigger,
+    OnVideoMessageTrigger,
 
     TelegramPollingService,
   ],
@@ -60,6 +62,7 @@ export class TelegramModule implements OnModuleInit {
     private readonly onNewMemberTrigger: OnNewMemberTrigger,
     private readonly onReplyMessageTrigger: OnReplyMessageTrigger,
     private readonly onVoiceMessageTrigger: OnVoiceMessageTrigger,
+    private readonly onVideoMessageTrigger: OnVideoMessageTrigger,
   ) { }
 
   onModuleInit() {
@@ -77,6 +80,7 @@ export class TelegramModule implements OnModuleInit {
     this.triggerRegistry.register(this.onNewMemberTrigger);
     this.triggerRegistry.register(this.onReplyMessageTrigger);
     this.triggerRegistry.register(this.onVoiceMessageTrigger);
+    this.triggerRegistry.register(this.onVideoMessageTrigger);
 
     console.log(
       "[TelegramModule] Registered Telegram features"

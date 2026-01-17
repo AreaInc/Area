@@ -192,6 +192,7 @@ export class TelegramPollingService implements OnModuleInit, OnModuleDestroy {
             // 3. On Pinned Message
             if (wf.triggerId === "on-pinned-message") {
                 if (message.pinned_message) {
+                    this.logger.log(`Firing on-pinned-message for workflow ${wf.id}`);
                     await this.workflowsService.triggerWorkflowExecution(wf.id, {
                         messageId: message.message_id, // The service message ID
                         chatId: message.chat.id,
@@ -206,16 +207,20 @@ export class TelegramPollingService implements OnModuleInit, OnModuleDestroy {
             // 4. On New Member
             if (wf.triggerId === "on-new-member") {
                 if (message.new_chat_members && Array.isArray(message.new_chat_members)) {
+                    this.logger.log(`Firing on-new-member for workflow ${wf.id} - members: ${message.new_chat_members.length}`);
                     for (const member of message.new_chat_members) {
-                        // Skip bot itself if needed, but usually we want to know if bot was added
-                        await this.workflowsService.triggerWorkflowExecution(wf.id, {
-                            messageId: message.message_id,
-                            chatId: message.chat.id,
-                            newUserId: member.id,
-                            newUsername: member.username,
-                            inviterUserId: message.from?.id,
-                            date: new Date(message.date * 1000).toISOString(),
-                        });
+                        try {
+                            await this.workflowsService.triggerWorkflowExecution(wf.id, {
+                                messageId: message.message_id,
+                                chatId: message.chat.id,
+                                newUserId: member.id,
+                                newUsername: member.username,
+                                inviterUserId: message.from?.id,
+                                date: new Date(message.date * 1000).toISOString(),
+                            });
+                        } catch (e) {
+                            this.logger.error(`Failed to trigger workflow ${wf.id} for new member`, e);
+                        }
                     }
                 }
             }
@@ -246,6 +251,24 @@ export class TelegramPollingService implements OnModuleInit, OnModuleDestroy {
                         duration: message.voice.duration,
                         mimeType: message.voice.mime_type,
                         fileId: message.voice.file_id,
+                        date: new Date(message.date * 1000).toISOString(),
+                    });
+                }
+            }
+
+            // 7. On Video Message
+            if (wf.triggerId === "on-video-message") {
+                // Check for video or video_note (circle video)
+                const video = message.video || message.video_note;
+                if (video) {
+                    await this.workflowsService.triggerWorkflowExecution(wf.id, {
+                        messageId: message.message_id,
+                        chatId: message.chat.id,
+                        userId: message.from?.id,
+                        duration: video.duration,
+                        mimeType: video.mime_type || 'video/mp4', // video_note might not have mime_type
+                        fileId: video.file_id,
+                        isVideoNote: !!message.video_note,
                         date: new Date(message.date * 1000).toISOString(),
                     });
                 }
