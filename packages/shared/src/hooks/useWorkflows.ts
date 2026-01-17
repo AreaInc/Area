@@ -7,13 +7,13 @@ import type {
   TriggerMetadata,
   ActionMetadata,
 } from '../types/workflow';
-import { getApiBaseUrl } from './const';
+import { API_BASE } from './const';
 
 export function useWorkflows() {
   return useQuery<Workflow[]>({
     queryKey: ['workflows'],
     queryFn: async () => {
-      const response = await fetch(`${getApiBaseUrl()}/v2/workflows`, {
+      const response = await fetch(`${API_BASE}/v2/workflows`, {
         credentials: 'include',
       });
 
@@ -30,7 +30,7 @@ export function useWorkflow(id: number) {
   return useQuery<Workflow>({
     queryKey: ['workflows', id],
     queryFn: async () => {
-      const response = await fetch(`${getApiBaseUrl()}/v2/workflows/${id}`, {
+      const response = await fetch(`${API_BASE}/v2/workflows/${id}`, {
         credentials: 'include',
       });
 
@@ -49,7 +49,7 @@ export function useCreateWorkflow() {
 
   return useMutation({
     mutationFn: async (dto: CreateWorkflowDto) => {
-      const response = await fetch(`${getApiBaseUrl()}/v2/workflows`, {
+      const response = await fetch(`${API_BASE}/v2/workflows`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dto),
@@ -75,7 +75,7 @@ export function useUpdateWorkflow() {
 
   return useMutation({
     mutationFn: async ({ id, dto }: { id: number; dto: UpdateWorkflowDto }) => {
-      const response = await fetch(`${getApiBaseUrl()}/v2/workflows/${id}`, {
+      const response = await fetch(`${API_BASE}/v2/workflows/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dto),
@@ -99,7 +99,7 @@ export function useDeleteWorkflow() {
 
   return useMutation({
     mutationFn: async (id: number) => {
-      const response = await fetch(`${getApiBaseUrl()}/v2/workflows/${id}`, {
+      const response = await fetch(`${API_BASE}/v2/workflows/${id}`, {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -121,7 +121,7 @@ export function useActivateWorkflow() {
 
   return useMutation({
     mutationFn: async (id: number) => {
-      const response = await fetch(`${getApiBaseUrl()}/v2/workflows/${id}/activate`, {
+      const response = await fetch(`${API_BASE}/v2/workflows/${id}/activate`, {
         method: 'POST',
         credentials: 'include',
       });
@@ -143,7 +143,7 @@ export function useDeactivateWorkflow() {
 
   return useMutation({
     mutationFn: async (id: number) => {
-      const response = await fetch(`${getApiBaseUrl()}/v2/workflows/${id}/deactivate`, {
+      const response = await fetch(`${API_BASE}/v2/workflows/${id}/deactivate`, {
         method: 'POST',
         credentials: 'include',
       });
@@ -163,7 +163,7 @@ export function useDeactivateWorkflow() {
 export function useExecuteWorkflow() {
   return useMutation({
     mutationFn: async ({ id, triggerData }: { id: number; triggerData?: Record<string, any> }) => {
-      const response = await fetch(`${getApiBaseUrl()}/v2/workflows/${id}/execute`, {
+      const response = await fetch(`${API_BASE}/v2/workflows/${id}/execute`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ triggerData }),
@@ -183,7 +183,7 @@ export function useWorkflowExecutions(workflowId: number) {
   return useQuery<WorkflowExecution[]>({
     queryKey: ['workflows', workflowId, 'executions'],
     queryFn: async () => {
-      const response = await fetch(`${getApiBaseUrl()}/v2/workflows/${workflowId}/executions`, {
+      const response = await fetch(`${API_BASE}/v2/workflows/${workflowId}/executions`, {
         credentials: 'include',
       });
 
@@ -201,7 +201,7 @@ export function useTriggers() {
   return useQuery<TriggerMetadata[]>({
     queryKey: ['triggers'],
     queryFn: async () => {
-      const response = await fetch(`${getApiBaseUrl()}/v2/workflows/metadata/triggers`, {
+      const response = await fetch(`${API_BASE}/v2/workflows/metadata/triggers`, {
         credentials: 'include',
       });
 
@@ -218,7 +218,7 @@ export function useActions() {
   return useQuery<ActionMetadata[]>({
     queryKey: ['actions'],
     queryFn: async () => {
-      const response = await fetch(`${getApiBaseUrl()}/v2/workflows/metadata/actions`, {
+      const response = await fetch(`${API_BASE}/v2/workflows/metadata/actions`, {
         credentials: 'include',
       });
 

@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
 import type { Service } from '../types/service'
-import { getApiBaseUrl } from './const';
+import { API_BASE } from './const';
 
 async function fetchServices(): Promise<Service[]> {
-  const response = await fetch(`${getApiBaseUrl()}/services`, {
+  const response = await fetch(`${API_BASE}/services`, {
     headers: {
         'Content-Type': 'application/json',
     },
@@ -18,7 +18,7 @@ async function fetchServices(): Promise<Service[]> {
 }
 
 async function fetchService(provider: string): Promise<Service> {
-  const response = await fetch(`${getApiBaseUrl()}/services/${provider}`, {
+  const response = await fetch(`${API_BASE}/services/${provider}`, {
     headers: {
         'Content-Type': 'application/json',
     },

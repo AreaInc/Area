@@ -13,7 +13,7 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      '@area/shared': path.resolve(__dirname, '../packages/shared/src/index.ts'),
+      '@area/shared': path.resolve(__dirname, '../packages/shared'),
     },
   },
   optimizeDeps: {
