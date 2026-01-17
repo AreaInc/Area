@@ -44,7 +44,7 @@ function ServicePage() {
   }
 
   return (
-    <div className="p-8 h-full overflow-y-auto">
+    <div className="py-6 pr-6 h-full overflow-y-auto w-full">
       <ServiceDetails service={service} authStatus={authStatus} />
     </div>
   )
