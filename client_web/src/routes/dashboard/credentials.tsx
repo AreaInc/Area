@@ -1,8 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
-import { 
-  useCredentials, 
-  useDeleteCredential, 
+import {
+  useCredentials,
+  useDeleteCredential,
   getOAuthCallbackUrl,
   useInitiateOAuth
 } from '@area/shared';
@@ -53,7 +53,7 @@ function CredentialsPage() {
   };
 
   return (
-    <div className="p-6">
+    <div className="ml-[300px] p-6">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-white">Credentials</h1>
