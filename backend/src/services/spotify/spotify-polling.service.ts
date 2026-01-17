@@ -148,36 +148,50 @@ export class SpotifyPollingService implements OnModuleInit, OnModuleDestroy {
                     // items are ordered by played_at (usually desc)
                     // We typically want newest first to see if played_at > lastPlayedAt
 
-                    let newMaxPlayedAt = state.lastPlayedAt;
-                    const newItems = items.filter((item: any) => {
-                        const playedAt = new Date(item.played_at).getTime();
-                        return playedAt > state.lastPlayedAt;
-                    });
-
-                    // Process oldest to newest for logical trigger order
-                    newItems.sort((a: any, b: any) => new Date(a.played_at).getTime() - new Date(b.played_at).getTime());
-
-                    for (const item of newItems) {
-                        const playedAt = new Date(item.played_at).getTime();
-                        if (playedAt > newMaxPlayedAt) newMaxPlayedAt = playedAt;
-
-                        const triggerData = {
-                            trackId: item.track.id,
-                            trackName: item.track.name,
-                            artistName: item.track.artists[0].name,
-                            album: item.track.album.name,
-                            uri: item.track.uri,
-                            playedAt: item.played_at,
-                        };
-
-                        for (const wid of tasks.tracks) {
-                            await this.workflowsService.triggerWorkflowExecution(wid, triggerData);
-                        }
+                    // Determine max playedAt in the fetched items
+                    let maxInBatch = state.lastPlayedAt;
+                    for (const item of items) {
+                        const t = new Date(item.played_at).getTime();
+                        if (t > maxInBatch) maxInBatch = t;
                     }
 
-                    if (newMaxPlayedAt > state.lastPlayedAt) {
-                        state.lastPlayedAt = newMaxPlayedAt;
-                        stateChanged = true;
+                    // If it's the first run (0), just initialize state and skip triggers
+                    if (state.lastPlayedAt === 0) {
+                        if (maxInBatch > 0) {
+                            state.lastPlayedAt = maxInBatch;
+                            stateChanged = true;
+                        }
+                    } else {
+                        // Normal processing: check for new items
+                        const newItems = items.filter((item: any) => {
+                            const playedAt = new Date(item.played_at).getTime();
+                            return playedAt > state.lastPlayedAt;
+                        });
+
+                        // Process oldest to newest for logical trigger order
+                        newItems.sort((a: any, b: any) => new Date(a.played_at).getTime() - new Date(b.played_at).getTime());
+
+                        for (const item of newItems) {
+                            // Update max seen so far to move forward
+                            const playedAt = new Date(item.played_at).getTime();
+                            if (playedAt > state.lastPlayedAt) {
+                                state.lastPlayedAt = playedAt;
+                                stateChanged = true;
+                            }
+
+                            const triggerData = {
+                                trackId: item.track.id,
+                                trackName: item.track.name,
+                                artistName: item.track.artists[0].name,
+                                album: item.track.album.name,
+                                uri: item.track.uri,
+                                playedAt: item.played_at,
+                            };
+
+                            for (const wid of tasks.tracks) {
+                                await this.workflowsService.triggerWorkflowExecution(wid, triggerData);
+                            }
+                        }
                     }
                 } catch (e) {
                     this.logger.error(`Error polling recently played for cred ${credential.id}: ${(e as Error).message}`);
