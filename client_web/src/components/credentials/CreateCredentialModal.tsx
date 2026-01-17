@@ -34,6 +34,53 @@ export default function CreateCredentialModal({ onClose }: CreateCredentialModal
     }
   };
 
+  /* eslint-disable react/no-unescaped-entities */
+  const getProviderConfig = (p: string) => {
+    switch (p) {
+      case 'google':
+      case 'gmail':
+      case 'google_sheets':
+      case 'youtube':
+        return {
+          clientIdLabel: 'Client ID',
+          clientIdPlaceholder: '123456789-abcdef.apps.googleusercontent.com',
+          clientSecretLabel: 'Client Secret',
+          clientSecretPlaceholder: 'GOCSPX-abc123def456',
+          helperText: 'Obtain these from the Google Cloud Console.',
+          dashboardUrl: 'https://console.cloud.google.com/apis/credentials',
+        };
+      case 'spotify':
+        return {
+          clientIdLabel: 'Client ID',
+          clientIdPlaceholder: 'e.g. 3e3a... (32 characters)',
+          clientSecretLabel: 'Client Secret',
+          clientSecretPlaceholder: 'e.g. 9b9c... (32 characters)',
+          helperText: 'Obtain these from the Spotify Developer Dashboard.',
+          dashboardUrl: 'https://developer.spotify.com/dashboard',
+        };
+      case 'twitch':
+        return {
+          clientIdLabel: 'Client ID',
+          clientIdPlaceholder: 'e.g. gp76... (30 characters)',
+          clientSecretLabel: 'Client Secret',
+          clientSecretPlaceholder: 'e.g. a1b2... (30 characters)',
+          helperText: 'Obtain these from the Twitch Developer Console.',
+          dashboardUrl: 'https://dev.twitch.tv/console',
+        };
+      default:
+        return {
+          clientIdLabel: 'Client ID',
+          clientIdPlaceholder: 'Client ID',
+          clientSecretLabel: 'Client Secret',
+          clientSecretPlaceholder: 'Client Secret',
+          helperText: '',
+          dashboardUrl: '',
+        };
+    }
+  };
+
+  const config = getProviderConfig(provider);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
       <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md">
@@ -49,7 +96,7 @@ export default function CreateCredentialModal({ onClose }: CreateCredentialModal
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white"
-                placeholder="My Gmail Account"
+                placeholder="My Personal Account"
               />
             </div>
 
@@ -73,29 +120,45 @@ export default function CreateCredentialModal({ onClose }: CreateCredentialModal
 
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">
-                Client ID
+                {config.clientIdLabel}
               </label>
               <input
                 type="text"
                 value={clientId}
                 onChange={(e) => setClientId(e.target.value)}
                 className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white"
-                placeholder="123456789-abcdef.apps.googleusercontent.com"
+                placeholder={config.clientIdPlaceholder}
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">
-                Client Secret
+                {config.clientSecretLabel}
               </label>
               <input
                 type="password"
                 value={clientSecret}
                 onChange={(e) => setClientSecret(e.target.value)}
                 className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white"
-                placeholder="GOCSPX-abc123def456"
+                placeholder={config.clientSecretPlaceholder}
               />
             </div>
+
+            {config.helperText && (
+              <div className="text-xs text-gray-400">
+                <p>{config.helperText}</p>
+                {config.dashboardUrl && (
+                  <a
+                    href={config.dashboardUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-400 hover:text-blue-300 underline mt-1 inline-block"
+                  >
+                    Open Developer Console
+                  </a>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="flex gap-2 mt-6">
