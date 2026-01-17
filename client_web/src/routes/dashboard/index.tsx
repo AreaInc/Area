@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { createFileRoute } from '@tanstack/react-router';
+import { useState, useEffect, useMemo } from 'react';
+import { createFileRoute, useSearch } from '@tanstack/react-router';
 import {
   useWorkflows,
   useUpdateWorkflow,
@@ -11,7 +11,12 @@ import {
 import { Button } from '../../components/ui/button';
 import { TriggerSelector } from '../../components/workflow/TriggerSelector';
 import { ActionSelector } from '../../components/workflow/ActionSelector';
+<<<<<<< HEAD:frontend/src/routes/dashboard/index.tsx
+import type { TriggerConfig, ActionConfig } from '../../types/workflow';
+import { parseWorkflowIdFromSlug, workflowSlug } from '../../lib/slug';
+=======
 import type { TriggerConfig, ActionConfig } from '@area/shared';
+>>>>>>> origin/development:client_web/src/routes/dashboard/index.tsx
 
 const QUICK_TEMPLATES: {
   name: string;
@@ -79,11 +84,20 @@ export const Route = createFileRoute('/dashboard/')({
 });
 
 function Dashboard() {
+  const { workflow: workflowSlugParam = null } = useSearch({ from: '/dashboard' }) as {
+    workflow?: string | null;
+  };
+  const navigate = Route.useNavigate();
   const { data: workflows, isLoading, error } = useWorkflows();
   const { data: actions } = useActions();
-  const [selectedWorkflowId, setSelectedWorkflowId] = useState<number | null>(null);
-
-  const selectedWorkflow = workflows?.find((w) => w.id === selectedWorkflowId);
+  const selectedWorkflow = useMemo(() => {
+    if (!workflows || workflows.length === 0) return undefined;
+    const desiredId = parseWorkflowIdFromSlug(workflowSlugParam);
+    const desiredWorkflow = desiredId
+      ? workflows.find((w) => String(w.id) === desiredId)
+      : undefined;
+    return desiredWorkflow ?? workflows[0];
+  }, [workflows, workflowSlugParam]);
 
   const updateMutation = useUpdateWorkflow();
   const deleteMutation = useDeleteWorkflow();
@@ -95,11 +109,18 @@ function Dashboard() {
   const [action, setAction] = useState<ActionConfig | undefined>();
   const [isSaving, setIsSaving] = useState(false);
 
+  // Ensure URL slug reflects the selected workflow (helps bookmarking/sharing)
   useEffect(() => {
-    if (workflows && workflows.length > 0 && !selectedWorkflowId) {
-      setSelectedWorkflowId(workflows[0].id);
+    if (!workflows || workflows.length === 0 || !selectedWorkflow) return;
+    const slug = workflowSlug(selectedWorkflow.id, selectedWorkflow.name);
+    if (workflowSlugParam !== slug) {
+      navigate({
+        to: '/dashboard',
+        search: { workflow: slug },
+        replace: true,
+      });
     }
-  }, [workflows, selectedWorkflowId]);
+  }, [workflows, selectedWorkflow, workflowSlugParam, navigate]);
 
   useEffect(() => {
     if (selectedWorkflow) {
@@ -182,7 +203,6 @@ function Dashboard() {
 
     try {
       await deleteMutation.mutateAsync(selectedWorkflow.id);
-      setSelectedWorkflowId(null);
     } catch (err) {
       alert('Failed to delete workflow');
     }

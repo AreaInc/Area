@@ -54,7 +54,7 @@ function Register() {
         return
       }
 
-      navigate({ to: '/dashboard' })
+      navigate({ to: '/dashboard', search: { workflow: null } })
     } catch (err: any) {
       const errorMsg = err?.message || 'Failed to create account. Please try again.'
       setError(errorMsg)

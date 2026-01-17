@@ -17,6 +17,7 @@ lerna-debug.log*
 # Package manager
 package-lock.json
 yarn.lock
+.pnpm-store/
 
 # ============================================
 # Backend (NestJS)

@@ -14,8 +14,13 @@ import {
 export const serviceProviderEnum = pgEnum("service_provider", [
   "gmail",
   "google",
+  "google_sheets",
+  "spotify",
+  "twitch",
+  "youtube",
   "slack",
   "discord",
+  "telegram",
   "github",
   "trello",
   "notion",
@@ -106,8 +111,11 @@ export const credentials = pgTable("credentials", {
   // OAuth2 app credentials (encrypted)
   clientId: text("client_id"),
   clientSecret: text("client_secret"),
+  lastHistoryId: text("last_history_id"),
   // Legacy field for backward compatibility
   data: jsonb("data"),
+  // Polling state (e.g. last liked songs IDs, last played tracks IDs)
+  pollingState: jsonb("polling_state"),
   isValid: boolean("is_valid").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

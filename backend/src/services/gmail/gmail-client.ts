@@ -9,6 +9,8 @@ interface GmailCredentials {
     refreshToken?: string;
     expiresAt?: number;
   };
+  clientId?: string;
+  clientSecret?: string;
 }
 
 interface GmailMessagePart {
@@ -39,8 +41,8 @@ export class GmailClient {
 
   constructor(credentials: GmailCredentials) {
     this.oauth2Client = new google.auth.OAuth2(
-      process.env.GOOGLE_CLIENT_ID,
-      process.env.GOOGLE_CLIENT_SECRET,
+      credentials.clientId || process.env.GOOGLE_CLIENT_ID,
+      credentials.clientSecret || process.env.GOOGLE_CLIENT_SECRET,
     );
 
     const data = credentials.data as {
@@ -97,6 +99,7 @@ export class GmailClient {
       `To: ${to}`,
       cc ? `Cc: ${cc}` : "",
       bcc ? `Bcc: ${bcc}` : "",
+      "X-Area-Generated: true",
       `Subject: ${subject}`,
       `Content-Type: ${params.isHtml ? "text/html" : "text/plain"}; charset=utf-8`,
       "",

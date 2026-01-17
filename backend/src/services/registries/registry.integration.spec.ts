@@ -1,6 +1,7 @@
 import { ActionRegistryService } from "./action-registry.service";
 import { TriggerRegistryService } from "./trigger-registry.service";
 import { SendEmailAction } from "../gmail/actions/send-email.action";
+import { ReadEmailAction } from "../gmail/actions/read-email.action";
 import { ReceiveEmailTrigger } from "../gmail/triggers/receive-email.trigger";
 import { SendDiscordWebhookAction } from "../discord/actions/send-webhook.action";
 import { PublicWebhookTrigger } from "../webhook/triggers/public-webhook.trigger";
@@ -11,6 +12,7 @@ describe("Action and Trigger registry integration", () => {
   let actionRegistry: ActionRegistryService;
   let triggerRegistry: TriggerRegistryService;
   let gmailAction: SendEmailAction;
+  let gmailReadAction: ReadEmailAction;
   let gmailTrigger: ReceiveEmailTrigger;
   let mockWorkflowService: { triggerWorkflowExecution: jest.Mock };
 
@@ -18,6 +20,7 @@ describe("Action and Trigger registry integration", () => {
     actionRegistry = new ActionRegistryService();
     triggerRegistry = new TriggerRegistryService();
     gmailAction = new SendEmailAction();
+    gmailReadAction = new ReadEmailAction();
     gmailTrigger = new ReceiveEmailTrigger();
     mockWorkflowService = {
       triggerWorkflowExecution: jest.fn(),
@@ -27,12 +30,14 @@ describe("Action and Trigger registry integration", () => {
   it("registers Gmail definitions and exposes consistent metadata", async () => {
     triggerRegistry.register(gmailTrigger);
     actionRegistry.register(gmailAction);
+    actionRegistry.register(gmailReadAction);
 
     const triggerMetadata = triggerRegistry.getAllMetadata();
     const actionMetadata = actionRegistry.getAllMetadata();
 
     expect(triggerRegistry.has("gmail", "receive-email")).toBe(true);
     expect(actionRegistry.has("gmail", "send-email")).toBe(true);
+    expect(actionRegistry.has("gmail", "read-email")).toBe(true);
 
     expect(triggerMetadata).toEqual(
       expect.arrayContaining([
@@ -50,6 +55,12 @@ describe("Action and Trigger registry integration", () => {
       expect.arrayContaining([
         expect.objectContaining({
           id: "send-email",
+          serviceProvider: "gmail",
+          inputSchema: expect.any(Object),
+          outputSchema: expect.any(Object),
+        }),
+        expect.objectContaining({
+          id: "read-email",
           serviceProvider: "gmail",
           inputSchema: expect.any(Object),
           outputSchema: expect.any(Object),

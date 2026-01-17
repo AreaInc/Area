@@ -1,8 +1,8 @@
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigate, useSearch } from '@tanstack/react-router';
 import { Clock, Plus, Key, Grid, Play } from 'lucide-react';
 import { UserMenu } from './UserMenu';
 import { useWorkflows, useCreateWorkflow } from '@area/shared';
-import { useState } from 'react';
+
 import {
   Sidebar as ShadcnSidebar,
   SidebarContent,
@@ -20,7 +20,9 @@ export function Sidebar({ ...props }: React.ComponentProps<typeof ShadcnSidebar>
   const { data: workflows } = useWorkflows();
   const createMutation = useCreateWorkflow();
   const navigate = useNavigate();
-  const [selectedWorkflowId, setSelectedWorkflowId] = useState<number | null>(null);
+  const { workflow: selectedWorkflowSlug } = useSearch({ from: '/dashboard' }) as {
+    workflow?: string | null;
+  };
 
   const handleCreateWorkflow = async () => {
     try {
@@ -38,8 +40,10 @@ export function Sidebar({ ...props }: React.ComponentProps<typeof ShadcnSidebar>
           config: {},
         },
       });
-      setSelectedWorkflowId(newWorkflow.id);
-      navigate({ to: '/dashboard' });
+      navigate({
+        to: '/dashboard',
+        // search: { workflow: workflowSlug(newWorkflow.id, newWorkflow.name) },
+      });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to create workflow';
       alert(`Failed to create workflow: ${errorMessage}`);
@@ -83,7 +87,7 @@ export function Sidebar({ ...props }: React.ComponentProps<typeof ShadcnSidebar>
             </SidebarMenuItem>
 
             <SidebarMenuItem>
-              <SidebarMenuButton 
+              <SidebarMenuButton
                 onClick={() => navigate({ to: '/dashboard/services' })}
                 tooltip="Services"
               >
@@ -93,7 +97,7 @@ export function Sidebar({ ...props }: React.ComponentProps<typeof ShadcnSidebar>
             </SidebarMenuItem>
 
             <SidebarMenuItem>
-              <SidebarMenuButton 
+              <SidebarMenuButton
                 onClick={() => navigate({ to: '/dashboard/credentials' })}
                 tooltip="Credentials"
               >
@@ -111,21 +115,20 @@ export function Sidebar({ ...props }: React.ComponentProps<typeof ShadcnSidebar>
               <SidebarMenuItem key={wf.id}>
                 <SidebarMenuButton
                   onClick={() => {
-                    setSelectedWorkflowId(wf.id);
+                    // setSelectedWorkflowId(wf.id);
                     navigate({ to: '/dashboard' });
                   }}
-                  isActive={selectedWorkflowId === wf.id}
+                  // isActive={selectedWorkflowId === wf.id}
                   className="h-auto py-2"
                 >
                   <div className="flex flex-col gap-1 w-full text-left">
                     <div className="flex items-center justify-between w-full">
                       <span className="font-medium truncate">{wf.name}</span>
                       <div
-                        className={`w-2 h-2 rounded-full shrink-0 ${
-                          wf.isActive
-                            ? 'bg-emerald-500 shadow-[0_0_8px] shadow-emerald-500/50'
-                            : 'bg-muted-foreground/30'
-                        }`}
+                        className={`w-2 h-2 rounded-full shrink-0 ${wf.isActive
+                          ? 'bg-emerald-500 shadow-[0_0_8px] shadow-emerald-500/50'
+                          : 'bg-muted-foreground/30'
+                          }`}
                       />
                     </div>
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
