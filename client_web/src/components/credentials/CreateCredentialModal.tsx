@@ -64,6 +64,10 @@ export default function CreateCredentialModal({ onClose }: CreateCredentialModal
               >
                 <option value="gmail">Gmail</option>
                 <option value="google">Google</option>
+                <option value="google_sheets">Google Sheets</option>
+                <option value="spotify">Spotify</option>
+                <option value="twitch">Twitch</option>
+                <option value="youtube">YouTube</option>
               </select>
             </div>
 
