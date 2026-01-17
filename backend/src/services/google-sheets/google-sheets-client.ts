@@ -104,14 +104,6 @@ export class GoogleSheetsClient {
         return response.data;
     }
 
-    async readRange(spreadsheetId: string, range: string) {
-        await this.refreshTokenIfNeeded();
-        const response = await this.sheets.spreadsheets.values.get({
-            spreadsheetId,
-            range,
-        });
-        return response.data;
-    }
 
     async createSheet(spreadsheetId: string, sheetTitle: string) {
         await this.refreshTokenIfNeeded();

@@ -29,31 +29,6 @@ export class UpdateCellAction implements IAction {
     }
 }
 
-@Injectable()
-export class ReadRangeAction implements IAction {
-    public readonly id = "read_in_range";
-    public readonly name = "Read Range";
-    public readonly description = "Reads values from a range";
-    public readonly type = ActionType.READ_EMAIL; // reusing closest
-    public readonly serviceProvider = ServiceProvider.GOOGLE_SHEETS;
-    public readonly requiresCredentials = true;
-
-    public readonly inputSchema = {
-        type: "object",
-        required: ["spreadsheetId", "range"],
-        properties: {
-            spreadsheetId: { type: "string" },
-            range: { type: "string" },
-        },
-    };
-
-    async validateInput(config: Record<string, any>): Promise<boolean> {
-        return !!config.spreadsheetId && !!config.range;
-    }
-    getMetadata(): ActionMetadata {
-        return { id: this.id, name: this.name, description: this.description, serviceProvider: this.serviceProvider, inputSchema: this.inputSchema, requiresCredentials: this.requiresCredentials };
-    }
-}
 
 @Injectable()
 export class CreateSheetAction implements IAction {

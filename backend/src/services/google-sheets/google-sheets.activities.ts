@@ -94,12 +94,6 @@ export async function updateCellActivity(input: UpdateCellInput) {
     return { updatedRange: result.updatedRange, success: true };
 }
 
-export interface ReadRangeInput { spreadsheetId: string; range: string; credentialId: number; userId: string; }
-export async function readRangeActivity(input: ReadRangeInput) {
-    const client = await getClient(input.credentialId, input.userId);
-    const result = await client.readRange(input.spreadsheetId, input.range);
-    return { values: result.values, success: true };
-}
 
 export interface CreateSheetInput { spreadsheetId: string; sheetTitle: string; credentialId: number; userId: string; }
 export async function createSheetActivity(input: CreateSheetInput) {

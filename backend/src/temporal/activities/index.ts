@@ -11,7 +11,6 @@ export {
   createSpreadsheetActivity,
   addRowActivity,
   updateCellActivity,
-  readRangeActivity,
   createSheetActivity,
   clearRangeActivity,
   duplicateSheetActivity,
@@ -21,7 +20,7 @@ export {
 
 export type {
   CreateSpreadsheetInput, AddRowInput,
-  UpdateCellInput, ReadRangeInput,
+  UpdateCellInput,
   CreateSheetInput, ClearRangeInput,
   DuplicateSheetInput, FindReplaceInput,
   SortRangeInput

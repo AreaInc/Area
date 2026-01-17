@@ -1,7 +1,7 @@
 import { Module, OnModuleInit } from "@nestjs/common";
 import { CreateSpreadsheetAction } from "./actions/create-spreadsheet.action";
 import { AddRowAction } from "./actions/add-row.action";
-import { UpdateCellAction, ReadRangeAction, CreateSheetAction, ClearRangeAction, DuplicateSheetAction, FindReplaceAction, SortRangeAction } from "./actions/other-actions";
+import { UpdateCellAction, CreateSheetAction, ClearRangeAction, DuplicateSheetAction, FindReplaceAction, SortRangeAction } from "./actions/other-actions";
 import { ActionRegistryService } from "../registries/action-registry.service";
 import { WorkflowsModule } from "../workflows/workflows.module";
 
@@ -11,7 +11,6 @@ import { WorkflowsModule } from "../workflows/workflows.module";
         CreateSpreadsheetAction,
         AddRowAction,
         UpdateCellAction,
-        ReadRangeAction,
         CreateSheetAction,
         ClearRangeAction,
         DuplicateSheetAction,
@@ -22,7 +21,6 @@ import { WorkflowsModule } from "../workflows/workflows.module";
         CreateSpreadsheetAction,
         AddRowAction,
         UpdateCellAction,
-        ReadRangeAction,
         CreateSheetAction,
         ClearRangeAction,
         DuplicateSheetAction,
@@ -36,7 +34,6 @@ export class GoogleSheetsModule implements OnModuleInit {
         private readonly createSpreadsheetAction: CreateSpreadsheetAction,
         private readonly addRowAction: AddRowAction,
         private readonly updateCellAction: UpdateCellAction,
-        private readonly readRangeAction: ReadRangeAction,
         private readonly createSheetAction: CreateSheetAction,
         private readonly clearRangeAction: ClearRangeAction,
         private readonly duplicateSheetAction: DuplicateSheetAction,
@@ -49,7 +46,6 @@ export class GoogleSheetsModule implements OnModuleInit {
         this.actionRegistry.register(this.createSpreadsheetAction);
         this.actionRegistry.register(this.addRowAction);
         this.actionRegistry.register(this.updateCellAction);
-        this.actionRegistry.register(this.readRangeAction);
         this.actionRegistry.register(this.createSheetAction);
         this.actionRegistry.register(this.clearRangeAction);
         this.actionRegistry.register(this.duplicateSheetAction);
