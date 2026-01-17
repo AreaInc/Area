@@ -104,14 +104,6 @@ export class GoogleSheetsClient {
         return response.data;
     }
 
-    async readRange(spreadsheetId: string, range: string) {
-        await this.refreshTokenIfNeeded();
-        const response = await this.sheets.spreadsheets.values.get({
-            spreadsheetId,
-            range,
-        });
-        return response.data;
-    }
 
     async createSheet(spreadsheetId: string, sheetTitle: string) {
         await this.refreshTokenIfNeeded();
@@ -220,8 +212,42 @@ export class GoogleSheetsClient {
         };
     }
 
-    async sortRange(spreadsheetId: string, range: string, sortColumn: string | undefined, ascending: boolean, sheetId: number = 0) {
+    async sortRange(spreadsheetId: string, range: string, sortColumn: string | undefined, ascending: boolean, sheetId?: number) {
         await this.refreshTokenIfNeeded();
+
+        let finalSheetId = sheetId;
+        if (finalSheetId === undefined) {
+            let sheetName: string | undefined;
+            let rangeWithoutSheet = range;
+
+            if (range.includes('!')) {
+                const parts = range.split('!');
+                sheetName = parts[0];
+                rangeWithoutSheet = parts[1];
+            }
+
+            const metadata = await this.sheets.spreadsheets.get({
+                spreadsheetId,
+                fields: 'sheets.properties'
+            });
+
+            if (sheetName) {
+                const sheet = metadata.data.sheets?.find((s: any) => s.properties?.title === sheetName);
+                if (!sheet) {
+                    throw new Error(`Sheet "${sheetName}" not found`);
+                }
+                finalSheetId = sheet.properties?.sheetId;
+            } else {
+                finalSheetId = metadata.data.sheets?.[0]?.properties?.sheetId;
+            }
+
+            if (finalSheetId === undefined) {
+                throw new Error('Could not determine sheet ID');
+            }
+
+            range = rangeWithoutSheet;
+        }
+
         const { startRow, endRow, startCol, endCol } = this.parseRange(range);
         let sortColumnIndex: number;
         if (sortColumn) {
@@ -236,7 +262,7 @@ export class GoogleSheetsClient {
                 requests: [{
                     sortRange: {
                         range: {
-                            sheetId,
+                            sheetId: finalSheetId,
                             startRowIndex: startRow,
                             endRowIndex: endRow,
                             startColumnIndex: startCol,

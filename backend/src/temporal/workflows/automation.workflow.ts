@@ -13,7 +13,6 @@ const {
   createSpreadsheetActivity,
   addRowActivity,
   updateCellActivity,
-  readRangeActivity,
   createSheetActivity,
   clearRangeActivity,
   duplicateSheetActivity,
@@ -194,16 +193,6 @@ export async function automationWorkflow(
           spreadsheetId: input.actionConfig.spreadsheetId,
           range: input.actionConfig.range,
           value: input.actionConfig.value,
-          credentialId: input.actionCredentialsId,
-          userId: input.userId,
-        });
-        break;
-
-      case "google_sheets:read_in_range":
-        if (!input.actionCredentialsId) throw new Error("Credentials required");
-        actionResult = await readRangeActivity({
-          spreadsheetId: input.actionConfig.spreadsheetId,
-          range: input.actionConfig.range,
           credentialId: input.actionCredentialsId,
           userId: input.userId,
         });
