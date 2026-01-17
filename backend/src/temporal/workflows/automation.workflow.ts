@@ -400,10 +400,6 @@ export async function automationWorkflow(
       error: error.message,
     });
 
-    return {
-      success: false,
-      actionResult: null,
-      error: error.message || "Unknown error",
-    };
+    throw error;
   }
 }
