@@ -69,15 +69,24 @@ export class SpotifyClient {
         // Spotify returns 204 for some actions
         if (response.status === 204) return null;
 
+        const text = await response.text();
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch {
+            data = text; // Fallback to raw text if not JSON
+        }
+
         if (!response.ok) {
             let errorMsg = response.statusText;
-            try {
-                const errData = await response.json();
-                errorMsg = JSON.stringify(errData);
-            } catch { }
+            if (typeof data === 'object' && data !== null) {
+                errorMsg = JSON.stringify(data);
+            } else if (typeof data === 'string' && data.length > 0) {
+                errorMsg = data;
+            }
             throw new Error(`Spotify API Error ${response.status}: ${errorMsg}`);
         }
-        return response.json();
+        return data;
     }
 
     // --- Actions ---
