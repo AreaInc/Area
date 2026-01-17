@@ -1,12 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Credential, CreateCredentialDto } from '../types/credential';
-import { API_BASE } from './const';
+import { getApiBaseUrl } from './const';
 
 export function useCredentials() {
   return useQuery<Credential[]>({
     queryKey: ['credentials'],
     queryFn: async () => {
-      const response = await fetch(`${API_BASE}/oauth2-credential`, {
+      const response = await fetch(`${getApiBaseUrl()}/oauth2-credential`, {
         credentials: 'include',
       });
 
@@ -23,7 +23,7 @@ export function useCredential(credentialId: number) {
   return useQuery<Credential>({
     queryKey: ['credentials', credentialId],
     queryFn: async () => {
-      const response = await fetch(`${API_BASE}/oauth2-credential/${credentialId}`, {
+      const response = await fetch(`${getApiBaseUrl()}/oauth2-credential/${credentialId}`, {
         credentials: 'include',
       });
 
@@ -42,7 +42,7 @@ export function useCreateCredential() {
 
   return useMutation({
     mutationFn: async (dto: CreateCredentialDto) => {
-      const response = await fetch(`${API_BASE}/oauth2-credential`, {
+      const response = await fetch(`${getApiBaseUrl()}/oauth2-credential`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -68,7 +68,7 @@ export function useDeleteCredential() {
 
   return useMutation({
     mutationFn: async (credentialId: number) => {
-      const response = await fetch(`${API_BASE}/oauth2-credential/${credentialId}`, {
+      const response = await fetch(`${getApiBaseUrl()}/oauth2-credential/${credentialId}`, {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -86,7 +86,7 @@ export function useDeleteCredential() {
 }
 
 export function useInitiateOAuth(credentialId: number, redirectUrl?: string) {
-  const url = new URL(`${API_BASE}/oauth2-credential/auth`);
+  const url = new URL(`${getApiBaseUrl()}/oauth2-credential/auth`);
   url.searchParams.set('credentialId', credentialId.toString());
   if (redirectUrl) {
     url.searchParams.set('redirectUrl', redirectUrl);
@@ -96,5 +96,5 @@ export function useInitiateOAuth(credentialId: number, redirectUrl?: string) {
 }
 
 export function getOAuthCallbackUrl() {
-  return `${API_BASE}/oauth2-credential/callback`;
+  return `${getApiBaseUrl()}/oauth2-credential/callback`;
 }
