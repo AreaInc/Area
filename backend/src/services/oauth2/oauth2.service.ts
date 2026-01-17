@@ -264,11 +264,23 @@ export class OAuth2Service {
           },
           body,
         });
-        const data = (await res.json()) as any;
-        if (!res.ok)
+        const responseText = await res.text();
+        let data: any;
+        try {
+          data = JSON.parse(responseText);
+        } catch (e) {
           throw new Error(
-            data.error_description || "Failed to get Spotify token",
+            `Failed to parse Spotify response: ${responseText.substring(0, 100)}`,
           );
+        }
+
+        if (!res.ok) {
+          throw new Error(
+            data.error_description ||
+            data.error ||
+            `Spotify API Error: ${responseText}`,
+          );
+        }
 
         tokens = {
           access_token: data.access_token,
@@ -296,9 +308,18 @@ export class OAuth2Service {
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body,
         });
-        const data = (await res.json()) as any;
+        const responseText = await res.text();
+        let data: any;
+        try {
+          data = JSON.parse(responseText);
+        } catch (e) {
+          throw new Error(
+            `Failed to parse Twitch response: ${responseText.substring(0, 100)}`,
+          );
+        }
+
         if (!res.ok)
-          throw new Error(data.message || "Failed to get Twitch token");
+          throw new Error(data.message || `Twitch API Error: ${responseText}`);
 
         tokens = {
           access_token: data.access_token,
