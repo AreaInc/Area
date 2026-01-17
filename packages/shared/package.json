@@ -1,0 +1,21 @@
+{
+  "name": "@area/shared",
+  "version": "0.0.1",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch"
+  },
+  "peerDependencies": {
+    "react": "*",
+    "@tanstack/react-query": "*"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0",
+    "@tanstack/react-query": "^5.0.0",
+    "@types/react": "^18.0.0"
+  }
+}
