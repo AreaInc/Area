@@ -26,79 +26,7 @@ import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { WorkflowCanvas } from '@/components/dashboard/WorkflowCanvas';
 import { TriggerCard } from '@/components/dashboard/TriggerCard';
 import { ActionCard } from '@/components/dashboard/ActionCard';
-
-const QUICK_TEMPLATES = [
-    {
-      name: 'Public webhook → Discord',
-      description: 'Start from an unauthenticated webhook and fan out to a Discord channel.',
-      trigger: {
-        provider: 'webhook',
-        triggerId: 'incoming-webhook',
-        config: { path: '/hooks/public', secret: '' },
-      },
-      action: {
-        provider: 'discord',
-        actionId: 'send-webhook',
-        config: {
-          webhookUrl: 'https://discord.com/api/webhooks/xxx/yyy',
-          content: 'Hello from AREA!',
-        },
-      },
-    },
-    {
-      name: 'Cron (hourly) → Gmail send',
-      description: 'Run every hour and send a status email through Gmail.',
-      trigger: {
-        provider: 'scheduler',
-        triggerId: 'cron',
-        config: { cron: '0 * * * *' },
-      },
-      action: {
-        provider: 'gmail',
-        actionId: 'send-email',
-        config: {
-          to: 'you@example.com',
-          subject: 'Hourly ping from AREA',
-          body: 'This is a scheduled notification.',
-        },
-      },
-    },
-    {
-      name: 'Gmail inbound → Gmail auto-reply',
-      description: 'Use Gmail receive trigger to auto-reply to matching emails.',
-      trigger: {
-        provider: 'gmail',
-        triggerId: 'receive-email',
-        config: { from: '' },
-      },
-      action: {
-        provider: 'gmail',
-        actionId: 'send-email',
-        config: {
-          to: '{{from}}',
-          subject: 'Re: {{subject}}',
-          body: 'Thanks for reaching out!',
-        },
-      },
-    },
-    {
-      name: 'One-shot Execution',
-      description: 'Run a workflow exactly once immediately upon activation.',
-      trigger: {
-        provider: 'scheduler',
-        triggerId: 'on-activation',
-        config: {},
-      },
-      action: {
-        provider: 'discord',
-        actionId: 'send-webhook',
-        config: {
-          webhookUrl: '',
-          content: 'One-shot workflow executed!',
-        },
-      },
-    },
-  ];
+import { QUICK_TEMPLATES } from '@/lib/templates';
 
 export const Route = createFileRoute('/dashboard/')({
   component: Dashboard,
@@ -317,22 +245,22 @@ function Dashboard() {
   return (
     <div className="h-full overflow-y-auto p-6 flex flex-col w-full">
       <div className="w-full space-y-6">
-        <DashboardHeader 
-            workflowName={workflowName}
-            onNameChange={setWorkflowName}
-            isActive={selectedWorkflow.isActive}
-            onToggleActive={handleToggleActive}
-            onSave={handleSave}
-            onDelete={handleDelete}
-            isSaving={isSaving}
-            isPending={activateMutation.isPending || deactivateMutation.isPending || deleteMutation.isPending}
-            templates={QUICK_TEMPLATES}
-            onApplyTemplate={applyTemplate}
+        <DashboardHeader
+          workflowName={workflowName}
+          onNameChange={setWorkflowName}
+          isActive={selectedWorkflow.isActive}
+          onToggleActive={handleToggleActive}
+          onSave={handleSave}
+          onDelete={handleDelete}
+          isSaving={isSaving}
+          isPending={activateMutation.isPending || deactivateMutation.isPending || deleteMutation.isPending}
+          templates={QUICK_TEMPLATES}
+          onApplyTemplate={applyTemplate}
         />
 
-        <WorkflowCanvas 
-            triggerNode={<TriggerCard trigger={trigger} onChange={setTrigger} />}
-            actionNode={<ActionCard action={action} onChange={setAction} />}
+        <WorkflowCanvas
+          triggerNode={<TriggerCard trigger={trigger} onChange={setTrigger} />}
+          actionNode={<ActionCard action={action} onChange={setAction} />}
         />
 
         {selectedWorkflow.lastRun && (
@@ -342,20 +270,20 @@ function Dashboard() {
         )}
 
         <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        This action cannot be undone. This will permanently delete the workflow "{selectedWorkflow.name}".
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                        {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
-                    </AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the workflow "{selectedWorkflow.name}".
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
         </AlertDialog>
       </div>
     </div>
