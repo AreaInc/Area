@@ -52,18 +52,31 @@ export async function playMusicActivity(input: PlayMusicInput) {
 export interface AddToPlaylistInput { playlistName?: string; playlistId?: string; trackName?: string; trackUri?: string; credentialId: number; userId: string; }
 export async function addToPlaylistActivity(input: AddToPlaylistInput) {
     const client = await getClient(input.credentialId, input.userId);
+
     let pId = input.playlistId;
     if (!pId && input.playlistName) {
-        const playlist = await client.searchPlaylist(input.playlistName);
-        pId = playlist.id;
+        try {
+            const playlist = await client.searchPlaylist(input.playlistName);
+            if (!playlist || !playlist.id) {
+                // searchPlaylist usually throws if empty, but extra safety here
+                throw new Error(`Playlist '${input.playlistName}' not found or invalid response`);
+            }
+            pId = playlist.id;
+        } catch (error) {
+            throw new Error(`Failed to find playlist '${input.playlistName}': ${error instanceof Error ? error.message : String(error)}`);
+        }
     }
-    if (!pId) throw new Error("Playlist not found");
+    if (!pId) throw new Error("Playlist ID or Name must be provided, or playlist was not found.");
 
     let tUri = input.trackUri;
     if (!tUri && input.trackName) {
-        tUri = await client.searchTrack(input.trackName);
+        try {
+            tUri = await client.searchTrack(input.trackName);
+        } catch (error) {
+            throw new Error(`Failed to find track '${input.trackName}': ${error instanceof Error ? error.message : String(error)}`);
+        }
     }
-    if (!tUri) throw new Error("Track not found");
+    if (!tUri) throw new Error("Track URI or Name must be provided, or track was not found.");
 
     await client.addTracksToPlaylist(pId, [tUri]);
     return { success: true };

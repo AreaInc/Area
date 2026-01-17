@@ -38,15 +38,19 @@ export class AddToPlaylistAction implements IAction {
 
     public readonly inputSchema = {
         type: "object",
-        required: ["playlistName", "trackName"],
+        required: [], // No strict requirements if we allow either name OR id
         properties: {
-            playlistName: { type: "string" },
-            trackName: { type: "string" },
+            playlistName: { type: "string", description: "Name of the playlist to search for" },
+            playlistId: { type: "string", description: "Spotify Playlist ID (overrides name)" },
+            trackName: { type: "string", description: "Name of the track to search for" },
+            trackUri: { type: "string", description: "Spotify Track URI (overrides name)" },
         },
     };
 
     async validateInput(config: Record<string, any>): Promise<boolean> {
-        return !!config.playlistName && !!config.trackName;
+        const hasPlaylist = !!config.playlistName || !!config.playlistId;
+        const hasTrack = !!config.trackName || !!config.trackUri;
+        return hasPlaylist && hasTrack;
     }
     getMetadata(): ActionMetadata {
         return { id: this.id, name: this.name, description: this.description, serviceProvider: this.serviceProvider, inputSchema: this.inputSchema, requiresCredentials: this.requiresCredentials };
