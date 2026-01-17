@@ -7,12 +7,11 @@ interface ServiceDetailsProps {
     service: Service
     authStatus?: 'success' | 'error'
 }
-
-import { API_BASE } from '@area/shared'
+import { getApiBaseUrl } from '@area/shared'
 
 export function ServiceDetails({ service, authStatus }: ServiceDetailsProps) {
     const isOAuth2Service = service.credentialTypes.includes('OAUTH2')
-    const backendAuthUrl = `${API_BASE}/auth/${service.provider}/authorize` // Adjust if needed
+    const backendAuthUrl = `${getApiBaseUrl()}/auth/${service.provider}/authorize` // Adjust if needed
 
     return (
         <div className="max-w-5xl mx-auto">
@@ -27,7 +26,7 @@ export function ServiceDetails({ service, authStatus }: ServiceDetailsProps) {
             <div className="bg-card border border-border rounded-xl p-8 mb-8 shadow-sm">
                 <div className="flex flex-col md:flex-row gap-8 items-start">
                     <div className="p-6 bg-muted rounded-xl w-32 h-32 flex items-center justify-center shrink-0">
-                         {service.imageUrl ? (
+                        {service.imageUrl ? (
                             <img src={service.imageUrl} alt={service.name} className="w-full h-full object-contain" />
                         ) : (
                             <div className="w-16 h-16 bg-gray-400 rounded-full" />
@@ -113,10 +112,10 @@ function ActionCard({ action }: { action: Action }) {
                 </div>
                 <div className="bg-muted/50 rounded-lg p-3 font-mono text-xs">
                     {Object.keys(action.inputSchema.properties || {}).map((prop) => (
-                         <div key={prop} className="flex items-center gap-2 mb-1 last:mb-0">
+                        <div key={prop} className="flex items-center gap-2 mb-1 last:mb-0">
                             <span className="text-primary">{prop}</span>
                             <span className="text-muted-foreground">: {action.inputSchema.properties[prop].type}</span>
-                         </div>
+                        </div>
                     ))}
                     {Object.keys(action.inputSchema.properties || {}).length === 0 && (
                         <span className="text-muted-foreground italic">No inputs required</span>
