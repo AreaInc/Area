@@ -16,10 +16,10 @@ export function ProfileSettings() {
 
   // Sync state with user data when it loads
   if (user && !name) {
-      // This is a bit of a hack to set initial state if user loads later,
-      // but better would be useEffect or using user as initial if guaranteed loaded.
-      // Since we check user in parent or here, lets do it in useEffect or just let the user be controlled.
-      // Actually, if user is null initially, these are empty. When user comes in, we want to update them.
+    // This is a bit of a hack to set initial state if user loads later,
+    // but better would be useEffect or using user as initial if guaranteed loaded.
+    // Since we check user in parent or here, lets do it in useEffect or just let the user be controlled.
+    // Actually, if user is null initially, these are empty. When user comes in, we want to update them.
   }
 
   // Effect to update local state when user data becomes available
@@ -49,24 +49,24 @@ export function ProfileSettings() {
   const handleDelete = async () => {
     setIsLoading(true)
     try {
-        const response = await fetch(`https://${import.meta.env.VITE_DEPLOY_ADDRESS ?? "localhost"}/api/users/me`, {
-            method: 'DELETE',
-            credentials: 'include'
-        })
+      const response = await fetch(`https://${import.meta.env.VITE_DEPLOY_ADDRESS ?? "localhost"}/api/users/me`, {
+        method: 'DELETE',
+        credentials: 'include'
+      })
 
-        if (!response.ok) {
-             throw new Error('Failed to delete account')
-        }
+      if (!response.ok) {
+        throw new Error('Failed to delete account')
+      }
 
-        await authClient.signOut()
+      await authClient.signOut()
 
-        // Redirect to login or home
-        navigate({ to: '/login' })
+      // Redirect to login or home
+      navigate({ to: '/login' })
     } catch (err: any) {
-        setMessage({ type: 'error', text: err.message || 'Failed to delete account' })
-        setIsDeleteModalOpen(false)
+      setMessage({ type: 'error', text: err.message || 'Failed to delete account' })
+      setIsDeleteModalOpen(false)
     } finally {
-        setIsLoading(false)
+      setIsLoading(false)
     }
   }
 
@@ -88,11 +88,10 @@ export function ProfileSettings() {
         </div>
 
         {message && (
-            <div className={`p-4 rounded-lg mb-6 ${
-                message.type === 'success' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-destructive/10 text-destructive border border-destructive/20'
+          <div className={`p-4 rounded-lg mb-6 ${message.type === 'success' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-destructive/10 text-destructive border border-destructive/20'
             }`}>
-                {message.text}
-            </div>
+            {message.text}
+          </div>
         )}
 
         <div className="flex flex-col sm:flex-row items-end gap-4">
@@ -124,8 +123,8 @@ export function ProfileSettings() {
           Once you delete your account, there is no going back. Please be certain.
         </p>
         <button
-            onClick={() => setIsDeleteModalOpen(true)}
-            className="px-6 py-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-lg transition-colors border border-destructive/50 shadow-lg shadow-destructive/20"
+          onClick={() => setIsDeleteModalOpen(true)}
+          className="px-6 py-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-lg transition-colors border border-destructive/50 shadow-lg shadow-destructive/20"
         >
           Delete Account
         </button>
@@ -137,28 +136,28 @@ export function ProfileSettings() {
         title="Delete Account"
       >
         <div className="space-y-4">
-            <div className="flex items-center gap-3 text-destructive p-4 bg-destructive/10 rounded-lg border border-destructive/20">
-                <AlertTriangle size={24} />
-                <p className="font-medium">This action cannot be undone.</p>
-            </div>
-            <p className="text-muted-foreground">
-                Are you sure you want to delete your account? All your workflows, credentials, and data will be permanently removed.
-            </p>
-            <div className="flex justify-end gap-3 mt-6">
-                <button
-                    onClick={() => setIsDeleteModalOpen(false)}
-                    className="px-4 py-2 hover:bg-muted rounded-lg transition-colors text-foreground"
-                >
-                    Cancel
-                </button>
-                <button
-                    onClick={handleDelete}
-                    disabled={isLoading}
-                    className="px-4 py-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-lg transition-colors"
-                >
-                    {isLoading ? 'Deleting...' : 'Yes, Delete My Account'}
-                </button>
-            </div>
+          <div className="flex items-center gap-3 text-destructive p-4 bg-destructive/10 rounded-lg border border-destructive/20">
+            <AlertTriangle size={24} />
+            <p className="font-medium">This action cannot be undone.</p>
+          </div>
+          <p className="text-muted-foreground">
+            Are you sure you want to delete your account? All your workflows, credentials, and data will be permanently removed.
+          </p>
+          <div className="flex justify-end gap-3 mt-6">
+            <button
+              onClick={() => setIsDeleteModalOpen(false)}
+              className="px-4 py-2 hover:bg-muted rounded-lg transition-colors text-foreground"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleDelete}
+              disabled={isLoading}
+              className="px-4 py-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-lg transition-colors"
+            >
+              {isLoading ? 'Deleting...' : 'Yes, Delete My Account'}
+            </button>
+          </div>
         </div>
       </Modal>
     </div>
