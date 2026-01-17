@@ -82,7 +82,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/dashboard/services/$provider': typeof DashboardServicesProviderRoute
-  '/dashboard/services': typeof DashboardServicesIndexRoute
+  '/dashboard/services/': typeof DashboardServicesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -120,7 +120,7 @@ export interface FileRouteTypes {
     | '/dashboard/profile'
     | '/dashboard/'
     | '/dashboard/services/$provider'
-    | '/dashboard/services'
+    | '/dashboard/services/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -214,7 +214,7 @@ declare module '@tanstack/react-router' {
     '/dashboard/services/': {
       id: '/dashboard/services/'
       path: '/services'
-      fullPath: '/dashboard/services'
+      fullPath: '/dashboard/services/'
       preLoaderRoute: typeof DashboardServicesIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
