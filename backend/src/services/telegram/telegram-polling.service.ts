@@ -134,11 +134,18 @@ export class TelegramPollingService implements OnModuleInit, OnModuleDestroy {
                 }
 
                 // Identify the message object (could be message, channel_post, etc.)
-                const message = update.message || update.channel_post;
+                let message = update.message || update.channel_post;
+                let isEdit = false;
+
+                if (!message) {
+                    message = update.edited_message || update.edited_channel_post;
+                    isEdit = true;
+                }
+
                 if (!message) continue;
 
                 // Determine triggers to fire
-                await this.processMessage(token, message, wfs);
+                await this.processMessage(token, message, wfs, isEdit);
             }
 
             // Update offset
@@ -149,12 +156,30 @@ export class TelegramPollingService implements OnModuleInit, OnModuleDestroy {
         }
     }
 
-    private async processMessage(token: string, message: any, wfs: any[]) {
+    private async processMessage(token: string, message: any, wfs: any[], isEdit: boolean = false) {
         // We have a list of workflows interested in this token.
         // We iterate through them and check if the message matches their trigger criteria.
 
         for (const wf of wfs) {
             const config = wf.triggerConfig as any;
+
+            if (isEdit) {
+                // 9. On Message Edited
+                if (wf.triggerId === "on-message-edited") {
+                    await this.workflowsService.triggerWorkflowExecution(wf.id, {
+                        messageId: message.message_id,
+                        chatId: message.chat.id,
+                        userId: message.from?.id,
+                        username: message.from?.username,
+                        text: message.text || message.caption, // caption for media
+                        editDate: new Date(message.edit_date * 1000).toISOString(),
+                    });
+                }
+                // Skip other triggers for edits
+                continue;
+            }
+
+            // Standard triggers (non-edit)
 
             // 1. On Message (any text or specific regex)
             if (wf.triggerId === "on-message") {
@@ -277,6 +302,20 @@ export class TelegramPollingService implements OnModuleInit, OnModuleDestroy {
                         mimeType: video.mime_type || 'video/mp4', // video_note might not have mime_type
                         fileId: video.file_id,
                         isVideoNote: !!message.video_note,
+                        date: new Date(message.date * 1000).toISOString(),
+                    });
+                }
+            }
+
+            // 8. On Start DM (First Interaction)
+            if (wf.triggerId === "on-start-dm") {
+                if (message.text === '/start' && message.chat.type === 'private') {
+                    await this.workflowsService.triggerWorkflowExecution(wf.id, {
+                        messageId: message.message_id,
+                        chatId: message.chat.id,
+                        userId: message.from?.id,
+                        username: message.from?.username,
+                        firstName: message.from?.first_name,
                         date: new Date(message.date * 1000).toISOString(),
                     });
                 }

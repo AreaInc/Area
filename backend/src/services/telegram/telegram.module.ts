@@ -15,6 +15,8 @@ import { OnNewMemberTrigger } from "./triggers/on-new-member.trigger";
 import { OnReplyMessageTrigger } from "./triggers/on-reply-message.trigger";
 import { OnVoiceMessageTrigger } from "./triggers/on-voice-message.trigger";
 import { OnVideoMessageTrigger } from "./triggers/on-video-message.trigger";
+import { OnStartDmTrigger } from "./triggers/on-start-dm.trigger";
+import { OnMessageEditedTrigger } from "./triggers/on-message-edited.trigger";
 
 import { TelegramPollingService } from "./telegram-polling.service";
 
@@ -34,6 +36,8 @@ import { TelegramPollingService } from "./telegram-polling.service";
     OnReplyMessageTrigger,
     OnVoiceMessageTrigger,
     OnVideoMessageTrigger,
+    OnStartDmTrigger,
+    OnMessageEditedTrigger,
 
     TelegramPollingService,
   ],
@@ -63,6 +67,8 @@ export class TelegramModule implements OnModuleInit {
     private readonly onReplyMessageTrigger: OnReplyMessageTrigger,
     private readonly onVoiceMessageTrigger: OnVoiceMessageTrigger,
     private readonly onVideoMessageTrigger: OnVideoMessageTrigger,
+    private readonly onStartDmTrigger: OnStartDmTrigger,
+    private readonly onMessageEditedTrigger: OnMessageEditedTrigger,
   ) { }
 
   onModuleInit() {
@@ -81,6 +87,8 @@ export class TelegramModule implements OnModuleInit {
     this.triggerRegistry.register(this.onReplyMessageTrigger);
     this.triggerRegistry.register(this.onVoiceMessageTrigger);
     this.triggerRegistry.register(this.onVideoMessageTrigger);
+    this.triggerRegistry.register(this.onStartDmTrigger);
+    this.triggerRegistry.register(this.onMessageEditedTrigger);
 
     console.log(
       "[TelegramModule] Registered Telegram features"
