@@ -11,3 +11,5 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore - import.meta is available at runtime in Vite environments
 export const API_BASE = "https://api.areamoncul.click/api"
+// export const API_BASE = "http://localhost:8080/api"
+
