@@ -6,7 +6,11 @@ import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { store } from './store/store'
 import { queryClient } from './lib/query-client'
 import { routeTree } from './routeTree.gen'
+import { setApiBaseUrl } from '@area/shared'
+import { API_URL } from './config'
 import './index.css'
+
+setApiBaseUrl(API_URL)
 
 const router = createRouter({ routeTree })
 
