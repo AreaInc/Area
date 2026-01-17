@@ -44,7 +44,8 @@ __export(index_exports, {
 module.exports = __toCommonJS(index_exports);
 
 // src/hooks/const.ts
-var API_BASE = "http://localhost:8080/api";
+var import_meta = {};
+var API_BASE = import_meta.env?.VITE_API_URL ?? "http://localhost:8080/api";
 
 // src/hooks/useCredentials.ts
 var import_react_query = require("@tanstack/react-query");

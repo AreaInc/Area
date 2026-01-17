@@ -1,5 +1,5 @@
 // src/hooks/const.ts
-var API_BASE = "http://localhost:8080/api";
+var API_BASE = import.meta.env?.VITE_API_URL ?? "http://localhost:8080/api";
 
 // src/hooks/useCredentials.ts
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";

@@ -1,6 +1,6 @@
 import * as _tanstack_react_query from '@tanstack/react-query';
 
-declare const API_BASE = "http://localhost:8080/api";
+declare const API_BASE: any;
 
 interface Credential {
     id: number;
