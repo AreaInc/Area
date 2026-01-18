@@ -20,6 +20,7 @@ import { GoogleSheetsModule } from "./services/google-sheets/google-sheets.modul
 import { SpotifyModule } from "./services/spotify/spotify.module";
 import { TwitchModule } from "./services/twitch/twitch.module";
 import { YouTubeModule } from "./services/youtube/youtube.module";
+import { GoogleCalendarModule } from "./services/google-calendar/google-calendar.module";
 
 import { AuthModule } from "@thallesp/nestjs-better-auth";
 import { auth } from "./auth";
@@ -89,6 +90,7 @@ import { auth } from "./auth";
     SpotifyModule,
     TwitchModule,
     YouTubeModule,
+    GoogleCalendarModule,
     ApiModule,
   ],
   controllers: [AppController],

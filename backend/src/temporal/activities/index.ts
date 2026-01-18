@@ -92,6 +92,16 @@ export type {
   CommentVideoInput,
 } from "../../services/youtube/youtube.activities";
 
+export {
+  createEventActivity,
+  quickAddEventActivity,
+} from "../../services/google-calendar/google-calendar.activities";
+
+export type {
+  CreateEventInput,
+  QuickAddEventInput,
+} from "../../services/google-calendar/google-calendar.activities";
+
 
 
 

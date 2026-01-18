@@ -36,6 +36,8 @@ const {
   subscribeChannelActivity,
   unsubscribeChannelActivity,
   commentVideoActivity,
+  createEventActivity,
+  quickAddEventActivity,
 } = proxyActivities<typeof activities>({
   startToCloseTimeout: "5 minutes",
   retry: {
@@ -413,6 +415,33 @@ export async function automationWorkflow(
           comment: input.actionConfig.comment,
           credentialId: input.actionCredentialsId,
           userId: input.userId,
+        });
+        break;
+
+      case "google-calendar:create-event":
+        if (!input.actionCredentialsId) throw new Error("Credentials required");
+        actionResult = await createEventActivity({
+          calendarId: input.actionConfig.calendarId,
+          summary: input.actionConfig.summary,
+          description: input.actionConfig.description,
+          location: input.actionConfig.location,
+          start: input.actionConfig.start,
+          end: input.actionConfig.end,
+          attendees: input.actionConfig.attendees,
+          credentialId: input.actionCredentialsId,
+          userId: input.userId,
+          triggerData: input.triggerData,
+        });
+        break;
+
+      case "google-calendar:quick-add":
+        if (!input.actionCredentialsId) throw new Error("Credentials required");
+        actionResult = await quickAddEventActivity({
+          calendarId: input.actionConfig.calendarId,
+          text: input.actionConfig.text,
+          credentialId: input.actionCredentialsId,
+          userId: input.userId,
+          triggerData: input.triggerData,
         });
         break;
 
