@@ -91,4 +91,113 @@ describe("TelegramPollingService", () => {
             expect(global.fetch).toHaveBeenCalled();
         });
     });
+    describe("Trigger Processing", () => {
+        it("should process on-voice-message trigger", async () => {
+            const wf = { id: 1, triggerId: "on-voice-message", triggerConfig: {} };
+            const message = {
+                message_id: 123,
+                chat: { id: 456 },
+                from: { id: 789 },
+                date: 100000,
+                voice: { duration: 10, mime_type: "audio/ogg", file_id: "voice1" }
+            };
+            await (service as any).processMessage("token", message, [wf]);
+            expect(workflowsServiceMock.triggerWorkflowExecution).toHaveBeenCalledWith(1, expect.objectContaining({
+                duration: 10,
+                mimeType: "audio/ogg"
+            }));
+        });
+
+        it("should process on-video-message trigger", async () => {
+            const wf = { id: 1, triggerId: "on-video-message", triggerConfig: {} };
+            const message = {
+                message_id: 123,
+                chat: { id: 456 },
+                from: { id: 789 },
+                date: 100000,
+                video: { duration: 20, mime_type: "video/mp4", file_id: "video1" }
+            };
+            await (service as any).processMessage("token", message, [wf]);
+            expect(workflowsServiceMock.triggerWorkflowExecution).toHaveBeenCalledWith(1, expect.objectContaining({
+                duration: 20,
+                mimeType: "video/mp4"
+            }));
+        });
+
+        it("should process on-video-message trigger (video note)", async () => {
+            const wf = { id: 1, triggerId: "on-video-message", triggerConfig: {} };
+            const message = {
+                message_id: 123,
+                chat: { id: 456 },
+                from: { id: 789 },
+                date: 100000,
+                video_note: { duration: 5, file_id: "note1" }
+            };
+            await (service as any).processMessage("token", message, [wf]);
+            expect(workflowsServiceMock.triggerWorkflowExecution).toHaveBeenCalledWith(1, expect.objectContaining({
+                isVideoNote: true,
+                duration: 5
+            }));
+        });
+
+        it("should process on-start-dm trigger", async () => {
+            const wf = { id: 1, triggerId: "on-start-dm", triggerConfig: {} };
+            const message = {
+                message_id: 123,
+                chat: { id: 456, type: "private" },
+                from: { id: 789, username: "user" },
+                date: 100000,
+                text: "/start"
+            };
+            await (service as any).processMessage("token", message, [wf]);
+            expect(workflowsServiceMock.triggerWorkflowExecution).toHaveBeenCalledWith(1, expect.objectContaining({
+                username: "user"
+            }));
+        });
+
+        it("should process on-pinned-message trigger", async () => {
+            const wf = { id: 1, triggerId: "on-pinned-message", triggerConfig: {} };
+            const message = {
+                message_id: 123,
+                chat: { id: 456 },
+                from: { id: 789 },
+                date: 100000,
+                pinned_message: { message_id: 999, text: "Pinned" }
+            };
+            await (service as any).processMessage("token", message, [wf]);
+            expect(workflowsServiceMock.triggerWorkflowExecution).toHaveBeenCalledWith(1, expect.objectContaining({
+                pinnedText: "Pinned"
+            }));
+        });
+
+        it("should process on-new-member trigger", async () => {
+            const wf = { id: 1, triggerId: "on-new-member", triggerConfig: {} };
+            const message = {
+                message_id: 123,
+                chat: { id: 456 },
+                from: { id: 789 },
+                date: 100000,
+                new_chat_members: [{ id: 101, username: "newbie" }]
+            };
+            await (service as any).processMessage("token", message, [wf]);
+            expect(workflowsServiceMock.triggerWorkflowExecution).toHaveBeenCalledWith(1, expect.objectContaining({
+                newUserId: 101
+            }));
+        });
+
+        it("should process on-reply-message trigger", async () => {
+            const wf = { id: 1, triggerId: "on-reply-message", triggerConfig: {} };
+            const message = {
+                message_id: 123,
+                chat: { id: 456 },
+                from: { id: 789 },
+                date: 100000,
+                reply_to_message: { message_id: 111, text: "Original" }
+            };
+            await (service as any).processMessage("token", message, [wf]);
+            expect(workflowsServiceMock.triggerWorkflowExecution).toHaveBeenCalledWith(1, expect.objectContaining({
+                replyToText: "Original"
+            }));
+        });
+    });
 });

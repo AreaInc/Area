@@ -76,6 +76,39 @@ describe("TemporalClientService", () => {
         expect(clientMock.workflow.start).toHaveBeenCalled();
     });
 
+    it("should cancel workflow", async () => {
+        (Connection.connect as jest.Mock).mockResolvedValue({ close: jest.fn() });
+        await service.onModuleInit();
+
+        const clientMock = (Client as jest.Mock).mock.results[0].value;
+        const handleMock = clientMock.workflow.getHandle();
+
+        await service.cancelWorkflow("wf-id");
+        expect(handleMock.cancel).toHaveBeenCalled();
+    });
+
+    it("should get workflow result", async () => {
+        (Connection.connect as jest.Mock).mockResolvedValue({ close: jest.fn() });
+        await service.onModuleInit();
+
+        const clientMock = (Client as jest.Mock).mock.results[0].value;
+        const handleMock = clientMock.workflow.getHandle();
+        handleMock.result.mockResolvedValue("success");
+
+        expect(await service.getWorkflowResult("wf-id")).toBe("success");
+    });
+
+    it("should return false if checking workflow running status fails", async () => {
+        (Connection.connect as jest.Mock).mockResolvedValue({ close: jest.fn() });
+        await service.onModuleInit();
+
+        const clientMock = (Client as jest.Mock).mock.results[0].value;
+        const handleMock = clientMock.workflow.getHandle();
+        handleMock.describe.mockRejectedValue(new Error("Not found"));
+
+        expect(await service.isWorkflowRunning("wf-id")).toBe(false);
+    });
+
     it("should check if workflow is running", async () => {
         (Connection.connect as jest.Mock).mockResolvedValue({ close: jest.fn() });
         await service.onModuleInit();
