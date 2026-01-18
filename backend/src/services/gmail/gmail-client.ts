@@ -3,7 +3,7 @@ import { google } from "googleapis";
 type OAuth2Client = any;
 type Gmail = any;
 
-interface GmailCredentials {
+export interface GmailCredentials {
   data: {
     accessToken?: string;
     refreshToken?: string;
@@ -95,18 +95,16 @@ export class GmailClient {
     const subject = params.subject;
     const body = params.body;
 
-    const email = [
+    const headers = [
       `To: ${to}`,
-      cc ? `Cc: ${cc}` : "",
-      bcc ? `Bcc: ${bcc}` : "",
+      cc ? `Cc: ${cc}` : null,
+      bcc ? `Bcc: ${bcc}` : null,
       "X-Area-Generated: true",
       `Subject: ${subject}`,
       `Content-Type: ${params.isHtml ? "text/html" : "text/plain"}; charset=utf-8`,
-      "",
-      body,
-    ]
-      .filter((line) => line !== "")
-      .join("\n");
+    ].filter((line) => line !== null);
+
+    const email = [...headers, "", body].join("\n");
 
     const encodedEmail = Buffer.from(email)
       .toString("base64")
@@ -127,6 +125,57 @@ export class GmailClient {
       messageId: (response.data?.id as string | undefined) || "",
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       threadId: (response.data?.threadId as string | undefined) || "",
+    };
+  }
+
+  async readEmails(
+    query?: string,
+    maxResults?: number,
+    labelIds?: string[],
+  ): Promise<{
+    messages: Array<{
+      id: string;
+      threadId: string;
+      snippet: string;
+      from: string;
+      to: string;
+      subject: string;
+      date: string;
+    }>;
+    totalCount: number;
+  }> {
+    await this.refreshTokenIfNeeded();
+
+    const { messages: messageList } = await this.listMessages({
+      query,
+      maxResults: maxResults || 10,
+      labelIds,
+    });
+
+    const messages = await Promise.all(
+      messageList.slice(0, maxResults || 10).map(async (msg) => {
+        if (!msg.id) return null;
+
+        const fullMessage = await this.getMessage(msg.id);
+        const details = this.getMessageDetails(fullMessage);
+
+        return {
+          id: details.id,
+          threadId: details.threadId,
+          snippet: details.snippet,
+          from: details.from,
+          to: details.to,
+          subject: details.subject,
+          date: details.date,
+        };
+      }),
+    );
+
+    const validMessages = messages.filter((msg) => msg !== null);
+
+    return {
+      messages: validMessages,
+      totalCount: validMessages.length,
     };
   }
 

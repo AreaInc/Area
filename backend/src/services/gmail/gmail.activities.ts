@@ -1,4 +1,3 @@
-import { Context } from "@temporalio/activity";
 import { google } from "googleapis";
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
@@ -17,72 +16,48 @@ async function loadCredentials(credentialId: number, userId: string) {
     .from(schema.credentials)
     .where(eq(schema.credentials.id, credentialId));
 
-  if (!credential) {
-    throw new Error("Credentials not found");
-  }
-
-  if (credential.userId !== userId) {
-    throw new Error("Unauthorized: Credentials do not belong to user");
-  }
-
+  if (!credential) throw new Error("Credentials not found");
+  if (credential.userId !== userId) throw new Error("Unauthorized");
   return credential;
 }
 
-async function ensureFreshAccessToken(credential: {
-  id: number;
-  accessToken: string | null;
-  refreshToken: string | null;
-  expiresAt: Date | null;
-  clientId: string | null;
-  clientSecret: string | null;
-}) {
-  if (!credential.accessToken) {
-    throw new Error("Missing access token");
-  }
-
+async function ensureFreshAccessToken(credential: any) {
+  if (!credential.accessToken) throw new Error("Missing access token");
   const expiresAt = credential.expiresAt?.getTime() || 0;
-  const needsRefresh = expiresAt > 0 && expiresAt <= Date.now() + 60_000;
+  if (expiresAt > 0 && expiresAt <= Date.now() + 60_000) {
+    if (!credential.refreshToken || !credential.clientId || !credential.clientSecret) {
+      throw new Error("Missing OAuth2 refresh credentials");
+    }
+    const oauth2Client = new google.auth.OAuth2(credential.clientId, credential.clientSecret);
+    oauth2Client.setCredentials({ refresh_token: credential.refreshToken });
+    const { credentials: newTokens } = await oauth2Client.refreshAccessToken();
+    const newExpiresAt = newTokens.expiry_date ? new Date(newTokens.expiry_date) : null;
 
-  if (!needsRefresh) {
-    return credential;
-  }
-
-  if (
-    !credential.refreshToken ||
-    !credential.clientId ||
-    !credential.clientSecret
-  ) {
-    throw new Error("Missing OAuth2 refresh credentials");
-  }
-
-  const oauth2Client = new google.auth.OAuth2(
-    credential.clientId,
-    credential.clientSecret,
-  );
-  oauth2Client.setCredentials({ refresh_token: credential.refreshToken });
-
-  const { credentials: newTokens } = await oauth2Client.refreshAccessToken();
-  const newExpiresAt = newTokens.expiry_date
-    ? new Date(newTokens.expiry_date)
-    : null;
-
-  await db
-    .update(schema.credentials)
-    .set({
+    await db.update(schema.credentials).set({
       accessToken: newTokens.access_token || credential.accessToken,
       refreshToken: newTokens.refresh_token || credential.refreshToken,
       expiresAt: newExpiresAt,
       isValid: true,
       updatedAt: new Date(),
-    })
-    .where(eq(schema.credentials.id, credential.id));
+    }).where(eq(schema.credentials.id, credential.id));
 
-  return {
-    ...credential,
-    accessToken: newTokens.access_token || credential.accessToken,
-    refreshToken: newTokens.refresh_token || credential.refreshToken,
-    expiresAt: newExpiresAt,
-  };
+    return { ...credential, accessToken: newTokens.access_token, refreshToken: newTokens.refresh_token, expiresAt: newExpiresAt };
+  }
+  return credential;
+}
+
+async function getClient(credentialId: number, userId: string) {
+  const loaded = await loadCredentials(credentialId, userId);
+  const credential = await ensureFreshAccessToken(loaded);
+  return new GmailClient({
+    data: {
+      accessToken: credential.accessToken,
+      refreshToken: credential.refreshToken,
+      expiresAt: credential.expiresAt ? new Date(credential.expiresAt).getTime() : undefined,
+    },
+    clientId: credential.clientId || undefined,
+    clientSecret: credential.clientSecret || undefined,
+  });
 }
 
 export interface SendEmailInput {
@@ -97,72 +72,19 @@ export interface SendEmailInput {
   triggerData?: Record<string, any>;
 }
 
-export interface SendEmailOutput {
-  messageId: string;
-  threadId: string;
-  success: boolean;
-  error?: string;
-}
+export async function sendEmailActivity(input: SendEmailInput) {
+  const client = await getClient(input.credentialId, input.userId);
 
-export async function sendEmailActivity(
-  input: SendEmailInput,
-): Promise<SendEmailOutput> {
-  const activity = Context.current();
-  activity.log.info("Sending email", { to: input.to, subject: input.subject });
+  const result = await client.sendEmail({
+    to: replaceTemplateVariables(input.to, input.triggerData),
+    subject: replaceTemplateVariables(input.subject, input.triggerData),
+    body: replaceTemplateVariables(input.body, input.triggerData),
+    cc: input.cc?.map((email) => replaceTemplateVariables(email, input.triggerData)),
+    bcc: input.bcc?.map((email) => replaceTemplateVariables(email, input.triggerData)),
+    isHtml: input.isHtml,
+  });
 
-  try {
-    const loaded = await loadCredentials(input.credentialId, input.userId);
-    const credential = await ensureFreshAccessToken(loaded);
-
-    const gmailCredentials = {
-      data: {
-        accessToken: credential.accessToken,
-        refreshToken: credential.refreshToken,
-        expiresAt: credential.expiresAt
-          ? new Date(credential.expiresAt).getTime()
-          : undefined,
-      },
-      clientId: credential.clientId || undefined,
-      clientSecret: credential.clientSecret || undefined,
-    };
-
-    const gmailClient = new GmailClient(gmailCredentials as any);
-
-    const emailParams = {
-      to: replaceTemplateVariables(input.to, input.triggerData),
-      subject: replaceTemplateVariables(input.subject, input.triggerData),
-      body: replaceTemplateVariables(input.body, input.triggerData),
-      cc: input.cc?.map((email) =>
-        replaceTemplateVariables(email, input.triggerData),
-      ),
-      bcc: input.bcc?.map((email) =>
-        replaceTemplateVariables(email, input.triggerData),
-      ),
-      isHtml: input.isHtml,
-    };
-
-    const result = await gmailClient.sendEmail(emailParams);
-
-    activity.log.info("Email sent successfully", {
-      messageId: result.messageId,
-      threadId: result.threadId,
-    });
-
-    return {
-      messageId: result.messageId,
-      threadId: result.threadId,
-      success: true,
-    };
-  } catch (error) {
-    activity.log.error("Failed to send email", { error: (error as Error).message });
-
-    return {
-      messageId: "",
-      threadId: "",
-      success: false,
-      error: (error as Error).message || "Unknown error",
-    };
-  }
+  return { messageId: result.messageId, threadId: result.threadId };
 }
 
 export interface ReadEmailInput {
@@ -173,92 +95,8 @@ export interface ReadEmailInput {
   userId: string;
 }
 
-export interface ReadEmailOutput {
-  messages: Array<{
-    id: string;
-    threadId: string;
-    snippet: string;
-    from: string;
-    to: string;
-    subject: string;
-    date: string;
-  }>;
-  totalCount: number;
-  success: boolean;
-  error?: string;
-}
-
-export async function readEmailActivity(
-  input: ReadEmailInput,
-): Promise<ReadEmailOutput> {
-  const activity = Context.current();
-  activity.log.info("Reading emails", {
-    query: input.query,
-    maxResults: input.maxResults,
-  });
-
-  try {
-    const loaded = await loadCredentials(input.credentialId, input.userId);
-    const credential = await ensureFreshAccessToken(loaded);
-
-    const gmailCredentials = {
-      data: {
-        accessToken: credential.accessToken,
-        refreshToken: credential.refreshToken,
-        expiresAt: credential.expiresAt
-          ? new Date(credential.expiresAt).getTime()
-          : undefined,
-      },
-      clientId: credential.clientId || undefined,
-      clientSecret: credential.clientSecret || undefined,
-    };
-
-    const gmailClient = new GmailClient(gmailCredentials as any);
-
-    const { messages: messageList } = await gmailClient.listMessages({
-      query: input.query,
-      maxResults: input.maxResults || 10,
-      labelIds: input.labelIds,
-    });
-
-    const messages = await Promise.all(
-      messageList.slice(0, input.maxResults || 10).map(async (msg) => {
-        if (!msg.id) return null;
-
-        const fullMessage = await gmailClient.getMessage(msg.id);
-        const details = gmailClient.getMessageDetails(fullMessage);
-
-        return {
-          id: details.id,
-          threadId: details.threadId,
-          snippet: details.snippet,
-          from: details.from,
-          to: details.to,
-          subject: details.subject,
-          date: details.date,
-        };
-      }),
-    );
-
-    const validMessages = messages.filter((msg) => msg !== null);
-
-    activity.log.info("Emails read successfully", {
-      count: validMessages.length,
-    });
-
-    return {
-      messages: validMessages,
-      totalCount: validMessages.length,
-      success: true,
-    };
-  } catch (error) {
-    activity.log.error("Failed to read emails", { error: (error as Error).message });
-
-    return {
-      messages: [],
-      totalCount: 0,
-      success: false,
-      error: (error as Error).message || "Unknown error",
-    };
-  }
+export async function readEmailActivity(input: ReadEmailInput) {
+  const client = await getClient(input.credentialId, input.userId);
+  const result = await client.readEmails(input.query, input.maxResults, input.labelIds);
+  return { messages: result.messages, totalCount: result.totalCount };
 }
