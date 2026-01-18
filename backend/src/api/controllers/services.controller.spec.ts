@@ -2,7 +2,6 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { ServicesController } from "./services.controller";
 import { ServicesService } from "../../services/services/services.service";
 import { ActionRegistryService } from "../../services/registries/action-registry.service";
-import { ServiceProvider } from "../../common/types/enums";
 import { HttpException } from "@nestjs/common";
 import { AuthGuard } from "../guards/auth.guard";
 

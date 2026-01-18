@@ -2,7 +2,6 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { YouTubePollingService } from "./youtube-polling.service";
 import { DRIZZLE } from "../../db/drizzle.module";
 import { WorkflowsService } from "../workflows/workflows.service";
-import { YouTubeClient } from "./youtube-client";
 import {
   NewLikedVideoTrigger,
   NewVideoFromChannelTrigger,

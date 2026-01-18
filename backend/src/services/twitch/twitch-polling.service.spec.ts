@@ -1,7 +1,6 @@
-import { Test, TestingModule } from "@nestjs/testing";
+import { Test } from "@nestjs/testing";
 import { TwitchPollingService } from "./twitch-polling.service";
 import { DRIZZLE } from "../../db/drizzle.module";
-import { TwitchClient } from "./twitch-client";
 import { WorkflowsService } from "../workflows/workflows.service";
 import {
   StreamStartedTrigger,

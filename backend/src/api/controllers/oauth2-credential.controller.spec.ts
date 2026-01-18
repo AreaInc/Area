@@ -2,7 +2,6 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { OAuth2CredentialController } from "./oauth2-credential.controller";
 import { OAuth2Service } from "../../services/oauth2/oauth2.service";
 import { AuthGuard } from "../guards/auth.guard";
-import { BadRequestException } from "@nestjs/common";
 
 jest.mock("../../db/drizzle.module", () => ({
   DRIZZLE: "DRIZZLE_TOKEN",

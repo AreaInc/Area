@@ -1,8 +1,7 @@
-import { Test, TestingModule } from "@nestjs/testing";
+import { Test } from "@nestjs/testing";
 import { GoogleCalendarPollingService } from "./google-calendar-polling.service";
 import { DRIZZLE } from "../../db/drizzle.module";
 import { WorkflowsService } from "../workflows/workflows.service";
-import { GoogleCalendarClient } from "./google-calendar-client";
 import { NewEventTrigger } from "./triggers/new-event.trigger";
 import { EventCancelledTrigger } from "./triggers/event-cancelled.trigger";
 import { TestingModule as NestTestingModule } from "@nestjs/testing";

@@ -6,7 +6,6 @@ import {
   NewLikedSongTrigger,
 } from "./triggers/spotify-triggers";
 import { WorkflowsService } from "../workflows/workflows.service";
-import { SpotifyClient } from "./spotify-client";
 
 jest.mock("../../db/drizzle.module", () => ({
   DRIZZLE: "DRIZZLE_TOKEN",
