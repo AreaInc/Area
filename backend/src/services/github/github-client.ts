@@ -20,11 +20,14 @@ export class GitHubClient {
     });
   }
 
-  async createRepository(name: string, options?: {
-    description?: string;
-    private?: boolean;
-    autoInit?: boolean;
-  }) {
+  async createRepository(
+    name: string,
+    options?: {
+      description?: string;
+      private?: boolean;
+      autoInit?: boolean;
+    },
+  ) {
     const response = await this.octokit.repos.createForAuthenticatedUser({
       name,
       description: options?.description,
@@ -70,11 +73,16 @@ export class GitHubClient {
     };
   }
 
-  async createIssue(owner: string, repo: string, title: string, options?: {
-    body?: string;
-    labels?: string[];
-    assignees?: string[];
-  }) {
+  async createIssue(
+    owner: string,
+    repo: string,
+    title: string,
+    options?: {
+      body?: string;
+      labels?: string[];
+      assignees?: string[];
+    },
+  ) {
     const response = await this.octokit.issues.create({
       owner,
       repo,
@@ -93,7 +101,12 @@ export class GitHubClient {
     };
   }
 
-  async addCommentToIssue(owner: string, repo: string, issueNumber: number, body: string) {
+  async addCommentToIssue(
+    owner: string,
+    repo: string,
+    issueNumber: number,
+    body: string,
+  ) {
     const response = await this.octokit.issues.createComment({
       owner,
       repo,
@@ -125,7 +138,12 @@ export class GitHubClient {
     };
   }
 
-  async addLabelToIssue(owner: string, repo: string, issueNumber: number, labels: string[]) {
+  async addLabelToIssue(
+    owner: string,
+    repo: string,
+    issueNumber: number,
+    labels: string[],
+  ) {
     const response = await this.octokit.issues.addLabels({
       owner,
       repo,
@@ -135,7 +153,7 @@ export class GitHubClient {
 
     return {
       success: true,
-      labels: response.data.map(label => label.name),
+      labels: response.data.map((label) => label.name),
     };
   }
 
@@ -152,14 +170,23 @@ export class GitHubClient {
       body: response.data.body,
       state: response.data.state,
       url: response.data.html_url,
-      labels: response.data.labels.map(label => typeof label === 'string' ? label : label.name),
+      labels: response.data.labels.map((label) =>
+        typeof label === "string" ? label : label.name,
+      ),
     };
   }
 
-  async createPullRequest(owner: string, repo: string, title: string, head: string, base: string, options?: {
-    body?: string;
-    draft?: boolean;
-  }) {
+  async createPullRequest(
+    owner: string,
+    repo: string,
+    title: string,
+    head: string,
+    base: string,
+    options?: {
+      body?: string;
+      draft?: boolean;
+    },
+  ) {
     const response = await this.octokit.pulls.create({
       owner,
       repo,
@@ -180,11 +207,16 @@ export class GitHubClient {
     };
   }
 
-  async mergePullRequest(owner: string, repo: string, pullNumber: number, options?: {
-    commitTitle?: string;
-    commitMessage?: string;
-    mergeMethod?: "merge" | "squash" | "rebase";
-  }) {
+  async mergePullRequest(
+    owner: string,
+    repo: string,
+    pullNumber: number,
+    options?: {
+      commitTitle?: string;
+      commitMessage?: string;
+      mergeMethod?: "merge" | "squash" | "rebase";
+    },
+  ) {
     const response = await this.octokit.pulls.merge({
       owner,
       repo,
@@ -220,12 +252,17 @@ export class GitHubClient {
     };
   }
 
-  async createRelease(owner: string, repo: string, tagName: string, options?: {
-    name?: string;
-    body?: string;
-    draft?: boolean;
-    prerelease?: boolean;
-  }) {
+  async createRelease(
+    owner: string,
+    repo: string,
+    tagName: string,
+    options?: {
+      name?: string;
+      body?: string;
+      draft?: boolean;
+      prerelease?: boolean;
+    },
+  ) {
     const response = await this.octokit.repos.createRelease({
       owner,
       repo,

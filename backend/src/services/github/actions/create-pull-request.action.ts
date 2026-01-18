@@ -9,7 +9,8 @@ import { ActionType } from "../../../common/types/enums";
 export class CreatePullRequestAction implements IAction {
   public readonly id = "create_pull_request";
   public readonly name = "Create Pull Request";
-  public readonly description = "Creates a new pull request in a GitHub repository";
+  public readonly description =
+    "Creates a new pull request in a GitHub repository";
   public readonly type = ActionType.CREATE_DOCUMENT;
   public readonly serviceProvider = "github";
   public readonly requiresCredentials = true;

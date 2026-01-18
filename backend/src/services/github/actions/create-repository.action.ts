@@ -67,7 +67,10 @@ export class CreateRepositoryAction implements IAction {
     if (!config.name || typeof config.name !== "string") {
       throw new Error('Invalid "name": must be a non-empty string');
     }
-    if (config.description !== undefined && typeof config.description !== "string") {
+    if (
+      config.description !== undefined &&
+      typeof config.description !== "string"
+    ) {
       throw new Error('Invalid "description": must be a string');
     }
     if (config.private !== undefined && typeof config.private !== "boolean") {

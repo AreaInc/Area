@@ -9,7 +9,8 @@ import { ActionType } from "../../../common/types/enums";
 export class AddCommentAction implements IAction {
   public readonly id = "add_comment";
   public readonly name = "Add Comment";
-  public readonly description = "Adds a comment to a GitHub issue or pull request";
+  public readonly description =
+    "Adds a comment to a GitHub issue or pull request";
   public readonly type = ActionType.UPDATE_DOCUMENT;
   public readonly serviceProvider = "github";
   public readonly requiresCredentials = true;

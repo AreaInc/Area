@@ -29,7 +29,10 @@ async function loadCredentials(credentialId: number, userId: string) {
   return credential;
 }
 
-async function getClient(credentialId: number, userId: string): Promise<GitHubClient> {
+async function getClient(
+  credentialId: number,
+  userId: string,
+): Promise<GitHubClient> {
   const credential = await loadCredentials(credentialId, userId);
 
   if (!credential.accessToken) {

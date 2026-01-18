@@ -82,17 +82,25 @@ export class MergePullRequestAction implements IAction {
     ) {
       throw new Error('Invalid "pullNumber": must be a positive number');
     }
-    if (config.commitTitle !== undefined && typeof config.commitTitle !== "string") {
+    if (
+      config.commitTitle !== undefined &&
+      typeof config.commitTitle !== "string"
+    ) {
       throw new Error('Invalid "commitTitle": must be a string');
     }
-    if (config.commitMessage !== undefined && typeof config.commitMessage !== "string") {
+    if (
+      config.commitMessage !== undefined &&
+      typeof config.commitMessage !== "string"
+    ) {
       throw new Error('Invalid "commitMessage": must be a string');
     }
     if (
       config.mergeMethod !== undefined &&
       !["merge", "squash", "rebase"].includes(config.mergeMethod)
     ) {
-      throw new Error('Invalid "mergeMethod": must be "merge", "squash", or "rebase"');
+      throw new Error(
+        'Invalid "mergeMethod": must be "merge", "squash", or "rebase"',
+      );
     }
     return true;
   }

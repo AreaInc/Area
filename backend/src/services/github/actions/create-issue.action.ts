@@ -9,8 +9,7 @@ import { ActionType } from "../../../common/types/enums";
 export class CreateIssueAction implements IAction {
   public readonly id = "create_issue";
   public readonly name = "Create Issue";
-  public readonly description =
-    "Creates a new issue in a GitHub repository";
+  public readonly description = "Creates a new issue in a GitHub repository";
   public readonly type = ActionType.CREATE_ISSUE;
   public readonly serviceProvider = "github";
   public readonly requiresCredentials = true;
