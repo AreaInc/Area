@@ -93,6 +93,8 @@ Follow these instructions to get the project up and running on your local machin
     ```bash
     docker-compose up -d --build
     ```
+    > **Local Development Tip:**
+    > By default, the backend runs in `development` mode (`NODE_ENV=development`) to allow HTTP/localhost cookies. If you need to test production behavior (Secure Cookies), set `NODE_ENV=production` in `docker-compose.yml` but ensure you are serving over HTTPS.
 
 4.  **Run Clients:**
     *   **Web Client**:

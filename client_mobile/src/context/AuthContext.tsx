@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
-import { api } from '../services/api';
 import type { User, AuthContextType, ApiError } from '../types';
+import { getApiBase } from '@area/shared';
 
 interface SessionResponse {
     user?: User;
@@ -20,12 +20,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const checkSession = async (): Promise<void> => {
         try {
-            // Standard better-auth session endpoint
-            const { data, error } = await api.get<SessionResponse>('/api/auth/get-session');
+            const response = await fetch(`${getApiBase()}/auth/get-session`, {
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include'
+            });
 
-            if (data && (data.user || data.session)) {
-                setUser(data.user || null);
-                setIsAuthenticated(true);
+            if (response.ok) {
+                const data: SessionResponse = await response.json();
+                if (data && (data.user || data.session)) {
+                    setUser(data.user || null);
+                    setIsAuthenticated(true);
+                } else {
+                    setUser(null);
+                    setIsAuthenticated(false);
+                }
             } else {
                 setUser(null);
                 setIsAuthenticated(false);
@@ -45,34 +53,73 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const signIn = async (email: string, password: string): Promise<{ error?: ApiError; success?: boolean }> => {
         setIsLoading(true);
-        const result = await api.post<{ user?: User }>('/api/auth/sign-in/email', { email, password });
+        try {
+            const response = await fetch(`${getApiBase()}/auth/sign-in/email`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password }),
+                credentials: 'include'
+            });
 
-        if (result.error) {
+            if (!response.ok) {
+                let errorDetails: ApiError = { message: 'Sign in failed' };
+                try {
+                    const errorData = await response.json();
+                    errorDetails.message = errorData.message || response.statusText;
+                } catch (e) { }
+
+                setIsLoading(false);
+                return { error: errorDetails };
+            }
+
+            await checkSession();
+            return { success: true };
+        } catch (e: any) {
             setIsLoading(false);
-            return { error: result.error };
+            return { error: { message: e.message || 'Network error' } };
         }
-
-        await checkSession(); // Refresh session to get user data
-        return { success: true };
     };
 
     const signUp = async (name: string, email: string, password: string): Promise<{ error?: ApiError; success?: boolean }> => {
         setIsLoading(true);
-        // Better-auth usually expects 'name', 'email', 'password' for email registration
-        const result = await api.post<{ user?: User }>('/api/auth/sign-up/email', { name, email, password });
+        try {
+            const response = await fetch(`${getApiBase()}/auth/sign-up/email`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, password }),
+                credentials: 'include'
+            });
 
-        if (result.error) {
+            if (!response.ok) {
+                let errorDetails: ApiError = { message: 'Sign up failed' };
+                try {
+                    const errorData = await response.json();
+                    errorDetails.message = errorData.message || response.statusText;
+                } catch (e) { }
+
+                setIsLoading(false);
+                return { error: errorDetails };
+            }
+
+            await checkSession();
+            return { success: true };
+        } catch (e: any) {
             setIsLoading(false);
-            return { error: result.error };
+            return { error: { message: e.message || 'Network error' } };
         }
-
-        await checkSession();
-        return { success: true };
     };
 
     const signOut = async (): Promise<void> => {
         setIsLoading(true);
-        await api.post('/api/auth/sign-out');
+        try {
+            await fetch(`${getApiBase()}/auth/sign-out`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include'
+            });
+        } catch (e) {
+            console.error('Sign out error', e);
+        }
         setUser(null);
         setIsAuthenticated(false);
         setIsLoading(false);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
     View,
     Text,
@@ -14,23 +14,20 @@ import { ChevronLeft, Plus, Trash2, CheckCircle, XCircle, Link2 } from 'lucide-r
 import * as WebBrowser from 'expo-web-browser';
 import GradientBackground from '../components/GradientBackground';
 import GlassCard from '../components/GlassCard';
-import { api } from '../services/api';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../types';
 import { useFocusEffect } from '@react-navigation/native';
+import {
+    fetchCredentials,
+    createCredential,
+    deleteCredential,
+    getOAuthAuthUrl,
+    type Credential,
+    type CreateCredentialDto
+} from '@area/shared';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Services'>;
-
-interface Credential {
-    id: number;
-    name: string;
-    serviceProvider: string;
-    credentialType: string;
-    isValid: boolean;
-    createdAt: string;
-    updatedAt: string;
-}
 
 const PROVIDERS = [
     { id: 'gmail', name: 'Gmail', color: '#EA4335' },
@@ -54,20 +51,12 @@ const ServicesScreen: React.FC<Props> = ({ navigation }) => {
     const [newClientSecret, setNewClientSecret] = useState<string>('');
     const [creating, setCreating] = useState<boolean>(false);
 
-    useFocusEffect(
-        useCallback(() => {
-            fetchCredentials();
-        }, [])
-    );
+    useFocusEffect(useCallback(() => { loadCredentials(); }, []));
 
-    const fetchCredentials = async (): Promise<void> => {
+    const loadCredentials = async (): Promise<void> => {
         try {
-            const { data, error } = await api.get<Credential[]>('/api/oauth2-credential');
-            if (data) {
-                setCredentials(data);
-            } else {
-                console.error('Failed to fetch credentials:', error);
-            }
+            const data = await fetchCredentials();
+            setCredentials(data);
         } catch (e) {
             console.error('Error fetching credentials:', e);
         } finally {
@@ -83,24 +72,22 @@ const ServicesScreen: React.FC<Props> = ({ navigation }) => {
 
         setCreating(true);
         try {
-            const { data, error } = await api.post<Credential>('/api/oauth2-credential', {
+            const dto: CreateCredentialDto = {
                 name: newName,
                 provider: newProvider,
                 clientId: newClientId,
                 clientSecret: newClientSecret
-            });
+            };
 
-            if (data) {
-                setShowAddModal(false);
-                resetForm();
-                fetchCredentials();
-                // Automatically start OAuth flow
-                handleAuthorize(data.id);
-            } else {
-                Alert.alert('Error', error?.message || 'Failed to create credential');
-            }
-        } catch (e) {
-            Alert.alert('Error', 'An unexpected error occurred');
+            const result = await createCredential(dto);
+
+            setShowAddModal(false);
+            resetForm();
+            loadCredentials();
+            // Automatically start OAuth flow
+            handleAuthorize(result.id);
+        } catch (e: any) {
+            Alert.alert('Error', e.message || 'Failed to create credential');
         } finally {
             setCreating(false);
         }
@@ -108,13 +95,11 @@ const ServicesScreen: React.FC<Props> = ({ navigation }) => {
 
     const handleAuthorize = async (credentialId: number): Promise<void> => {
         try {
-            // Open OAuth flow in browser
-            const authUrl = `${api.getBaseUrl()}/api/oauth2-credential/auth?credentialId=${credentialId}`;
+            const authUrl = getOAuthAuthUrl(credentialId);
             const result = await WebBrowser.openAuthSessionAsync(authUrl);
 
             if (result.type === 'success') {
-                // Refresh credentials to get updated status
-                fetchCredentials();
+                loadCredentials();
                 Alert.alert('Success', 'Account connected successfully!');
             }
         } catch (e) {
@@ -134,8 +119,8 @@ const ServicesScreen: React.FC<Props> = ({ navigation }) => {
                     style: 'destructive',
                     onPress: async () => {
                         try {
-                            await api.delete(`/api/oauth2-credential/${credential.id}`);
-                            fetchCredentials();
+                            await deleteCredential(credential.id);
+                            loadCredentials();
                         } catch (e) {
                             Alert.alert('Error', 'Failed to delete credential');
                         }
@@ -191,7 +176,7 @@ const ServicesScreen: React.FC<Props> = ({ navigation }) => {
                             </TouchableOpacity>
                         </GlassCard>
                     ) : (
-                        credentials.map(cred => (
+                        credentials.map((cred: Credential) => (
                             <GlassCard key={cred.id} style={styles.credentialCard}>
                                 <View style={styles.credentialHeader}>
                                     <View style={[styles.providerBadge, { backgroundColor: getProviderColor(cred.serviceProvider) }]}>
@@ -327,211 +312,45 @@ const ServicesScreen: React.FC<Props> = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        paddingTop: 60,
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 20,
-        marginBottom: 20,
-    },
+    container: { flex: 1, paddingTop: 60 },
+    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 20 },
     backButton: {},
-    headerTitle: {
-        color: '#fff',
-        fontSize: 20,
-        fontWeight: 'bold',
-    },
-    content: {
-        paddingHorizontal: 20,
-    },
-    emptyCard: {
-        padding: 40,
-        alignItems: 'center',
-    },
-    emptyTitle: {
-        color: '#fff',
-        fontSize: 18,
-        fontWeight: '600',
-        marginBottom: 8,
-    },
-    emptyText: {
-        color: '#94a3b8',
-        fontSize: 14,
-        textAlign: 'center',
-        marginBottom: 20,
-    },
-    addButton: {
-        backgroundColor: 'rgba(59, 130, 246, 0.2)',
-        paddingHorizontal: 20,
-        paddingVertical: 12,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#3b82f6',
-    },
-    addButtonText: {
-        color: '#3b82f6',
-        fontWeight: '600',
-    },
-    credentialCard: {
-        padding: 16,
-        marginBottom: 12,
-    },
-    credentialHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    providerBadge: {
-        width: 40,
-        height: 40,
-        borderRadius: 10,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    providerBadgeText: {
-        color: '#fff',
-        fontSize: 18,
-        fontWeight: '700',
-    },
-    credentialInfo: {
-        flex: 1,
-        marginLeft: 12,
-    },
-    credentialName: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    credentialProvider: {
-        color: '#94a3b8',
-        fontSize: 13,
-    },
-    credentialStatus: {
-        marginLeft: 8,
-    },
-    credentialActions: {
-        flexDirection: 'row',
-        justifyContent: 'flex-end',
-        marginTop: 12,
-        gap: 8,
-    },
-    authorizeButton: {
-        backgroundColor: 'rgba(59, 130, 246, 0.2)',
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 8,
-    },
-    authorizeButtonText: {
-        color: '#3b82f6',
-        fontWeight: '600',
-        fontSize: 14,
-    },
-    deleteButton: {
-        backgroundColor: 'rgba(248, 113, 113, 0.1)',
-        padding: 8,
-        borderRadius: 8,
-    },
-    // Modal styles
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.7)',
-        justifyContent: 'flex-end',
-    },
-    modalContent: {
-        backgroundColor: '#1e293b',
-        borderTopLeftRadius: 24,
-        borderTopRightRadius: 24,
-        maxHeight: '85%',
-    },
-    modalHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: 20,
-        borderBottomWidth: 1,
-        borderBottomColor: 'rgba(255,255,255,0.1)',
-    },
-    modalTitle: {
-        color: '#fff',
-        fontSize: 18,
-        fontWeight: '700',
-    },
-    modalClose: {
-        color: '#3b82f6',
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    modalScroll: {
-        padding: 20,
-    },
-    fieldLabel: {
-        color: '#e2e8f0',
-        fontSize: 14,
-        fontWeight: '500',
-        marginBottom: 8,
-        marginTop: 12,
-    },
-    fieldInput: {
-        backgroundColor: 'rgba(15, 23, 42, 0.6)',
-        borderRadius: 12,
-        padding: 16,
-        color: '#fff',
-        fontSize: 16,
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.08)',
-    },
-    providerGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 8,
-    },
-    providerOption: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: 'rgba(15, 23, 42, 0.6)',
-        paddingHorizontal: 12,
-        paddingVertical: 10,
-        borderRadius: 10,
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
-    },
-    providerOptionSelected: {
-        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-    },
-    providerDot: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        marginRight: 8,
-    },
-    providerOptionText: {
-        color: '#e2e8f0',
-        fontSize: 13,
-    },
-    helpText: {
-        color: '#64748b',
-        fontSize: 12,
-        marginTop: 16,
-        lineHeight: 18,
-    },
-    createButtonContainer: {
-        borderRadius: 16,
-        overflow: 'hidden',
-        marginTop: 20,
-        marginBottom: 40,
-    },
-    createButton: {
-        paddingVertical: 16,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    createButtonText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: '700',
-    },
+    headerTitle: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
+    content: { paddingHorizontal: 20 },
+    emptyCard: { padding: 40, alignItems: 'center' },
+    emptyTitle: { color: '#fff', fontSize: 18, fontWeight: '600', marginBottom: 8 },
+    emptyText: { color: '#94a3b8', fontSize: 14, textAlign: 'center', marginBottom: 20 },
+    addButton: { backgroundColor: 'rgba(59, 130, 246, 0.2)', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12, borderWidth: 1, borderColor: '#3b82f6' },
+    addButtonText: { color: '#3b82f6', fontWeight: '600' },
+    credentialCard: { padding: 16, marginBottom: 12 },
+    credentialHeader: { flexDirection: 'row', alignItems: 'center' },
+    providerBadge: { width: 40, height: 40, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
+    providerBadgeText: { color: '#fff', fontSize: 18, fontWeight: '700' },
+    credentialInfo: { flex: 1, marginLeft: 12 },
+    credentialName: { color: '#fff', fontSize: 16, fontWeight: '600' },
+    credentialProvider: { color: '#94a3b8', fontSize: 13 },
+    credentialStatus: { marginLeft: 8 },
+    credentialActions: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 12, gap: 8 },
+    authorizeButton: { backgroundColor: 'rgba(59, 130, 246, 0.2)', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8 },
+    authorizeButtonText: { color: '#3b82f6', fontWeight: '600', fontSize: 14 },
+    deleteButton: { backgroundColor: 'rgba(248, 113, 113, 0.1)', padding: 8, borderRadius: 8 },
+    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
+    modalContent: { backgroundColor: '#1e293b', borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '85%' },
+    modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)' },
+    modalTitle: { color: '#fff', fontSize: 18, fontWeight: '700' },
+    modalClose: { color: '#3b82f6', fontSize: 16, fontWeight: '600' },
+    modalScroll: { padding: 20 },
+    fieldLabel: { color: '#e2e8f0', fontSize: 14, fontWeight: '500', marginBottom: 8, marginTop: 12 },
+    fieldInput: { backgroundColor: 'rgba(15, 23, 42, 0.6)', borderRadius: 12, padding: 16, color: '#fff', fontSize: 16, borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.08)' },
+    providerGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+    providerOption: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(15, 23, 42, 0.6)', paddingHorizontal: 12, paddingVertical: 10, borderRadius: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+    providerOptionSelected: { backgroundColor: 'rgba(59, 130, 246, 0.1)' },
+    providerDot: { width: 8, height: 8, borderRadius: 4, marginRight: 8 },
+    providerOptionText: { color: '#e2e8f0', fontSize: 13 },
+    helpText: { color: '#64748b', fontSize: 12, marginTop: 16, lineHeight: 18 },
+    createButtonContainer: { borderRadius: 16, overflow: 'hidden', marginTop: 20, marginBottom: 40 },
+    createButton: { paddingVertical: 16, alignItems: 'center', justifyContent: 'center' },
+    createButtonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
 });
 
 export default ServicesScreen;

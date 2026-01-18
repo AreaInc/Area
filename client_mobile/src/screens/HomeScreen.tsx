@@ -8,8 +8,12 @@ import SearchBar from '../components/SearchBar';
 import StatsCard from '../components/StatsCard';
 import WorkflowItem from '../components/WorkflowItem';
 import BottomNav from '../components/BottomNav';
-import { api } from '../services/api';
 import type { RootStackParamList, Workflow } from '../types';
+import {
+    fetchWorkflows,
+    activateWorkflow,
+    deactivateWorkflow
+} from '@area/shared';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
@@ -18,14 +22,10 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
     const [loading, setLoading] = useState<boolean>(true);
     const [refreshing, setRefreshing] = useState<boolean>(false);
 
-    const fetchWorkflows = async (): Promise<void> => {
+    const loadWorkflows = async (): Promise<void> => {
         try {
-            const { data, error } = await api.get<Workflow[]>('/api/v2/workflows');
-            if (data) {
-                setWorkflows(data);
-            } else {
-                console.error('Failed to fetch workflows:', error);
-            }
+            const data = await fetchWorkflows();
+            setWorkflows(data);
         } catch (err) {
             console.error('Error fetching workflows:', err);
         } finally {
@@ -37,19 +37,43 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
     useFocusEffect(
         useCallback(() => {
             setLoading(true);
-            fetchWorkflows();
+            loadWorkflows();
         }, [])
     );
 
     const onRefresh = useCallback((): void => {
         setRefreshing(true);
-        fetchWorkflows();
+        loadWorkflows();
     }, []);
+
+    const handleToggle = async (workflowId: number, newStatus: boolean): Promise<void> => {
+        // Optimistic update
+        setWorkflows((prev) =>
+            prev.map((w) =>
+                w.id === workflowId ? { ...w, isActive: newStatus } : w
+            )
+        );
+
+        try {
+            if (newStatus) {
+                await activateWorkflow(workflowId);
+            } else {
+                await deactivateWorkflow(workflowId);
+            }
+        } catch (e) {
+            console.error('Toggle error:', e);
+            // Revert on error
+            setWorkflows((prev) =>
+                prev.map((w) =>
+                    w.id === workflowId ? { ...w, isActive: !newStatus } : w
+                )
+            );
+        }
+    };
 
     return (
         <GradientBackground>
             <Header />
-
             <ScrollView
                 contentContainerStyle={styles.scrollContent}
                 showsVerticalScrollIndicator={false}
@@ -97,29 +121,11 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
                                 key={workflow.id}
                                 title={workflow.name}
                                 lastRun={workflow.lastRun ? String(workflow.lastRun) : "Never"}
-                                iconType="filter" // TODO: Dynamic icon based on triggers
+                                iconType="filter"
                                 status={workflow.isActive ? "Active" : "Paused"}
                                 initialActive={workflow.isActive}
                                 onPress={() => navigation.navigate('WorkflowDetail', { id: workflow.id, title: workflow.name, status: workflow.isActive ? "Active" : "Paused" })}
-                                onToggle={async (newStatus: boolean) => {
-                                    // Optimistic update
-                                    setWorkflows((prev) =>
-                                        prev.map((w) =>
-                                            w.id === workflow.id ? { ...w, isActive: newStatus } : w
-                                        )
-                                    );
-                                    try {
-                                        await api.post(`/api/v2/workflows/${workflow.id}/${newStatus ? 'activate' : 'deactivate'}`);
-                                    } catch (e) {
-                                        console.error('Toggle error:', e);
-                                        // Revert on error
-                                        setWorkflows((prev) =>
-                                            prev.map((w) =>
-                                                w.id === workflow.id ? { ...w, isActive: !newStatus } : w
-                                            )
-                                        );
-                                    }
-                                }}
+                                onToggle={(newStatus: boolean) => handleToggle(workflow.id, newStatus)}
                             />
                         ))
                     )}
@@ -131,63 +137,21 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
             <View style={styles.bottomNavContainer}>
                 <BottomNav />
             </View>
-
         </GradientBackground>
     );
 };
 
 const styles = StyleSheet.create({
-    scrollContent: {
-        paddingBottom: 40,
-    },
-    titleContainer: {
-        paddingHorizontal: 20,
-        marginTop: 10,
-    },
-    pageTitle: {
-        color: '#fff',
-        fontSize: 34,
-        fontWeight: '800',
-        lineHeight: 40,
-    },
-    statsContainer: {
-        flexDirection: 'row',
-        paddingHorizontal: 14, // 6 margin on cards covers the rest 
-        marginTop: 24,
-    },
-    sectionHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 20,
-        marginTop: 32,
-        marginBottom: 16,
-    },
-    sectionTitle: {
-        color: '#fff',
-        fontSize: 18,
-        fontWeight: '700',
-    },
-    seeAll: {
-        color: '#3b82f6',
-        fontSize: 14,
-        fontWeight: '600',
-    },
-    workflowList: {
-        paddingHorizontal: 20,
-    },
-    emptyText: {
-        color: '#94a3b8',
-        textAlign: 'center',
-        marginTop: 20,
-        fontSize: 16,
-    },
-    bottomNavContainer: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-    }
+    scrollContent: { paddingBottom: 40 },
+    titleContainer: { paddingHorizontal: 20, marginTop: 10 },
+    pageTitle: { color: '#fff', fontSize: 34, fontWeight: '800', lineHeight: 40 },
+    statsContainer: { flexDirection: 'row', paddingHorizontal: 14, marginTop: 24 },
+    sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginTop: 32, marginBottom: 16 },
+    sectionTitle: { color: '#fff', fontSize: 18, fontWeight: '700' },
+    seeAll: { color: '#3b82f6', fontSize: 14, fontWeight: '600' },
+    workflowList: { paddingHorizontal: 20 },
+    emptyText: { color: '#94a3b8', textAlign: 'center', marginTop: 20, fontSize: 16 },
+    bottomNavContainer: { position: 'absolute', bottom: 0, left: 0, right: 0 }
 });
 
 export default HomeScreen;

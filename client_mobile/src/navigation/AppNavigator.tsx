@@ -9,7 +9,6 @@ import CreateWorkflowScreen from '../screens/CreateWorkflowScreen';
 import ServicesScreen from '../screens/ServicesScreen';
 import LoginScreen from '../screens/auth/LoginScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
-
 import ProfileScreen from '../screens/ProfileScreen';
 
 import { useAuth } from '../context/AuthContext';

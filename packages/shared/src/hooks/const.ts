@@ -1,15 +1,33 @@
 // Environment variable handling for both Web and Mobile
-// For React Native (Expo), you might need to use expo-constants or react-native-dotenv
-// For now, we'll default to localhost if not provided, or check for window/global objects if needed.
+// This module provides a configurable API base URL for the shared hooks.
 
-// Note: In a real monorepo, you might inject this config or use a shared config package.
-// For simplicity, we are hardcoding localhost for dev, but in prod you'd want this to be dynamic.
+let _apiBase = "https://api.areamoncul.click/api";
 
-// Runtime access to environment variables (works with Vite's import.meta.env)
-// Vite will replace import.meta.env.VITE_API_URL at build time when this package is consumed
-// We use a direct access pattern that Vite can replace during the consuming app's build
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore - import.meta is available at runtime in Vite environments
-export const API_BASE = "https://api.areamoncul.click/api"
-// export const API_BASE = "http://localhost:8080/api"
+// Auto-detect localhost environment for Web
+try {
+    if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+        _apiBase = `http://${window.location.hostname}:8080/api`;
+    }
+} catch (e) { }
 
+/**
+ * Set the API base URL for all shared hooks.
+ * Call this at app initialization before using any hooks.
+ * 
+ * @param url - The base URL for the API (e.g., "http://192.168.1.137:8080/api")
+ */
+export function setApiBase(url: string): void {
+    _apiBase = url;
+}
+
+/**
+ * Get the current API base URL.
+ */
+export function getApiBase(): string {
+    return _apiBase;
+}
+
+/**
+ * @deprecated Use getApiBase() instead. Kept for backward compatibility.
+ */
+export const API_BASE = "https://api.areamoncul.click/api";

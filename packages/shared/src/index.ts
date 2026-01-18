@@ -1,4 +1,4 @@
-export { API_BASE } from './hooks/const';
+export { API_BASE, setApiBase, getApiBase } from './hooks/const';
 export * from './hooks/useCredentials';
 export * from './hooks/useServices';
 export * from './hooks/useWorkflows';

@@ -6,8 +6,13 @@ import GlassCard from '../components/GlassCard';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList, Workflow } from '../types';
-
-import { api } from '../services/api';
+import {
+    fetchWorkflow,
+    activateWorkflow,
+    deactivateWorkflow,
+    deleteWorkflow,
+    executeWorkflow
+} from '@area/shared';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'WorkflowDetail'>;
 
@@ -20,22 +25,19 @@ const WorkflowDetailScreen: React.FC<Props> = ({ navigation, route }) => {
 
     useEffect(() => {
         if (id) {
-            fetchWorkflowDetails();
+            loadWorkflowDetails();
         }
     }, [id]);
 
-    const fetchWorkflowDetails = async (): Promise<void> => {
+    const loadWorkflowDetails = async (): Promise<void> => {
         try {
-            const { data, error } = await api.get<Workflow>(`/api/v2/workflows/${id}`);
-            if (data) {
-                setWorkflow(data);
-                setTitle(data.name);
-                setIsActive(data.isActive);
-            } else {
-                console.error("Error fetching details:", error);
-            }
+            const data = await fetchWorkflow(id);
+            setWorkflow(data);
+            setTitle(data.name);
+            setIsActive(data.isActive);
         } catch (e) {
             console.error("Fetch error:", e);
+            Alert.alert("Error", "Failed to load workflow details");
         } finally {
             setLoading(false);
         }
@@ -44,10 +46,15 @@ const WorkflowDetailScreen: React.FC<Props> = ({ navigation, route }) => {
     const toggleWorkflow = async (value: boolean): Promise<void> => {
         setIsActive(value);
         try {
-            await api.post(`/api/v2/workflows/${id}/${value ? 'activate' : 'deactivate'}`);
+            if (value) {
+                await activateWorkflow(id);
+            } else {
+                await deactivateWorkflow(id);
+            }
         } catch (error) {
             console.error("Toggle error:", error);
             setIsActive(!value);
+            Alert.alert("Error", "Failed to update status");
         }
     };
 
@@ -62,7 +69,7 @@ const WorkflowDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                     style: "destructive",
                     onPress: async () => {
                         try {
-                            await api.delete(`/api/v2/workflows/${id}`);
+                            await deleteWorkflow(id);
                             navigation.goBack();
                         } catch (error) {
                             console.error("Delete error:", error);
@@ -76,14 +83,10 @@ const WorkflowDetailScreen: React.FC<Props> = ({ navigation, route }) => {
 
     const handleExecute = async (): Promise<void> => {
         try {
-            const { data, error } = await api.post(`/api/v2/workflows/${id}/execute`, {});
-            if (data) {
-                Alert.alert("Success", "Workflow execution started!");
-            } else {
-                Alert.alert("Error", error?.message || "Failed to execute workflow");
-            }
-        } catch (e) {
-            Alert.alert("Error", "Failed to execute workflow");
+            await executeWorkflow(id, {});
+            Alert.alert("Success", "Workflow execution started!");
+        } catch (e: any) {
+            Alert.alert("Error", e.message || "Failed to execute workflow");
         }
     };
 
