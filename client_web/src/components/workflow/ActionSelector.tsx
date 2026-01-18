@@ -52,11 +52,14 @@ export function ActionSelector({ value, onChange }: ActionSelectorProps) {
     return actions.reduce((acc, action) => {
       const provider = action.serviceProvider;
       if (!acc[provider]) {
-        acc[provider] = [];
+        acc[provider] = {
+          items: [],
+          imageUrl: action.imageUrl
+        };
       }
-      acc[provider].push(action);
+      acc[provider].items.push(action);
       return acc;
-    }, {} as Record<string, typeof actions>);
+    }, {} as Record<string, { items: typeof actions, imageUrl?: string }>);
   }, [actions]);
 
   if (actionsLoading || credentialsLoading) {
@@ -220,9 +223,19 @@ export function ActionSelector({ value, onChange }: ActionSelectorProps) {
               <ScrollArea className="h-[300px]">
                 <CommandList className="max-h-full overflow-hidden">
                   <CommandEmpty>No action found.</CommandEmpty>
-                  {Object.entries(groupedActions).map(([provider, actions]) => (
-                    <CommandGroup key={provider} heading={provider}>
-                      {actions.map((action) => (
+                  {Object.entries(groupedActions).map(([provider, group]) => (
+                    <CommandGroup 
+                      key={provider} 
+                      heading={
+                        <div className="flex items-center gap-2">
+                          {group.imageUrl && (
+                            <img src={group.imageUrl} alt="" className="w-4 h-4 object-contain" />
+                          )}
+                          <span className="capitalize">{provider}</span>
+                        </div>
+                      }
+                    >
+                      {group.items.map((action) => (
                         <CommandItem
                           key={`${action.serviceProvider}:${action.id}`}
                           value={`${action.serviceProvider} ${action.name}`}

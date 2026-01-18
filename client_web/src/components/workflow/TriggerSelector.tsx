@@ -51,11 +51,14 @@ export function TriggerSelector({ value, onChange }: TriggerSelectorProps) {
     return triggers.reduce((acc, trigger) => {
       const provider = trigger.serviceProvider;
       if (!acc[provider]) {
-        acc[provider] = [];
+        acc[provider] = {
+          items: [],
+          imageUrl: trigger.imageUrl
+        };
       }
-      acc[provider].push(trigger);
+      acc[provider].items.push(trigger);
       return acc;
-    }, {} as Record<string, typeof triggers>);
+    }, {} as Record<string, { items: typeof triggers, imageUrl?: string }>);
   }, [triggers]);
 
   if (triggersLoading || credentialsLoading) {
@@ -222,9 +225,19 @@ export function TriggerSelector({ value, onChange }: TriggerSelectorProps) {
               <ScrollArea className="h-[300px]">
                 <CommandList className="max-h-full overflow-hidden">
                   <CommandEmpty>No trigger found.</CommandEmpty>
-                  {Object.entries(groupedTriggers).map(([provider, triggers]) => (
-                    <CommandGroup key={provider} heading={provider}>
-                      {triggers.map((trigger) => (
+                  {Object.entries(groupedTriggers).map(([provider, group]) => (
+                    <CommandGroup 
+                      key={provider} 
+                      heading={
+                        <div className="flex items-center gap-2">
+                          {group.imageUrl && (
+                            <img src={group.imageUrl} alt="" className="w-4 h-4 object-contain" />
+                          )}
+                          <span className="capitalize">{provider}</span>
+                        </div>
+                      }
+                    >
+                      {group.items.map((trigger) => (
                         <CommandItem
                           key={`${trigger.serviceProvider}:${trigger.id}`}
                           value={`${trigger.serviceProvider} ${trigger.name}`}

@@ -54,7 +54,7 @@ export function WorkflowNodeCard({ type, data, onChange }: WorkflowNodeCardProps
 
     const Icon = isAction ? Play : Zap;
 
-    const renderPlaceholderImage = () => {
+    const renderNodeImage = () => {
         if (!isConfigured) {
             return (
                 <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center border-2 border-dashed border-border", iconBgClass)}>
@@ -62,6 +62,15 @@ export function WorkflowNodeCard({ type, data, onChange }: WorkflowNodeCardProps
                 </div>
             );
         }
+
+        if (metadata?.imageUrl) {
+            return (
+                <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center overflow-hidden border border-border bg-white p-1.5 shadow-sm")}>
+                    <img src={metadata.imageUrl} alt={name} className="w-full h-full object-contain" />
+                </div>
+            );
+        }
+
         return (
             <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg uppercase", iconBgClass)}>
                 {provider.charAt(0)}
@@ -84,7 +93,7 @@ export function WorkflowNodeCard({ type, data, onChange }: WorkflowNodeCardProps
 
                 <div className="relative z-10 flex flex-col h-full">
                     <CardHeader className="flex flex-row items-center gap-4 space-y-0">
-                        {renderPlaceholderImage()}
+                        {renderNodeImage()}
                         <div className="flex flex-col">
                             <CardTitle className="text-base font-bold">
                                 {name}
