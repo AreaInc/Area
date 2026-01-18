@@ -78,9 +78,11 @@ export class GmailPollingService implements OnModuleInit, OnModuleDestroy {
   private async pollAllRegistrations() {
     const registrations = this.receiveEmailTrigger.getRegistrations();
     if (registrations.size === 0) {
+      this.logger.debug("No Gmail workflow registrations found");
       return;
     }
 
+    this.logger.debug(`Polling Gmail for ${registrations.size} workflow(s)`);
     const workflowIds = Array.from(registrations.keys());
 
     const workflowRows = await this.db
@@ -264,12 +266,22 @@ export class GmailPollingService implements OnModuleInit, OnModuleDestroy {
         "";
 
       if (!historyId) {
+        this.logger.log(
+          `Initializing historyId for credential ${credential.id} (first run)`,
+        );
         historyId = await this.getProfileHistoryId(gmail);
         if (historyId) {
           await this.updateHistoryId(credential.id, historyId);
+          this.logger.log(
+            `Initialized historyId ${historyId} for credential ${credential.id}`,
+          );
         }
         return;
       }
+
+      this.logger.debug(
+        `Checking for new emails with historyId ${historyId} for credential ${credential.id}`,
+      );
 
       let emails: Array<Record<string, any>> = [];
       try {
@@ -277,9 +289,15 @@ export class GmailPollingService implements OnModuleInit, OnModuleDestroy {
       } catch (error) {
         const message = (error as Error)?.message || "";
         if (message.includes("Requested entity was not found")) {
+          this.logger.warn(
+            `HistoryId ${historyId} not found for credential ${credential.id}, re-initializing`,
+          );
           const refreshedHistoryId = await this.getProfileHistoryId(gmail);
           if (refreshedHistoryId) {
             await this.updateHistoryId(credential.id, refreshedHistoryId);
+            this.logger.log(
+              `Re-initialized historyId ${refreshedHistoryId} for credential ${credential.id}`,
+            );
           }
           return;
         }
@@ -287,14 +305,32 @@ export class GmailPollingService implements OnModuleInit, OnModuleDestroy {
       }
 
       if (emails.length === 0) {
+        this.logger.debug(
+          `No new emails found for credential ${credential.id}`,
+        );
         return;
       }
 
+      this.logger.log(
+        `Found ${emails.length} new email(s) for credential ${credential.id}`,
+      );
+
       for (const email of emails) {
+        this.logger.debug(
+          `Processing email: ${email.subject} from ${email.from}`,
+        );
+
         for (const workflow of workflowRegistrations) {
           if (!this.receiveEmailTrigger.matchesConfig(email, workflow.config)) {
+            this.logger.debug(
+              `Email does not match config for workflow ${workflow.workflowId}`,
+            );
             continue;
           }
+
+          this.logger.log(
+            `Triggering workflow ${workflow.workflowId} for email: ${email.subject}`,
+          );
 
           await this.workflowsService.triggerWorkflowExecution(
             workflow.workflowId,
@@ -305,6 +341,9 @@ export class GmailPollingService implements OnModuleInit, OnModuleDestroy {
 
       const latestHistoryId = this.findLatestHistoryId(emails);
       if (latestHistoryId) {
+        this.logger.debug(
+          `Updating historyId to ${latestHistoryId} for credential ${credential.id}`,
+        );
         await this.updateHistoryId(credential.id, latestHistoryId);
       }
     } catch (error) {
