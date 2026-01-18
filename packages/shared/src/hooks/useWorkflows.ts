@@ -201,7 +201,7 @@ export function useTriggers() {
   return useQuery<TriggerMetadata[]>({
     queryKey: ['triggers'],
     queryFn: async () => {
-      const response = await fetch(`${API_BASE}/v2/workflows/metadata/triggers`, {
+      const response = await fetch(`${API_BASE}/v2/triggers`, {
         credentials: 'include',
       });
 
@@ -218,7 +218,7 @@ export function useActions() {
   return useQuery<ActionMetadata[]>({
     queryKey: ['actions'],
     queryFn: async () => {
-      const response = await fetch(`${API_BASE}/v2/workflows/metadata/actions`, {
+      const response = await fetch(`${API_BASE}/v2/actions`, {
         credentials: 'include',
       });
 
