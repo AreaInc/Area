@@ -15,6 +15,7 @@ import {
   ApiBearerAuth,
 } from "@nestjs/swagger";
 import { CacheInterceptor, CacheKey, CacheTTL } from "@nestjs/cache-manager";
+import { AllowAnonymous } from "@thallesp/nestjs-better-auth";
 import { ServicesService } from "../../services/services/services.service";
 import { ActionRegistryService } from "../../services/registries/action-registry.service";
 import { TriggerRegistryService } from "../../services/registries/trigger-registry.service";
@@ -29,7 +30,6 @@ import {
 @ApiTags("Services")
 @ApiBearerAuth()
 @Controller("api/services")
-@UseGuards(AuthGuard)
 export class ServicesController {
   constructor(
     private readonly servicesService: ServicesService,
@@ -38,6 +38,7 @@ export class ServicesController {
   ) {}
 
   @Get()
+  @AllowAnonymous()
   @UseInterceptors(CacheInterceptor)
   @CacheKey("api/services")
   @CacheTTL(60)
@@ -145,6 +146,7 @@ export class ServicesController {
   }
 
   @Get(":provider")
+  @AllowAnonymous()
   @ApiOperation({ summary: "Get a specific service by provider" })
   @ApiParam({ name: "provider", description: "Service provider identifier" })
   @ApiResponse({
