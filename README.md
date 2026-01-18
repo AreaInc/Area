@@ -20,8 +20,8 @@ The following diagram illustrates the high-level architecture of the AREA platfo
 ```mermaid
 graph TD
     subgraph Clients
-        Web[Web Client\n(React + Vite)]
-        Mobile[Mobile Client\n(React Native)]
+        Web["Web Client\n(React + Vite)"]
+        Mobile["Mobile Client\n(React Native)"]
     end
 
     subgraph Backend_Infrastructure [Backend Infrastructure]

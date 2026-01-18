@@ -18,10 +18,10 @@ The backend is organized into modular services.
 
 ```mermaid
 graph TD
-    API[API Layer\n(Controllers)] --> Services[Business Services]
+    API["API Layer\n(Controllers)"] --> Services[Business Services]
     Services --> DB[(Database)]
     Services --> Temporal[Temporal Workflows]
-    Services --> External[External APIs\n(Google, Spotify, etc.)]
+    Services --> External["External APIs\n(Google, Spotify, etc.)"]
     Temporal --> Worker[Temporal Workers]
     Worker --> External
 ```
