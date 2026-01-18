@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { Module, OnModuleInit } from "@nestjs/common";
 import { WorkflowsService } from "./workflows.service";
 import { DrizzleModule } from "../../db/drizzle.module";
 import { TemporalModule } from "../temporal/temporal.module";
@@ -21,4 +21,10 @@ import { WORKFLOWS_SERVICE } from "./workflows.constants";
     WORKFLOWS_SERVICE,
   ],
 })
-export class WorkflowsModule {}
+export class WorkflowsModule implements OnModuleInit {
+  constructor(private readonly workflowsService: WorkflowsService) {}
+
+  async onModuleInit() {
+    await this.workflowsService.loadActiveWorkflows();
+  }
+}
