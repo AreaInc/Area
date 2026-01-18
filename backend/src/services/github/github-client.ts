@@ -187,24 +187,72 @@ export class GitHubClient {
       draft?: boolean;
     },
   ) {
-    const response = await this.octokit.pulls.create({
-      owner,
-      repo,
-      title,
-      head,
-      base,
-      body: options?.body,
-      draft: options?.draft,
-    });
+    const trimmedHead = head?.trim();
+    const trimmedBase = base?.trim();
 
-    return {
-      number: response.data.number,
-      id: response.data.id,
-      title: response.data.title,
-      url: response.data.html_url,
-      state: response.data.state,
-      draft: response.data.draft,
-    };
+    if (!trimmedHead || trimmedHead.length === 0) {
+      throw new Error(
+        "Invalid 'head' branch: must be a non-empty string (e.g., 'feature-branch' or 'username:feature-branch')",
+      );
+    }
+
+    if (!trimmedBase || trimmedBase.length === 0) {
+      throw new Error(
+        "Invalid 'base' branch: must be a non-empty string (e.g., 'main' or 'master')",
+      );
+    }
+
+    try {
+      await this.octokit.repos.getBranch({
+        owner,
+        repo,
+        branch: trimmedBase,
+      });
+    } catch (error: any) {
+      throw new Error(
+        `Base branch '${trimmedBase}' does not exist in ${owner}/${repo}. Please check the branch name. Common base branches are 'main', 'master', or 'develop'.`,
+      );
+    }
+
+    if (!trimmedHead.includes(":")) {
+      try {
+        await this.octokit.repos.getBranch({
+          owner,
+          repo,
+          branch: trimmedHead,
+        });
+      } catch (error: any) {
+        throw new Error(
+          `Head branch '${trimmedHead}' does not exist in ${owner}/${repo}. Please verify the branch name or use 'username:branch' format for cross-repository PRs.`,
+        );
+      }
+    }
+
+    try {
+      const response = await this.octokit.pulls.create({
+        owner,
+        repo,
+        title,
+        head: trimmedHead,
+        base: trimmedBase,
+        body: options?.body,
+        draft: options?.draft,
+      });
+
+      return {
+        number: response.data.number,
+        id: response.data.id,
+        title: response.data.title,
+        url: response.data.html_url,
+        state: response.data.state,
+        draft: response.data.draft,
+      };
+    } catch (error: any) {
+      const errorMsg = error.message || JSON.stringify(error);
+      throw new Error(
+        `Failed to create pull request: ${errorMsg}. Please ensure both branches exist and you have permission to create pull requests in ${owner}/${repo}.`,
+      );
+    }
   }
 
   async mergePullRequest(
@@ -303,7 +351,7 @@ export class GitHubClient {
       repo,
       per_page: perPage,
       headers: {
-        Accept: "application/vnd.github.v3.star+json", // Required for starred_at timestamp
+        Accept: "application/vnd.github.v3.star+json",
       },
     });
 

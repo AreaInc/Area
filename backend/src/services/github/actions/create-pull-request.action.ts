@@ -33,11 +33,11 @@ export class CreatePullRequestAction implements IAction {
       },
       head: {
         type: "string",
-        description: "Branch to merge from (e.g., 'feature-branch')",
+        description: "Branch to merge from (e.g., 'feature-branch'). For cross-repo PRs, use 'username:branch' format",
       },
       base: {
         type: "string",
-        description: "Branch to merge into (e.g., 'main')",
+        description: "Branch to merge into (e.g., 'main' or 'master'). This branch must exist in the repository",
       },
       body: {
         type: "string",
