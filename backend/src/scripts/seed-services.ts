@@ -3,7 +3,6 @@ import postgres from "postgres";
 import * as schema from "../db/schema";
 import { services } from "../db/schema";
 import { ServiceProvider } from "../common/types/enums";
-import { sql } from "drizzle-orm";
 
 const connectionString = `postgresql://${process.env.POSTGRES_USER || "area"}:${process.env.POSTGRES_PASSWORD || "area"}@${process.env.POSTGRES_HOST || "localhost"}:${process.env.POSTGRES_PORT || "5432"}/${process.env.POSTGRES_NAME || "area"}`;
 const client = postgres(connectionString);

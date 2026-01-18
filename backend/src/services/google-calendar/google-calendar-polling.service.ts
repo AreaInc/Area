@@ -7,7 +7,7 @@ import {
 } from "@nestjs/common";
 import { google } from "googleapis";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import { and, eq, inArray } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { DRIZZLE } from "../../db/drizzle.module";
 import * as schema from "../../db/schema";
 import { credentials, workflows } from "../../db/schema";
@@ -59,9 +59,9 @@ export class GoogleCalendarPollingService
 
     await this.pollAllRegistrations();
 
-    this.pollingIntervalId = setInterval(async () => {
+    this.pollingIntervalId = setInterval(() => {
       if (this.isPolling) {
-        await this.pollAllRegistrations();
+        void this.pollAllRegistrations();
       }
     }, this.pollIntervalMs);
   }

@@ -31,7 +31,7 @@ export class PinMessageAction implements IAction {
     },
   };
 
-  async validateInput(config: Record<string, any>): Promise<boolean> {
+  async validateInput(_config: Record<string, any>): Promise<boolean> {
     return true;
   }
 

@@ -23,14 +23,14 @@ export class OnVideoMessageTrigger implements ITrigger {
   };
 
   async register(
-    workflowId: number,
-    config: Record<string, any>,
+    _workflowId: number,
+    _config: Record<string, any>,
   ): Promise<void> {
     // Polling triggers don't need explicit registration with external service
     return;
   }
 
-  async unregister(workflowId: number): Promise<void> {
+  async unregister(_workflowId: number): Promise<void> {
     // Polling triggers don't need explicit unregistration
     return;
   }

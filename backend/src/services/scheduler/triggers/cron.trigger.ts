@@ -49,10 +49,10 @@ export class CronTrigger implements ITrigger {
 
     const { intervalMs, firstDelayMs } = this.getSchedule(config.cron);
 
-    const timeout = setTimeout(async () => {
-      await this.trigger(workflowId, config);
+    const timeout = setTimeout(() => {
+      void this.trigger(workflowId, config);
       const intervalHandle = setInterval(
-        () => this.trigger(workflowId, config),
+        () => void this.trigger(workflowId, config),
         intervalMs,
       );
       const existing = this.registrations.get(workflowId);

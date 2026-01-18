@@ -23,13 +23,13 @@ export class OnMessageEditedTrigger implements ITrigger {
   };
 
   async register(
-    workflowId: number,
-    config: Record<string, any>,
+    _workflowId: number,
+    _config: Record<string, any>,
   ): Promise<void> {
     return;
   }
 
-  async unregister(workflowId: number): Promise<void> {
+  async unregister(_workflowId: number): Promise<void> {
     return;
   }
 

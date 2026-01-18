@@ -29,7 +29,7 @@ export class OnActivationTrigger implements ITrigger {
     },
   ) {}
 
-  async register(workflowId: number, config: Record<string, any>) {
+  async register(workflowId: number, _config: Record<string, any>) {
     this.logger.log(
       `[OnActivationTrigger] Activating workflow ${workflowId} immediately`,
     );
@@ -39,11 +39,11 @@ export class OnActivationTrigger implements ITrigger {
     await this.trigger(workflowId);
   }
 
-  async unregister(workflowId: number) {
+  async unregister(_workflowId: number) {
     // Nothing to clean up
   }
 
-  async validateConfig(config: Record<string, any>) {
+  async validateConfig(_config: Record<string, any>) {
     return true;
   }
 

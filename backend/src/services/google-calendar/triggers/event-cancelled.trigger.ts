@@ -49,7 +49,7 @@ export class EventCancelledTrigger implements ITrigger {
     this.registrations.delete(workflowId);
   }
 
-  async validateConfig(config: Record<string, any>): Promise<boolean> {
+  async validateConfig(_config: Record<string, any>): Promise<boolean> {
     return true;
   }
 

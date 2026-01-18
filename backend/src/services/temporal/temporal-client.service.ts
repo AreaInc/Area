@@ -102,7 +102,7 @@ export class TemporalClientService implements OnModuleInit, OnModuleDestroy {
       const handle = this.getWorkflowHandle(workflowId);
       const description = await handle.describe();
       return description.status.name === "RUNNING";
-    } catch (error) {
+    } catch {
       return false;
     }
   }

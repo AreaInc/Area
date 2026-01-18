@@ -60,9 +60,9 @@ export class GmailPollingService implements OnModuleInit, OnModuleDestroy {
 
     await this.pollAllRegistrations();
 
-    this.pollingIntervalId = setInterval(async () => {
+    this.pollingIntervalId = setInterval(() => {
       if (this.isPolling) {
-        await this.pollAllRegistrations();
+        void this.pollAllRegistrations();
       }
     }, this.pollIntervalMs);
   }
@@ -371,7 +371,7 @@ export class GmailPollingService implements OnModuleInit, OnModuleDestroy {
           continue;
         }
 
-        const from = String(headerMap.get("from") || "");
+        const from = String((headerMap.get("from") as string) || "");
         if (selfEmail && from.includes(selfEmail)) {
           continue;
         }

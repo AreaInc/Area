@@ -1,6 +1,5 @@
 import { NativeConnection, Worker } from "@temporalio/worker";
 import * as activities from "./temporal/activities";
-import { join } from "path";
 
 async function run() {
   const temporalAddress = process.env.TEMPORAL_ADDRESS || "localhost:7233";

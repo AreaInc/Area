@@ -50,31 +50,28 @@ export class GmailClient {
       refreshToken?: string;
       expiresAt?: number;
     };
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+
     this.oauth2Client.setCredentials({
       access_token: data.accessToken,
       refresh_token: data.refreshToken,
       expiry_date: data.expiresAt,
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     this.gmail = google.gmail({ version: "v1", auth: this.oauth2Client });
   }
 
   async refreshTokenIfNeeded(): Promise<void> {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
       const tokenInfo = await this.oauth2Client.getAccessToken();
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
       if (!tokenInfo.token) {
         throw new Error("No access token");
       }
     } catch {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
       const { credentials } = await this.oauth2Client.refreshAccessToken();
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+
       this.oauth2Client.setCredentials(credentials);
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
       this.gmail = google.gmail({ version: "v1", auth: this.oauth2Client });
     }
   }
@@ -112,7 +109,6 @@ export class GmailClient {
       .replace(/\//g, "_")
       .replace(/=+$/, "");
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
     const response = await this.gmail.users.messages.send({
       userId: "me",
       requestBody: {
@@ -121,9 +117,8 @@ export class GmailClient {
     });
 
     return {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       messageId: (response.data?.id as string | undefined) || "",
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
       threadId: (response.data?.threadId as string | undefined) || "",
     };
   }
@@ -186,7 +181,6 @@ export class GmailClient {
   }): Promise<{ messages: Array<{ id?: string }>; totalCount: number }> {
     await this.refreshTokenIfNeeded();
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
     const response = await this.gmail.users.messages.list({
       userId: "me",
       q: params.query,
@@ -194,7 +188,6 @@ export class GmailClient {
       labelIds: params.labelIds,
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const responseData = response.data as
       | {
           messages?: Array<{ id?: string }>;
@@ -210,14 +203,12 @@ export class GmailClient {
   async getMessage(messageId: string): Promise<GmailMessage> {
     await this.refreshTokenIfNeeded();
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
     const response = await this.gmail.users.messages.get({
       userId: "me",
       id: messageId,
       format: "full",
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     return response.data as GmailMessage;
   }
 

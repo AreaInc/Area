@@ -168,7 +168,7 @@ export class OAuth2Service {
       });
 
       return { authUrl, state };
-    } else if (provider === ServiceProvider.SPOTIFY) {
+    } else if (provider === (ServiceProvider.SPOTIFY as string)) {
       const params = new URLSearchParams({
         client_id: credential.clientId,
         response_type: "code",
@@ -180,7 +180,7 @@ export class OAuth2Service {
         authUrl: `${OAUTH_CONFIG.spotify.authUrl}?${params.toString()}`,
         state,
       };
-    } else if (provider === ServiceProvider.TWITCH) {
+    } else if (provider === (ServiceProvider.TWITCH as string)) {
       const params = new URLSearchParams({
         client_id: credential.clientId,
         response_type: "code",
@@ -247,7 +247,7 @@ export class OAuth2Service {
         const oauth2 = google.oauth2({ version: "v2", auth: oauth2Client });
         const userInfo = await oauth2.userinfo.get();
         userEmail = userInfo.data.email || "Unknown";
-      } else if (provider === ServiceProvider.SPOTIFY) {
+      } else if (provider === (ServiceProvider.SPOTIFY as string)) {
         const body = new URLSearchParams({
           grant_type: "authorization_code",
           code,
@@ -268,7 +268,7 @@ export class OAuth2Service {
         let data: any;
         try {
           data = JSON.parse(responseText);
-        } catch (e) {
+        } catch {
           throw new Error(
             `Failed to parse Spotify response: ${responseText.substring(0, 100)}`,
           );
@@ -298,7 +298,7 @@ export class OAuth2Service {
         let profile: any;
         try {
           profile = JSON.parse(profileText);
-        } catch (e) {
+        } catch {
           throw new Error(
             `Failed to parse Spotify Profile response. Status: ${profileRes.status}. Body: ${profileText.substring(0, 150)}`,
           );
@@ -313,7 +313,7 @@ export class OAuth2Service {
         }
 
         userEmail = profile.email || profile.id;
-      } else if (provider === ServiceProvider.TWITCH) {
+      } else if (provider === (ServiceProvider.TWITCH as string)) {
         const body = new URLSearchParams({
           client_id: credential.clientId,
           client_secret: credential.clientSecret,
@@ -330,7 +330,7 @@ export class OAuth2Service {
         let data: any;
         try {
           data = JSON.parse(responseText);
-        } catch (e) {
+        } catch {
           throw new Error(
             `Failed to parse Twitch response: ${responseText.substring(0, 100)}`,
           );
@@ -451,7 +451,7 @@ export class OAuth2Service {
           access_token: tokens.access_token,
           expires_at: tokens.expiry_date,
         };
-      } else if (provider === ServiceProvider.SPOTIFY) {
+      } else if (provider === (ServiceProvider.SPOTIFY as string)) {
         const body = new URLSearchParams({
           grant_type: "refresh_token",
           refresh_token: credential.refreshToken,
@@ -477,7 +477,7 @@ export class OAuth2Service {
           expires_at: Date.now() + data.expires_in * 1000,
           refresh_token: data.refresh_token || credential.refreshToken,
         };
-      } else if (provider === ServiceProvider.TWITCH) {
+      } else if (provider === (ServiceProvider.TWITCH as string)) {
         const body = new URLSearchParams({
           client_id: credential.clientId,
           client_secret: credential.clientSecret,

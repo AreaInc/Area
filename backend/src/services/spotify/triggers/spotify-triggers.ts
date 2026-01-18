@@ -44,7 +44,7 @@ export class NewTrackPlayedTrigger implements ITrigger {
     this.workflowRegistrations.delete(workflowId);
   }
 
-  async validateConfig(config: Record<string, any>): Promise<boolean> {
+  async validateConfig(_config: Record<string, any>): Promise<boolean> {
     return true;
   }
 
@@ -96,7 +96,7 @@ export class NewLikedSongTrigger implements ITrigger {
     this.workflowRegistrations.delete(workflowId);
   }
 
-  async validateConfig(config: Record<string, any>): Promise<boolean> {
+  async validateConfig(_config: Record<string, any>): Promise<boolean> {
     return true;
   }
 

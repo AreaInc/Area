@@ -47,8 +47,8 @@ export class YouTubePollingService implements OnModuleInit, OnModuleDestroy {
       `Starting YouTube polling (interval: ${this.pollIntervalMs}ms)`,
     );
     await this.poll();
-    this.pollingIntervalId = setInterval(async () => {
-      if (this.isPolling) await this.poll();
+    this.pollingIntervalId = setInterval(() => {
+      if (this.isPolling) void this.poll();
     }, this.pollIntervalMs);
   }
 
@@ -127,12 +127,14 @@ export class YouTubePollingService implements OnModuleInit, OnModuleDestroy {
     regLiked.forEach((v, k) => addToMap(k, v, "liked"));
     regChannel.forEach((v, k) => addToMap(k, v, "channel"));
 
-    await Promise.allSettled(
-      Array.from(tasksByCredential.entries()).map(([cid, tasks]) => {
+    const promises = Array.from(tasksByCredential.entries())
+      .map(([cid, tasks]) => {
         const cred = credMap.get(cid);
-        if (cred) return this.checkCredential(cred, tasks);
-      }),
-    );
+        return cred ? this.checkCredential(cred, tasks) : null;
+      })
+      .filter((p): p is Promise<void> => p !== null);
+
+    await Promise.allSettled(promises);
   }
 
   private async checkCredential(credential: any, tasks: any) {
@@ -230,7 +232,7 @@ export class YouTubePollingService implements OnModuleInit, OnModuleDestroy {
                 stateChanged = true;
               }
             }
-          } catch (e) {
+          } catch {
             this.logger.warn(
               `Failed to check channel ${channelId} for workflow ${wid}`,
             );

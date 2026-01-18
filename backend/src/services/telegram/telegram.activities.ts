@@ -198,11 +198,7 @@ export async function pinTelegramMessageActivity(
     };
     if (input.disableNotification) payload.disable_notification = true;
 
-    const res = await callTelegramApi(
-      "pinChatMessage",
-      input.botToken,
-      payload,
-    );
+    await callTelegramApi("pinChatMessage", input.botToken, payload);
     return { success: true };
   } catch (error) {
     activity.log.error("Failed to pin Telegram message", {
@@ -235,7 +231,7 @@ export async function kickTelegramMemberActivity(
     if (input.untilDate) payload.until_date = input.untilDate;
     if (input.revokeMessages) payload.revoke_messages = input.revokeMessages;
 
-    const res = await callTelegramApi("banChatMember", input.botToken, payload);
+    await callTelegramApi("banChatMember", input.botToken, payload);
     return { success: true };
   } catch (error) {
     activity.log.error("Failed to kick Telegram member", {
@@ -266,11 +262,7 @@ export async function unbanTelegramMemberActivity(
     };
     if (input.onlyIfBanned) payload.only_if_banned = true;
 
-    const res = await callTelegramApi(
-      "unbanChatMember",
-      input.botToken,
-      payload,
-    );
+    await callTelegramApi("unbanChatMember", input.botToken, payload);
     return { success: true };
   } catch (error) {
     activity.log.error("Failed to unban Telegram member", {

@@ -51,8 +51,8 @@ export class TwitchPollingService implements OnModuleInit, OnModuleDestroy {
       `Starting Twitch polling (interval: ${this.pollIntervalMs}ms)`,
     );
     await this.poll();
-    this.pollingIntervalId = setInterval(async () => {
-      if (this.isPolling) await this.poll();
+    this.pollingIntervalId = setInterval(() => {
+      if (this.isPolling) void this.poll();
     }, this.pollIntervalMs);
   }
 
@@ -145,12 +145,14 @@ export class TwitchPollingService implements OnModuleInit, OnModuleDestroy {
     regFollower.forEach((v, k) => addToMap(k, v, "follower"));
     regViewer.forEach((v, k) => addToMap(k, v, "viewer"));
 
-    await Promise.allSettled(
-      Array.from(tasksByCredential.entries()).map(([cid, tasks]) => {
+    const promises = Array.from(tasksByCredential.entries())
+      .map(([cid, tasks]) => {
         const cred = credMap.get(cid);
-        if (cred) return this.checkCredential(cred, tasks);
-      }),
-    );
+        return cred ? this.checkCredential(cred, tasks) : null;
+      })
+      .filter((p): p is Promise<void> => p !== null);
+
+    await Promise.allSettled(promises);
   }
 
   private async checkCredential(credential: any, tasks: any) {

@@ -1,4 +1,3 @@
-import { Context } from "@temporalio/activity";
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { eq } from "drizzle-orm";

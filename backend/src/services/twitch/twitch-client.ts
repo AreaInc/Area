@@ -76,7 +76,9 @@ export class TwitchClient {
       try {
         const errData = await response.json();
         errorMsg = JSON.stringify(errData);
-      } catch {}
+      } catch {
+        // ignore
+      }
       throw new Error(`Twitch API Error ${response.status}: ${errorMsg}`);
     }
     return response.json();

@@ -28,11 +28,11 @@ export class OnPinnedMessageTrigger implements ITrigger {
   }
 
   async register(
-    workflowId: number,
-    config: Record<string, any>,
+    _workflowId: number,
+    _config: Record<string, any>,
   ): Promise<void> {}
 
-  async unregister(workflowId: number): Promise<void> {}
+  async unregister(_workflowId: number): Promise<void> {}
 
   getMetadata(): TriggerMetadata {
     return {

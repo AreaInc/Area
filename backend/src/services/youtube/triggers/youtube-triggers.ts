@@ -30,7 +30,7 @@ export class NewLikedVideoTrigger implements ITrigger {
   async unregister(workflowId: number): Promise<void> {
     this.workflowRegistrations.delete(workflowId);
   }
-  async validateConfig(config: Record<string, any>): Promise<boolean> {
+  async validateConfig(_config: Record<string, any>): Promise<boolean> {
     return true;
   }
   getRegistrations() {

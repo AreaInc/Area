@@ -54,11 +54,11 @@ export class TelegramPollingService implements OnModuleInit, OnModuleDestroy {
       `Starting Telegram polling (interval: ${this.pollIntervalMs}ms)`,
     );
 
-    this.pollingIntervalId = setInterval(async () => {
+    this.pollingIntervalId = setInterval(() => {
       if (this.isPolling && !this.isProcessing) {
         this.isProcessing = true;
         try {
-          await this.poll();
+          void this.poll();
         } finally {
           this.isProcessing = false;
         }

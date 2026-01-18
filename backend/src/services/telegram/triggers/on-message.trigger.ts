@@ -32,13 +32,13 @@ export class OnMessageTrigger implements ITrigger {
   }
 
   async register(
-    workflowId: number,
-    config: Record<string, any>,
+    _workflowId: number,
+    _config: Record<string, any>,
   ): Promise<void> {
     // Polling service handles this
   }
 
-  async unregister(workflowId: number): Promise<void> {
+  async unregister(_workflowId: number): Promise<void> {
     // Polling service handles this
   }
 
