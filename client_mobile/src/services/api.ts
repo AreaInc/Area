@@ -12,6 +12,7 @@ const request = async <T = unknown>(endpoint: string, options: RequestOptions = 
 
     const defaultHeaders: Record<string, string> = {
         'Content-Type': 'application/json',
+        'Origin': BASE_URL, // Required for auth endpoints
     };
 
     console.log(`[API] Requesting: ${options.method || 'GET'} ${url}`);
