@@ -92,6 +92,26 @@ async function seed() {
       credentialTypes: ["oauth2"],
       isActive: true,
     },
+    {
+      provider: ServiceProvider.GITHUB,
+      name: "GitHub",
+      description: "Manage repositories, issues, and pull requests.",
+      imageUrl:
+        "https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg",
+      version: "1.0.0",
+      supportedActions: [
+        "create_issue",
+        "add_comment",
+        "star_repository",
+        "create_repository",
+        "add_label",
+        "close_issue",
+        "create_pull_request",
+        "merge_pull_request",
+      ],
+      credentialTypes: ["oauth2"],
+      isActive: true,
+    },
   ];
 
   for (const service of servicesData) {
