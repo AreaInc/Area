@@ -617,9 +617,11 @@ describe("WorkflowsService", () => {
       dbMock.select.mockImplementationOnce(() =>
         createQueryMock([{ id: 1, userId: "u", isActive: true }]),
       );
-      jest.spyOn(service, "executeWorkflow").mockResolvedValueOnce({} as any);
+      const executeWorkflowSpy = jest
+        .spyOn(service, "executeWorkflow")
+        .mockResolvedValueOnce({} as any);
       await service.triggerWorkflowExecution(1, {});
-      expect(service.executeWorkflow).toHaveBeenCalled();
+      expect(executeWorkflowSpy).toHaveBeenCalled();
     });
 
     it("should throw if not found", async () => {
