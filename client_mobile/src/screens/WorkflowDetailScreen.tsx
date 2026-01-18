@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Switch, ScrollView, Alert, ActivityIndicator } from 'react-native';
-import { ArrowLeft, Play, Settings, Zap, Target, Trash2 } from 'lucide-react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Switch, ScrollView, Alert, ActivityIndicator, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import { ArrowLeft, Play, Settings, Zap, Target, Trash2, Save, X } from 'lucide-react-native';
 import GradientBackground from '../components/GradientBackground';
 import GlassCard from '../components/GlassCard';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -17,6 +17,14 @@ const WorkflowDetailScreen: React.FC<Props> = ({ navigation, route }) => {
     const [title, setTitle] = useState<string>(initialTitle || "Loading...");
     const [isActive, setIsActive] = useState<boolean>(initialStatus === 'Active');
     const [loading, setLoading] = useState<boolean>(true);
+
+    // Edit Mode State
+    const [isEditing, setIsEditing] = useState<boolean>(false);
+    const [editName, setEditName] = useState<string>("");
+    const [editDescription, setEditDescription] = useState<string>("");
+    const [editTriggerConfig, setEditTriggerConfig] = useState<Record<string, any>>({});
+    const [editActionConfig, setEditActionConfig] = useState<Record<string, any>>({});
+    const [saving, setSaving] = useState<boolean>(false);
 
     useEffect(() => {
         if (id) {
@@ -38,6 +46,54 @@ const WorkflowDetailScreen: React.FC<Props> = ({ navigation, route }) => {
             console.error("Fetch error:", e);
         } finally {
             setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (workflow) {
+            setEditName(workflow.name);
+            setEditDescription(workflow.description || "");
+            setEditTriggerConfig(workflow.triggerConfig || {});
+            setEditActionConfig(workflow.actionConfig || {});
+        }
+    }, [workflow]);
+
+    const handleSave = async (): Promise<void> => {
+        if (!workflow) return;
+        setSaving(true);
+        try {
+            const body = {
+                name: editName,
+                description: editDescription,
+                trigger: {
+                    provider: workflow.triggerProvider,
+                    triggerId: workflow.triggerId,
+                    config: editTriggerConfig
+                },
+                action: {
+                    provider: workflow.actionProvider,
+                    actionId: workflow.actionId,
+                    config: editActionConfig,
+                    credentialsId: workflow.actionCredentialsId
+                }
+            };
+
+            const { data, error } = await api.put<Workflow>(`/api/v2/workflows/${id}`, body);
+
+            if (data) {
+                setWorkflow(data);
+                setTitle(data.name);
+                setIsEditing(false);
+                Alert.alert("Success", "Workflow updated successfully!");
+            } else {
+                console.error("Update error:", error);
+                Alert.alert("Error", error?.message || "Failed to update workflow");
+            }
+        } catch (e) {
+            console.error("Save ex:", e);
+            Alert.alert("Error", "An unexpected error occurred while saving.");
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -110,15 +166,40 @@ const WorkflowDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                     <ArrowLeft color="#fff" size={24} />
                 </TouchableOpacity>
                 <View style={styles.titleContainer}>
-                    <Text style={styles.headerTitle} numberOfLines={1}>{title}</Text>
+                    {isEditing ? (
+                        <TextInput
+                            value={editName}
+                            onChangeText={setEditName}
+                            style={[styles.headerTitle, { borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.3)', minWidth: 100, textAlign: 'center' }]}
+                            placeholder="Workflow Name"
+                            placeholderTextColor="rgba(255,255,255,0.5)"
+                        />
+                    ) : (
+                        <Text style={styles.headerTitle} numberOfLines={1}>{title}</Text>
+                    )}
                     <View style={styles.statusRow}>
                         <View style={[styles.statusDot, { backgroundColor: isActive ? '#4ade80' : '#ef4444' }]} />
                         <Text style={styles.statusText}>{isActive ? 'ACTIVE' : 'INACTIVE'}</Text>
                     </View>
                 </View>
-                <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-                    <Trash2 color="#ef4444" size={22} />
-                </TouchableOpacity>
+
+                <View style={{ flexDirection: 'row' }}>
+                    {isEditing ? (
+                        <TouchableOpacity style={styles.deleteButton} onPress={() => setIsEditing(false)}>
+                            <X color="#fff" size={22} />
+                        </TouchableOpacity>
+                    ) : (
+                        <TouchableOpacity style={styles.deleteButton} onPress={() => setIsEditing(true)}>
+                            <Settings color="#fff" size={22} />
+                        </TouchableOpacity>
+                    )}
+
+                    {!isEditing && (
+                        <TouchableOpacity style={[styles.deleteButton, { marginLeft: 4 }]} onPress={handleDelete}>
+                            <Trash2 color="#ef4444" size={22} />
+                        </TouchableOpacity>
+                    )}
+                </View>
             </View>
 
             <View style={styles.controlBar}>
@@ -136,14 +217,23 @@ const WorkflowDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                 showsVerticalScrollIndicator={false}
             >
                 {workflow && (
-                    <>
+                    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}>
                         {/* Description */}
-                        {workflow.description && (
-                            <GlassCard style={styles.card}>
-                                <Text style={styles.cardLabel}>Description</Text>
-                                <Text style={styles.cardValue}>{workflow.description}</Text>
-                            </GlassCard>
-                        )}
+                        <GlassCard style={styles.card}>
+                            <Text style={styles.cardLabel}>Description</Text>
+                            {isEditing ? (
+                                <TextInput
+                                    style={[styles.cardValue, { borderBottomWidth: 1, borderColor: 'rgba(255,255,255,0.2)', paddingVertical: 4 }]}
+                                    value={editDescription}
+                                    onChangeText={setEditDescription}
+                                    multiline
+                                    placeholder="Enter description"
+                                    placeholderTextColor="rgba(255,255,255,0.3)"
+                                />
+                            ) : (
+                                <Text style={styles.cardValue}>{workflow.description || 'No description'}</Text>
+                            )}
+                        </GlassCard>
 
                         {/* Trigger Info */}
                         <GlassCard style={styles.card}>
@@ -159,12 +249,32 @@ const WorkflowDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                                 <Text style={styles.infoLabel}>Type</Text>
                                 <Text style={styles.infoValue}>{workflow.triggerId}</Text>
                             </View>
-                            {Object.keys(workflow.triggerConfig || {}).length > 0 && (
+
+                            {(isEditing || Object.keys(workflow.triggerConfig || {}).length > 0) && (
                                 <View style={styles.configSection}>
-                                    <Text style={styles.configLabel}>Config:</Text>
-                                    <Text style={styles.configValue}>
-                                        {JSON.stringify(workflow.triggerConfig, null, 2)}
-                                    </Text>
+                                    {isEditing ? (
+                                        <>
+                                            <Text style={styles.configLabel}>Configuration</Text>
+                                            {Object.entries(editTriggerConfig).map(([key, value]) => (
+                                                <View key={key} style={{ marginTop: 8 }}>
+                                                    <Text style={[styles.configLabel, { color: '#fff' }]}>{key}</Text>
+                                                    <TextInput
+                                                        style={[styles.configValue, { borderBottomWidth: 1, borderColor: 'rgba(255,255,255,0.2)', paddingVertical: 4, color: '#fff', fontSize: 14 }]}
+                                                        value={String(value)}
+                                                        onChangeText={(text) => setEditTriggerConfig(prev => ({ ...prev, [key]: text }))}
+                                                    />
+                                                </View>
+                                            ))}
+                                            {Object.keys(editTriggerConfig).length === 0 && <Text style={styles.configValue}>No configuration needed</Text>}
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Text style={styles.configLabel}>Config:</Text>
+                                            <Text style={styles.configValue}>
+                                                {JSON.stringify(workflow.triggerConfig, null, 2)}
+                                            </Text>
+                                        </>
+                                    )}
                                 </View>
                             )}
                         </GlassCard>
@@ -183,12 +293,32 @@ const WorkflowDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                                 <Text style={styles.infoLabel}>Type</Text>
                                 <Text style={styles.infoValue}>{workflow.actionId}</Text>
                             </View>
-                            {Object.keys(workflow.actionConfig || {}).length > 0 && (
+
+                            {(isEditing || Object.keys(workflow.actionConfig || {}).length > 0) && (
                                 <View style={styles.configSection}>
-                                    <Text style={styles.configLabel}>Config:</Text>
-                                    <Text style={styles.configValue}>
-                                        {JSON.stringify(workflow.actionConfig, null, 2)}
-                                    </Text>
+                                    {isEditing ? (
+                                        <>
+                                            <Text style={styles.configLabel}>Configuration</Text>
+                                            {Object.entries(editActionConfig).map(([key, value]) => (
+                                                <View key={key} style={{ marginTop: 8 }}>
+                                                    <Text style={[styles.configLabel, { color: '#fff' }]}>{key}</Text>
+                                                    <TextInput
+                                                        style={[styles.configValue, { borderBottomWidth: 1, borderColor: 'rgba(255,255,255,0.2)', paddingVertical: 4, color: '#fff', fontSize: 14 }]}
+                                                        value={String(value)}
+                                                        onChangeText={(text) => setEditActionConfig(prev => ({ ...prev, [key]: text }))}
+                                                    />
+                                                </View>
+                                            ))}
+                                            {Object.keys(editActionConfig).length === 0 && <Text style={styles.configValue}>No configuration needed</Text>}
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Text style={styles.configLabel}>Config:</Text>
+                                            <Text style={styles.configValue}>
+                                                {JSON.stringify(workflow.actionConfig, null, 2)}
+                                            </Text>
+                                        </>
+                                    )}
                                 </View>
                             )}
                         </GlassCard>
@@ -204,26 +334,46 @@ const WorkflowDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                                 <Text style={styles.infoValue}>{formatDate(workflow.createdAt)}</Text>
                             </View>
                         </GlassCard>
-                    </>
+                    </KeyboardAvoidingView>
                 )}
 
                 <View style={{ height: 120 }} />
             </ScrollView>
 
             <View style={styles.bottomBar}>
-                <TouchableOpacity style={styles.runButton} onPress={handleExecute}>
-                    <LinearGradient
-                        colors={['#2563eb', '#1d4ed8']}
-                        style={styles.runGradient}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 0 }}
-                    >
-                        <Play fill="#fff" color="#fff" size={20} style={{ marginRight: 8 }} />
-                        <Text style={styles.runText}>Test Run</Text>
-                    </LinearGradient>
-                </TouchableOpacity>
+                {isEditing ? (
+                    <TouchableOpacity style={styles.runButton} onPress={handleSave} disabled={saving}>
+                        <LinearGradient
+                            colors={['#10b981', '#059669']}
+                            style={styles.runGradient}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 0 }}
+                        >
+                            {saving ? (
+                                <ActivityIndicator color="#fff" />
+                            ) : (
+                                <>
+                                    <Save fill="#fff" color="#fff" size={20} style={{ marginRight: 8 }} />
+                                    <Text style={styles.runText}>Save Changes</Text>
+                                </>
+                            )}
+                        </LinearGradient>
+                    </TouchableOpacity>
+                ) : (
+                    <TouchableOpacity style={styles.runButton} onPress={handleExecute}>
+                        <LinearGradient
+                            colors={['#2563eb', '#1d4ed8']}
+                            style={styles.runGradient}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 0 }}
+                        >
+                            <Play fill="#fff" color="#fff" size={20} style={{ marginRight: 8 }} />
+                            <Text style={styles.runText}>Test Run</Text>
+                        </LinearGradient>
+                    </TouchableOpacity>
+                )}
             </View>
-        </GradientBackground>
+        </GradientBackground >
     );
 };
 

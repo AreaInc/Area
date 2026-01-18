@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import GradientBackground from '../components/GradientBackground';
 import GlassCard from '../components/GlassCard';
-import { LogOut, User, ChevronLeft } from 'lucide-react-native';
+import { LogOut, User, ChevronLeft, Link2, ChevronRight } from 'lucide-react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../types';
 
@@ -41,6 +41,15 @@ const ProfileScreen: React.FC<Props> = ({ navigation }) => {
                             <Text style={styles.value}>{user?.email || 'email@example.com'}</Text>
                         </View>
                     </GlassCard>
+
+                    <TouchableOpacity
+                        style={styles.servicesBtn}
+                        onPress={() => navigation.navigate('Services')}
+                    >
+                        <Link2 color="#3b82f6" size={20} />
+                        <Text style={styles.servicesBtnText}>Connected Services</Text>
+                        <ChevronRight color="#64748b" size={20} />
+                    </TouchableOpacity>
 
                     <TouchableOpacity style={styles.logoutBtn} onPress={signOut}>
                         <LogOut color="#ff4d4d" size={20} />
@@ -110,6 +119,25 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 16,
         fontWeight: '600',
+    },
+    servicesBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(59, 130, 246, 0.15)',
+        paddingVertical: 14,
+        paddingHorizontal: 20,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: 'rgba(59, 130, 246, 0.3)',
+        marginBottom: 16,
+        width: '100%',
+    },
+    servicesBtnText: {
+        color: '#3b82f6',
+        fontWeight: '600',
+        fontSize: 16,
+        flex: 1,
+        marginLeft: 12,
     },
     logoutBtn: {
         flexDirection: 'row',

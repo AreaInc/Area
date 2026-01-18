@@ -1,7 +1,7 @@
 import { API_URL } from '@env';
 import type { ApiResponse } from '../types';
 
-const BASE_URL: string = API_URL || 'http://10.0.2.2:8080';
+const BASE_URL: string = API_URL || 'https://api.areamoncul.click';
 
 interface RequestOptions extends RequestInit {
     headers?: Record<string, string>;
@@ -12,7 +12,7 @@ const request = async <T = unknown>(endpoint: string, options: RequestOptions = 
 
     const defaultHeaders: Record<string, string> = {
         'Content-Type': 'application/json',
-        'Origin': BASE_URL, // Required for auth endpoints
+        'Origin': 'area://mobile',
     };
 
     console.log(`[API] Requesting: ${options.method || 'GET'} ${url}`);
@@ -63,4 +63,5 @@ export const api = {
         request<T>(endpoint, { method: 'PUT', body: JSON.stringify(body) }),
     delete: <T = unknown>(endpoint: string): Promise<ApiResponse<T>> =>
         request<T>(endpoint, { method: 'DELETE' }),
+    getBaseUrl: (): string => BASE_URL,
 };
