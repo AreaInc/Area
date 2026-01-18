@@ -53,6 +53,7 @@ export default function CreateCredentialForm({ onSuccess, onCancel }: CreateCred
       case 'gmail':
       case 'google_sheets':
       case 'youtube':
+      case 'google-calendar':
         return {
           clientIdLabel: 'Client ID',
           clientIdPlaceholder: '123456789-abcdef.apps.googleusercontent.com',
@@ -119,6 +120,7 @@ export default function CreateCredentialForm({ onSuccess, onCancel }: CreateCred
             <SelectItem value="spotify">Spotify</SelectItem>
             <SelectItem value="twitch">Twitch</SelectItem>
             <SelectItem value="youtube">YouTube</SelectItem>
+            <SelectItem value="google-calendar">Google Calendar</SelectItem>
           </SelectContent>
         </Select>
       </div>
