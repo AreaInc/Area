@@ -63,4 +63,5 @@ export const api = {
         request<T>(endpoint, { method: 'PUT', body: JSON.stringify(body) }),
     delete: <T = unknown>(endpoint: string): Promise<ApiResponse<T>> =>
         request<T>(endpoint, { method: 'DELETE' }),
+    getBaseUrl: (): string => BASE_URL,
 };

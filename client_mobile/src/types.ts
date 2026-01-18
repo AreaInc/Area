@@ -66,6 +66,7 @@ export type RootStackParamList = {
     WorkflowDetail: { id: number; title: string; status: string };
     CreateWorkflow: undefined;
     Profile: undefined;
+    Services: undefined;
     Login: undefined;
     Register: undefined;
 };

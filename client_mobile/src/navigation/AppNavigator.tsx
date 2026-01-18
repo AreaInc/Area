@@ -6,6 +6,7 @@ import { View, ActivityIndicator } from 'react-native';
 import HomeScreen from '../screens/HomeScreen';
 import WorkflowDetailScreen from '../screens/WorkflowDetailScreen';
 import CreateWorkflowScreen from '../screens/CreateWorkflowScreen';
+import ServicesScreen from '../screens/ServicesScreen';
 import LoginScreen from '../screens/auth/LoginScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
 
@@ -35,6 +36,7 @@ const AppNavigator: React.FC = () => {
                         <Stack.Screen name="Home" component={HomeScreen} />
                         <Stack.Screen name="WorkflowDetail" component={WorkflowDetailScreen} />
                         <Stack.Screen name="CreateWorkflow" component={CreateWorkflowScreen} />
+                        <Stack.Screen name="Services" component={ServicesScreen} />
                         <Stack.Screen name="Profile" component={ProfileScreen} />
                     </>
                 ) : (
