@@ -272,6 +272,10 @@ export class WorkflowsService {
       .where(eq(workflows.id, workflowId))
       .returning();
 
+    if (!updated) {
+      throw new NotFoundException("Workflow not found after update");
+    }
+
     return updated;
   }
 
