@@ -8,9 +8,10 @@ import {
     ActivityIndicator,
     Alert,
     ScrollView,
-    Modal
+    Modal,
+    Switch
 } from 'react-native';
-import { ChevronLeft, ChevronDown, Zap, Play } from 'lucide-react-native';
+import { ChevronLeft, ChevronDown, Zap, Play, Settings } from 'lucide-react-native';
 import GradientBackground from '../components/GradientBackground';
 import GlassCard from '../components/GlassCard';
 import { api } from '../services/api';
@@ -20,13 +21,27 @@ import type { RootStackParamList, Workflow } from '../types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CreateWorkflow'>;
 
+interface SchemaProperty {
+    type: string;
+    description?: string;
+    example?: string;
+    default?: any;
+    items?: { type: string };
+}
+
+interface Schema {
+    type: string;
+    required?: string[];
+    properties?: Record<string, SchemaProperty>;
+}
+
 interface TriggerMetadata {
     id: string;
     name: string;
     description: string;
     serviceProvider: string;
     triggerType: string;
-    configSchema: Record<string, any>;
+    configSchema: Schema;
     requiresCredentials: boolean;
 }
 
@@ -35,7 +50,7 @@ interface ActionMetadata {
     name: string;
     description: string;
     serviceProvider: string;
-    inputSchema: Record<string, any>;
+    inputSchema: Schema;
     requiresCredentials: boolean;
 }
 
@@ -48,17 +63,28 @@ const CreateWorkflowScreen: React.FC<Props> = ({ navigation }) => {
     const [triggers, setTriggers] = useState<TriggerMetadata[]>([]);
     const [selectedTrigger, setSelectedTrigger] = useState<TriggerMetadata | null>(null);
     const [showTriggerModal, setShowTriggerModal] = useState<boolean>(false);
+    const [triggerConfig, setTriggerConfig] = useState<Record<string, any>>({});
 
     // Actions
     const [actions, setActions] = useState<ActionMetadata[]>([]);
     const [selectedAction, setSelectedAction] = useState<ActionMetadata | null>(null);
     const [showActionModal, setShowActionModal] = useState<boolean>(false);
+    const [actionConfig, setActionConfig] = useState<Record<string, any>>({});
 
     const [loadingMetadata, setLoadingMetadata] = useState<boolean>(true);
 
     useEffect(() => {
         fetchMetadata();
     }, []);
+
+    // Reset configs when trigger/action changes
+    useEffect(() => {
+        setTriggerConfig({});
+    }, [selectedTrigger]);
+
+    useEffect(() => {
+        setActionConfig({});
+    }, [selectedAction]);
 
     const fetchMetadata = async (): Promise<void> => {
         try {
@@ -76,6 +102,19 @@ const CreateWorkflowScreen: React.FC<Props> = ({ navigation }) => {
         }
     };
 
+    const validateRequiredFields = (): boolean => {
+        // Validate action required fields
+        if (selectedAction?.inputSchema?.required) {
+            for (const field of selectedAction.inputSchema.required) {
+                if (!actionConfig[field] || (typeof actionConfig[field] === 'string' && !actionConfig[field].trim())) {
+                    Alert.alert('Error', `Please fill in the required field: ${field}`);
+                    return false;
+                }
+            }
+        }
+        return true;
+    };
+
     const handleCreate = async (): Promise<void> => {
         if (!name.trim()) {
             Alert.alert('Error', 'Please enter a workflow name');
@@ -89,6 +128,9 @@ const CreateWorkflowScreen: React.FC<Props> = ({ navigation }) => {
             Alert.alert('Error', 'Please select an action');
             return;
         }
+        if (!validateRequiredFields()) {
+            return;
+        }
 
         setIsLoading(true);
         try {
@@ -98,12 +140,12 @@ const CreateWorkflowScreen: React.FC<Props> = ({ navigation }) => {
                 trigger: {
                     provider: selectedTrigger.serviceProvider,
                     triggerId: selectedTrigger.id,
-                    config: {}
+                    config: triggerConfig
                 },
                 action: {
                     provider: selectedAction.serviceProvider,
                     actionId: selectedAction.id,
-                    config: {}
+                    config: actionConfig
                 }
             });
             if (data) {
@@ -127,6 +169,109 @@ const CreateWorkflowScreen: React.FC<Props> = ({ navigation }) => {
             acc[provider].push(item);
             return acc;
         }, {} as Record<string, T[]>);
+    };
+
+    // Render a single form field based on schema property
+    const renderFormField = (
+        key: string,
+        prop: SchemaProperty,
+        value: any,
+        onChange: (val: any) => void,
+        required: boolean
+    ) => {
+        const label = `${key}${required ? ' *' : ''}`;
+
+        if (prop.type === 'boolean') {
+            return (
+                <View key={key} style={styles.fieldContainer}>
+                    <View style={styles.switchRow}>
+                        <View style={{ flex: 1 }}>
+                            <Text style={styles.fieldLabel}>{label}</Text>
+                            {prop.description && (
+                                <Text style={styles.fieldDescription}>{prop.description}</Text>
+                            )}
+                        </View>
+                        <Switch
+                            value={value ?? prop.default ?? false}
+                            onValueChange={onChange}
+                            trackColor={{ false: "#334155", true: "#2563eb" }}
+                            thumbColor="#fff"
+                        />
+                    </View>
+                </View>
+            );
+        }
+
+        if (prop.type === 'array' && prop.items?.type === 'string') {
+            return (
+                <View key={key} style={styles.fieldContainer}>
+                    <Text style={styles.fieldLabel}>{label}</Text>
+                    {prop.description && (
+                        <Text style={styles.fieldDescription}>{prop.description}</Text>
+                    )}
+                    <TextInput
+                        style={styles.fieldInput}
+                        placeholder="Comma-separated values"
+                        placeholderTextColor="#64748b"
+                        value={Array.isArray(value) ? value.join(', ') : (value || '')}
+                        onChangeText={(text) => {
+                            const arr = text.split(',').map(s => s.trim()).filter(Boolean);
+                            onChange(arr.length > 0 ? arr : undefined);
+                        }}
+                    />
+                </View>
+            );
+        }
+
+        // Default: string input
+        return (
+            <View key={key} style={styles.fieldContainer}>
+                <Text style={styles.fieldLabel}>{label}</Text>
+                {prop.description && (
+                    <Text style={styles.fieldDescription}>{prop.description}</Text>
+                )}
+                <TextInput
+                    style={[styles.fieldInput, key === 'body' && { height: 100, textAlignVertical: 'top' }]}
+                    placeholder={prop.example || `Enter ${key}...`}
+                    placeholderTextColor="#64748b"
+                    value={value || ''}
+                    onChangeText={(text) => onChange(text || undefined)}
+                    multiline={key === 'body'}
+                />
+            </View>
+        );
+    };
+
+    // Render config form based on schema
+    const renderConfigForm = (
+        schema: Schema | undefined,
+        config: Record<string, any>,
+        setConfig: React.Dispatch<React.SetStateAction<Record<string, any>>>,
+        title: string
+    ) => {
+        if (!schema?.properties || Object.keys(schema.properties).length === 0) {
+            return null;
+        }
+
+        const requiredFields = schema.required || [];
+
+        return (
+            <View style={styles.configSection}>
+                <View style={styles.configHeader}>
+                    <Settings color="#94a3b8" size={16} />
+                    <Text style={styles.configTitle}>{title}</Text>
+                </View>
+                {Object.entries(schema.properties).map(([key, prop]) =>
+                    renderFormField(
+                        key,
+                        prop,
+                        config[key],
+                        (val) => setConfig(prev => ({ ...prev, [key]: val })),
+                        requiredFields.includes(key)
+                    )
+                )}
+            </View>
+        );
     };
 
     const renderPickerModal = (
@@ -194,7 +339,7 @@ const CreateWorkflowScreen: React.FC<Props> = ({ navigation }) => {
 
                 <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
                     <GlassCard style={styles.formCard}>
-                        <Text style={styles.label}>Workflow Name</Text>
+                        <Text style={styles.label}>Workflow Name *</Text>
                         <TextInput
                             style={styles.input}
                             placeholder="e.g. Forward Emails"
@@ -203,7 +348,7 @@ const CreateWorkflowScreen: React.FC<Props> = ({ navigation }) => {
                             onChangeText={setName}
                         />
 
-                        <Text style={[styles.label, { marginTop: 16 }]}>Description (optional)</Text>
+                        <Text style={[styles.label, { marginTop: 16 }]}>Description</Text>
                         <TextInput
                             style={[styles.input, { height: 80, textAlignVertical: 'top' }]}
                             placeholder="What does this workflow do?"
@@ -218,7 +363,7 @@ const CreateWorkflowScreen: React.FC<Props> = ({ navigation }) => {
                     <GlassCard style={styles.selectorCard}>
                         <View style={styles.selectorHeader}>
                             <Zap color="#f59e0b" size={20} />
-                            <Text style={styles.selectorTitle}>Trigger</Text>
+                            <Text style={styles.selectorTitle}>Trigger *</Text>
                         </View>
                         <Text style={styles.selectorSubtitle}>When this happens...</Text>
 
@@ -234,13 +379,21 @@ const CreateWorkflowScreen: React.FC<Props> = ({ navigation }) => {
                             </Text>
                             <ChevronDown color="#94a3b8" size={20} />
                         </TouchableOpacity>
+
+                        {/* Trigger Config Form */}
+                        {selectedTrigger && renderConfigForm(
+                            selectedTrigger.configSchema,
+                            triggerConfig,
+                            setTriggerConfig,
+                            'Trigger Settings'
+                        )}
                     </GlassCard>
 
                     {/* Action Selection */}
                     <GlassCard style={styles.selectorCard}>
                         <View style={styles.selectorHeader}>
                             <Play color="#10b981" size={20} />
-                            <Text style={styles.selectorTitle}>Action</Text>
+                            <Text style={styles.selectorTitle}>Action *</Text>
                         </View>
                         <Text style={styles.selectorSubtitle}>Do this...</Text>
 
@@ -256,6 +409,14 @@ const CreateWorkflowScreen: React.FC<Props> = ({ navigation }) => {
                             </Text>
                             <ChevronDown color="#94a3b8" size={20} />
                         </TouchableOpacity>
+
+                        {/* Action Config Form */}
+                        {selectedAction && renderConfigForm(
+                            selectedAction.inputSchema,
+                            actionConfig,
+                            setActionConfig,
+                            'Action Settings'
+                        )}
                     </GlassCard>
 
                     <TouchableOpacity onPress={handleCreate} disabled={isLoading} style={styles.createButtonContainer}>
@@ -371,6 +532,52 @@ const styles = StyleSheet.create({
     pickerTextSelected: {
         color: '#fff',
         fontSize: 16,
+    },
+    // Config form styles
+    configSection: {
+        marginTop: 16,
+        paddingTop: 16,
+        borderTopWidth: 1,
+        borderTopColor: 'rgba(255,255,255,0.1)',
+    },
+    configHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 12,
+    },
+    configTitle: {
+        color: '#94a3b8',
+        fontSize: 14,
+        fontWeight: '600',
+        marginLeft: 6,
+    },
+    fieldContainer: {
+        marginBottom: 14,
+    },
+    fieldLabel: {
+        color: '#e2e8f0',
+        fontSize: 14,
+        fontWeight: '500',
+        marginBottom: 4,
+    },
+    fieldDescription: {
+        color: '#64748b',
+        fontSize: 12,
+        marginBottom: 6,
+    },
+    fieldInput: {
+        backgroundColor: 'rgba(15, 23, 42, 0.6)',
+        borderRadius: 10,
+        padding: 14,
+        color: '#fff',
+        fontSize: 15,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.08)',
+    },
+    switchRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
     },
     createButtonContainer: {
         borderRadius: 16,
