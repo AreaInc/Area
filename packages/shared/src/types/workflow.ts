@@ -67,6 +67,7 @@ export interface TriggerMetadata {
   configSchema: Record<string, any>;
   outputSchema?: Record<string, any>;
   requiresCredentials: boolean;
+  imageUrl?: string;
 }
 
 export interface ActionMetadata {
@@ -77,6 +78,7 @@ export interface ActionMetadata {
   inputSchema: Record<string, any>;
   outputSchema?: Record<string, any>;
   requiresCredentials: boolean;
+  imageUrl?: string;
 }
 
 export type WorkflowSummary = Pick<Workflow, 'id' | 'name' | 'isActive' | 'lastRun' | 'description'>;
