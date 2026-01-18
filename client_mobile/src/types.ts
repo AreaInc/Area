@@ -60,6 +60,17 @@ export interface ApiError {
     code?: string;
 }
 
+export interface WorkflowExecution {
+    id: number;
+    workflowId: number;
+    status: 'completed' | 'failed' | 'running' | 'cancelled';
+    startedAt: string;
+    completedAt?: string;
+    triggerData?: any;
+    actionResults?: any;
+    errorMessage?: string;
+}
+
 // Navigation types
 export type RootStackParamList = {
     Home: undefined;

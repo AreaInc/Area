@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Switch, ScrollView, Alert, ActivityIndicator, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
-import { ArrowLeft, Play, Settings, Zap, Target, Trash2, Save, X } from 'lucide-react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Switch, ScrollView, Alert, ActivityIndicator, TextInput, KeyboardAvoidingView, Platform, FlatList } from 'react-native';
+import { ArrowLeft, Play, Settings, Zap, Target, Trash2, Save, X, Clock, CheckCircle, XCircle } from 'lucide-react-native';
 import GradientBackground from '../components/GradientBackground';
 import GlassCard from '../components/GlassCard';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { RootStackParamList, Workflow } from '../types';
+import type { RootStackParamList, Workflow, WorkflowExecution } from '../types';
 
 import { api } from '../services/api';
 
@@ -18,6 +18,10 @@ const WorkflowDetailScreen: React.FC<Props> = ({ navigation, route }) => {
     const [isActive, setIsActive] = useState<boolean>(initialStatus === 'Active');
     const [loading, setLoading] = useState<boolean>(true);
 
+    // Logs State
+    const [executions, setExecutions] = useState<WorkflowExecution[]>([]);
+    const [loadingLogs, setLoadingLogs] = useState<boolean>(false);
+
     // Edit Mode State
     const [isEditing, setIsEditing] = useState<boolean>(false);
     const [editName, setEditName] = useState<string>("");
@@ -29,6 +33,7 @@ const WorkflowDetailScreen: React.FC<Props> = ({ navigation, route }) => {
     useEffect(() => {
         if (id) {
             fetchWorkflowDetails();
+            fetchExecutions();
         }
     }, [id]);
 
@@ -46,6 +51,20 @@ const WorkflowDetailScreen: React.FC<Props> = ({ navigation, route }) => {
             console.error("Fetch error:", e);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchExecutions = async (): Promise<void> => {
+        setLoadingLogs(true);
+        try {
+            const { data, error } = await api.get<WorkflowExecution[]>(`/api/v2/workflows/${id}/executions`);
+            if (data) {
+                setExecutions(data);
+            }
+        } catch (e) {
+            console.error("Fetch logs error:", e);
+        } finally {
+            setLoadingLogs(false);
         }
     };
 
@@ -135,6 +154,7 @@ const WorkflowDetailScreen: React.FC<Props> = ({ navigation, route }) => {
             const { data, error } = await api.post(`/api/v2/workflows/${id}/execute`, {});
             if (data) {
                 Alert.alert("Success", "Workflow execution started!");
+                setTimeout(fetchExecutions, 1000); // Activity refresh
             } else {
                 Alert.alert("Error", error?.message || "Failed to execute workflow");
             }
@@ -323,17 +343,66 @@ const WorkflowDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                             )}
                         </GlassCard>
 
-                        {/* Last Run Info */}
+                        {/* Recent Executions Log */}
                         <GlassCard style={styles.card}>
-                            <View style={styles.infoRow}>
-                                <Text style={styles.infoLabel}>Last Run</Text>
-                                <Text style={styles.infoValue}>{formatDate(workflow.lastRun)}</Text>
+                            <View style={styles.cardHeader}>
+                                <Clock color="#fff" size={20} />
+                                <Text style={styles.cardTitle}>Recent Logs</Text>
+                                <TouchableOpacity onPress={fetchExecutions} style={{ marginLeft: 'auto' }}>
+                                    <Text style={styles.refreshLink}>Refresh</Text>
+                                </TouchableOpacity>
                             </View>
-                            <View style={styles.infoRow}>
-                                <Text style={styles.infoLabel}>Created</Text>
-                                <Text style={styles.infoValue}>{formatDate(workflow.createdAt)}</Text>
-                            </View>
+
+                            {loadingLogs ? (
+                                <ActivityIndicator color="#fff" size="small" style={{ marginVertical: 10 }} />
+                            ) : executions.length === 0 ? (
+                                <Text style={styles.emptyLogs}>No executions yet.</Text>
+                            ) : (
+                                <View>
+                                    {executions.slice(0, 5).map((exec) => {
+                                        let icon;
+                                        let color;
+
+                                        if (exec.status === 'completed') {
+                                            icon = <CheckCircle color="#4ade80" size={16} />;
+                                            color = '#4ade80';
+                                        } else if (exec.status === 'failed') {
+                                            icon = <XCircle color="#ef4444" size={16} />;
+                                            color = '#ef4444';
+                                        } else {
+                                            // Running or Pending
+                                            icon = <ActivityIndicator color="#3b82f6" size="small" style={{ transform: [{ scale: 0.7 }] }} />;
+                                            color = '#3b82f6';
+                                        }
+
+                                        return (
+                                            <View key={exec.id} style={styles.logItemContainer}>
+                                                <View style={styles.logItem}>
+                                                    <View style={{ width: 20, alignItems: 'center' }}>
+                                                        {icon}
+                                                    </View>
+                                                    <Text style={styles.logTime}>{formatDate(exec.startedAt)}</Text>
+                                                    <Text style={[styles.logStatus, { color }]}>
+                                                        {exec.status.toUpperCase()}
+                                                    </Text>
+                                                </View>
+                                                {exec.status === 'failed' && exec.errorMessage && (
+                                                    <Text style={styles.errorMessage}>
+                                                        {exec.errorMessage}
+                                                    </Text>
+                                                )}
+                                            </View>
+                                        );
+                                    })}
+                                </View>
+                            )}
                         </GlassCard>
+
+                        {/* Last Run Info (Simplified) */}
+                        <View style={{ marginTop: 8, alignItems: 'center' }}>
+                            <Text style={styles.infoLabel}>Created: {formatDate(workflow.createdAt)}</Text>
+                        </View>
+
                     </KeyboardAvoidingView>
                 )}
 
@@ -525,6 +594,45 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 16,
         fontWeight: '700',
+    },
+    // Log styles
+    refreshLink: {
+        color: '#3b82f6',
+        fontSize: 12,
+        fontWeight: '600',
+    },
+    emptyLogs: {
+        color: '#64748b',
+        fontSize: 14,
+        fontStyle: 'italic',
+        textAlign: 'center',
+        marginVertical: 10,
+    },
+    logItemContainer: {
+        paddingVertical: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: 'rgba(255,255,255,0.05)',
+    },
+    logItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    logTime: {
+        color: '#cbd5e1',
+        fontSize: 12,
+        marginLeft: 10,
+        flex: 1,
+    },
+    logStatus: {
+        fontSize: 12,
+        fontWeight: '700',
+    },
+    errorMessage: {
+        color: '#f87171',
+        fontSize: 11,
+        marginTop: 4,
+        marginLeft: 30, // Align with text
+        fontStyle: 'italic',
     }
 });
 
