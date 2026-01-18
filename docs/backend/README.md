@@ -4,7 +4,7 @@
 
 The **AREA Backend** is the core of the automation platform, built with **NestJS**. It handles all business logic, manages service integrations, orchestrates workflows using **Temporal**, and serves the API for both web and mobile clients.
 
-## 🛠 Tech Stack
+## Tech Stack
 
 - **Framework**: [NestJS](https://nestjs.com/) (TypeScript)
 - **Database**: PostgreSQL (via TypeORM or Drizzle)
@@ -12,7 +12,7 @@ The **AREA Backend** is the core of the automation platform, built with **NestJS
 - **Queue**: Redis (for job processing)
 - **Authentication**: Passport Strategy (OAuth2)
 
-## 📂 Architecture Overview
+## Architecture Overview
 
 The backend is organized into modular services.
 
@@ -33,7 +33,7 @@ graph TD
 - `src/db`: Database schemas and migration configurations.
 - `src/temporal`: Temporal client and workflow definitions.
 
-## 📖 Detailed Documentation
+## Detailed Documentation
 
 Navigate to the detailed documentation for specific components:
 

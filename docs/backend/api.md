@@ -4,7 +4,7 @@
 
 Base URL: `http://localhost:8080` (default)
 
-## 🔐 Authentication
+## Authentication
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
@@ -13,7 +13,7 @@ Base URL: `http://localhost:8080` (default)
 | `GET` | `/oauth2/credentials` | List user's connected credentials. |
 | `DELETE`| `/oauth2/credentials/:id`| Remove a credential. |
 
-## 🚀 Workflows (AREAs)
+## Workflows (AREAs)
 
 | Method | Endpoint | Description | Payload |
 | :--- | :--- | :--- | :--- |
@@ -23,7 +23,7 @@ Base URL: `http://localhost:8080` (default)
 | `PATCH` | `/workflows/:id` | Update a workflow. | `{ name, active, ... }` |
 | `DELETE`| `/workflows/:id` | Delete a workflow. | - |
 
-## 🧩 Services
+## Services
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
@@ -31,7 +31,7 @@ Base URL: `http://localhost:8080` (default)
 | `GET` | `/services/:id/triggers` | List triggers for a service. |
 | `GET` | `/services/:id/actions` | List actions for a service. |
 
-## 👤 Users
+## Users
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |

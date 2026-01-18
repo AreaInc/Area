@@ -2,7 +2,7 @@
 
 > **Deep dive into the frontend implementation.**
 
-## 🧭 Routing (TanStack Router)
+## Routing (TanStack Router)
 
 We use file-based routing for type-safe navigation.
 
@@ -14,7 +14,7 @@ We use file-based routing for type-safe navigation.
 ### Protected Routes
 The `Dashboard` layout checks for a valid authentication token. If not present, it redirects to `/login`.
 
-## 🧩 Key Components
+## Key Components
 
 ### 1. Workflow Editor (`src/components/workflow`)
 This is the core feature allowing users to create AREAs.
@@ -27,14 +27,14 @@ Display connection status for each service (Spotify, Google, etc.) and allow use
 ### 3. Sidebar (`app-sidebar.tsx`)
 Collapsible navigation menu using Shadcn/ui components.
 
-## 📡 API Integration
+## API Integration
 
 we use **TanStack Query** (React Query) for data fetching.
 - Automatic caching and background re-fetching.
 - Optimistic updates for better UX.
 - Centralized `api` client (Axios or Fetch wrapper) in `src/lib`.
 
-## 🎨 Styling
+## Styling
 
 - **TailwindCSS**: Utility-first CSS.
 - **Dark Mode**: Fully supported via a theme provider.

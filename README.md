@@ -4,7 +4,7 @@
 
 Welcome to the **AREA** project! This repository contains a powerful automation platform that allows you to trigger actions based on specific events across various services like Discord, Spotify, Google, and more. It features a robust NestJS backend, a modern React web client, and a React Native mobile client.
 
-## 📚 Documentation Navigation
+## Documentation Navigation
 
 This project is documented extensively. Please refer to the following sections for deep dives into specific components:
 
@@ -13,7 +13,7 @@ This project is documented extensively. Please refer to the following sections f
 - **[Mobile Client Documentation](./docs/client_mobile/README.md)**: Screens and Navigation.
 - **[API Documentation](./docs/backend/api.md)**: Detailed API endpoints and usage.
 
-## 🏗 Global Architecture
+## Global Architecture
 
 The following diagram illustrates the high-level architecture of the AREA platform, showing how the different clients interact with the backend and how the backend orchestrates services and database interactions.
 
@@ -47,7 +47,7 @@ graph TD
     Temporal -->|Execute Workflows| External_Services
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 Follow these instructions to get the project up and running on your local machine.
 
@@ -91,7 +91,7 @@ Follow these instructions to get the project up and running on your local machin
         pnpm start
         ```
 
-## 🛠 Tech Stack
+## Tech Stack
 
 - **Backend**: NestJS, TypeScript, Temporal.io, PostgreSQL, Redis.
 - **Frontend (Web)**: React, Vite, TailwindCSS, TanStack Query.

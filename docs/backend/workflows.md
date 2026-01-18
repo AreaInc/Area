@@ -4,7 +4,7 @@
 
 The core of the AREA automation logic is built on **Temporal**, a durable execution engine that guarantees workflows run to completion even in the presence of failures.
 
-## ⚙️ Core Concepts
+## Core Concepts
 
 ### 1. Workflows
 A **Workflow** defines the sequence of steps. In AREA, a workflow typically consists of:
@@ -22,7 +22,7 @@ For services that don't support webhooks (or where we use polling), we have a de
 - Checks for state changes (e.g., "Has the latest email ID changed?").
 - Signals the Workflow if a change is detected.
 
-## 🔄 Workflow Lifecycle
+## Workflow Lifecycle
 
 ```mermaid
 stateDiagram-v2
@@ -35,7 +35,7 @@ stateDiagram-v2
     Paused --> Running: Reactivated
 ```
 
-## 🏗 Temporal Architecture in AREA
+## Temporal Architecture in AREA
 
 - **Worker**: `src/worker.ts` initializes the Temporal Worker which listens for tasks.
 - **Client**: `src/temporal/temporal-client.service.ts` allows the NestJS API to start/stop workflows.

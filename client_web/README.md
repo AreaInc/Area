@@ -4,7 +4,7 @@
 
 Built with **React**, **Vite**, and **TailwindCSS**, the web client provides a sleek dashboard for managing your automation workflows.
 
-## 🛠 Tech Stack
+## Tech Stack
 
 - **Build Tool**: [Vite](https://vitejs.dev/)
 - **Framework**: React 18
@@ -13,7 +13,7 @@ Built with **React**, **Vite**, and **TailwindCSS**, the web client provides a s
 - **State Management**: Zustand / TanStack Query
 - **UI Components**: Shadcn/ui (Radix Primitives)
 
-## 🏃‍♂️ Running Locally
+## Running Locally
 
 ```bash
 # Install dependencies
@@ -25,7 +25,7 @@ pnpm dev
 
 The app will be available at `http://localhost:5173`.
 
-## 📂 Project Structure
+## Project Structure
 
 - `src/routes`: File-based routing definitions.
 - `src/components`: Reusable UI components.
@@ -33,6 +33,6 @@ The app will be available at `http://localhost:5173`.
 - `src/store`: Global state management.
 - `src/lib`: Utilities and API clients.
 
-## 📖 detailed Documentation
+## detailed Documentation
 
 For a deep dive into the component architecture and features, see the **[Web Client Guide](../../docs/client_web/README.md)**.

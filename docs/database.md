@@ -4,7 +4,7 @@
 
 The project uses **PostgreSQL** with **Drizzle ORM**.
 
-## 🧬 Entity Relationship Diagram
+## Entity Relationship Diagram
 
 ```mermaid
 erDiagram
@@ -69,7 +69,7 @@ erDiagram
     }
 ```
 
-## 📋 Tables Overview
+## Tables Overview
 
 - **User**: Core user identity (NextAuth compatible).
 - **Credentials**: Stores encrypted OAuth2 tokens for external services.

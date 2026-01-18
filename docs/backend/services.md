@@ -4,7 +4,7 @@
 
 This document provides a detailed breakdown of every service integration, specifying the available triggers (what starts a workflow) and actions (what happens in a workflow).
 
-## 🧩 Architecture
+## Architecture
 
 Each service is an isolated module in the NestJS application. They communicate with external APIs using OAuth2 credentials stored securely.
 
@@ -34,7 +34,7 @@ sequenceDiagram
 
 ---
 
-## 🎵 Spotify
+## Spotify
 
 Integration with Spotify for music automation.
 
@@ -62,7 +62,7 @@ Operations that can be performed.
 
 ---
 
-## 🎮 Discord
+## Discord
 
 Integration with Discord for community management and notifications.
 
@@ -74,7 +74,7 @@ Integration with Discord for community management and notifications.
 
 ---
 
-## 📧 Gmail
+## Gmail
 
 Manage emails automatically.
 
@@ -95,7 +95,7 @@ Manage emails automatically.
 
 ---
 
-## 📅 Google Calendar
+## Google Calendar
 
 Schedule management integration.
 
@@ -115,7 +115,7 @@ Schedule management integration.
 
 ---
 
-## 📊 Google Sheets
+## Google Sheets
 
 Data manipulation in spreadsheets.
 
@@ -129,7 +129,7 @@ Data manipulation in spreadsheets.
 
 ---
 
-## ✈️ Telegram
+## Telegram
 
 Bot integration for Telegram messaging.
 
@@ -157,7 +157,7 @@ Bot integration for Telegram messaging.
 
 ---
 
-## 📺 Twitch
+## Twitch
 
 Streaming platform integration.
 
@@ -175,7 +175,7 @@ Streaming platform integration.
 
 ---
 
-## 📹 YouTube
+## YouTube
 
 Video platform integration.
 
@@ -193,7 +193,7 @@ Video platform integration.
 
 ---
 
-## ⏰ Scheduler
+## Scheduler
 
 Time-based triggers.
 
@@ -206,7 +206,7 @@ Time-based triggers.
 
 ---
 
-## 🔗 Webhooks
+## Webhooks
 
 Generic webhook integration.
 
