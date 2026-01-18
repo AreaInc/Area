@@ -7,6 +7,16 @@ export interface Action {
   outputSchema?: Record<string, any>;
 }
 
+export interface Trigger {
+  id: string;
+  name: string;
+  description: string;
+  triggerType: string;
+  configSchema?: Record<string, any>;
+  outputSchema?: Record<string, any>;
+  requiresCredentials: boolean;
+}
+
 export interface Service {
   id: number;
   provider: string;
@@ -17,4 +27,5 @@ export interface Service {
   supportedActions: string[];
   credentialTypes: string[];
   actions: Action[];
+  triggers: Trigger[];
 }

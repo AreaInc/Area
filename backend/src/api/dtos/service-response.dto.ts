@@ -37,6 +37,47 @@ export class ActionResponseDto {
   outputSchema?: Record<string, any>;
 }
 
+export class TriggerResponseDto {
+  @ApiProperty({ example: "gmail_new_email" })
+  id: string;
+
+  @ApiProperty({ example: "New Email" })
+  name: string;
+
+  @ApiProperty({ example: "Triggers when a new email is received" })
+  description: string;
+
+  @ApiProperty({ example: "webhook" })
+  triggerType: string;
+
+  @ApiProperty({
+    example: {
+      type: "object",
+      properties: {
+        folder: { type: "string" },
+      },
+    },
+    required: false,
+  })
+  configSchema?: Record<string, any>;
+
+  @ApiProperty({
+    example: {
+      type: "object",
+      properties: {
+        from: { type: "string" },
+        subject: { type: "string" },
+        body: { type: "string" },
+      },
+    },
+    required: false,
+  })
+  outputSchema?: Record<string, any>;
+
+  @ApiProperty({ example: true })
+  requiresCredentials: boolean;
+}
+
 export class ServiceResponseDto {
   @ApiProperty({ example: 1 })
   id: number;
@@ -64,4 +105,7 @@ export class ServiceResponseDto {
 
   @ApiProperty({ type: [ActionResponseDto] })
   actions: ActionResponseDto[];
+
+  @ApiProperty({ type: [TriggerResponseDto] })
+  triggers: TriggerResponseDto[];
 }
