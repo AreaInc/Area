@@ -16,6 +16,7 @@ async function bootstrap() {
       "http://localhost:3000", // Alternative dev port
       "http://localhost:8081", // Production frontend port (from docker-compose)
       process.env.FRONTEND_URL || "http://localhost:5173",
+      process.env.MOBILE_URL || "area://mobile",
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
