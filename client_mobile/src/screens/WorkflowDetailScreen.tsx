@@ -1,56 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Switch, ScrollView, Alert, ActivityIndicator } from 'react-native';
-import { ArrowLeft, Play, Settings } from 'lucide-react-native';
+import { ArrowLeft, Play, Settings, Zap, Target, Trash2 } from 'lucide-react-native';
 import GradientBackground from '../components/GradientBackground';
-import WorkflowNode from '../components/WorkflowNode';
+import GlassCard from '../components/GlassCard';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { RootStackParamList, Workflow, WorkflowNodeUI } from '../types';
+import type { RootStackParamList, Workflow } from '../types';
 
 import { api } from '../services/api';
 
-const ITEM_HEIGHT = 100;
-
 type Props = NativeStackScreenProps<RootStackParamList, 'WorkflowDetail'>;
-
-interface DraggableItemProps {
-    item: WorkflowNodeUI;
-    index: number;
-    isDragging: boolean;
-    displacement: number;
-    onDragStart: () => void;
-    onDragMove: (dy: number) => void;
-    onDragEnd: () => void;
-}
-
-const DraggableItem: React.FC<DraggableItemProps> = ({ item, onDragStart }) => {
-    return (
-        <View style={styles.itemContainer}>
-            <TouchableOpacity onLongPress={onDragStart} delayLongPress={200}>
-                <WorkflowNode
-                    title={item.title}
-                    subtitle={item.subtitle}
-                    type={item.type}
-                    status={item.status}
-                    isStart={item.isStart}
-                    isEnd={item.isEnd}
-                />
-                {/* TODO: Implement full drag-and-drop visuals if needed */}
-            </TouchableOpacity>
-        </View>
-    );
-};
 
 const WorkflowDetailScreen: React.FC<Props> = ({ navigation, route }) => {
     const { id, title: initialTitle, status: initialStatus } = route.params || {};
-    const [data, setData] = useState<WorkflowNodeUI[]>([]);
+    const [workflow, setWorkflow] = useState<Workflow | null>(null);
     const [title, setTitle] = useState<string>(initialTitle || "Loading...");
     const [isActive, setIsActive] = useState<boolean>(initialStatus === 'Active');
     const [loading, setLoading] = useState<boolean>(true);
-
-    // Drag state
-    const [draggingId, setDraggingId] = useState<string | null>(null);
-    const [scrollEnabled, setScrollEnabled] = useState<boolean>(true);
 
     useEffect(() => {
         if (id) {
@@ -60,27 +26,11 @@ const WorkflowDetailScreen: React.FC<Props> = ({ navigation, route }) => {
 
     const fetchWorkflowDetails = async (): Promise<void> => {
         try {
-            const { data: workflow, error } = await api.get<Workflow>(`/api/v2/workflows/${id}`);
-            if (workflow) {
-                setTitle(workflow.name);
-                setIsActive(workflow.isActive);
-
-                // Map backend nodes to mobile UI nodes
-                // Backend nodes structure: { id, type, data: { label, ... } }
-                // Mobile UI expects: { id, type, title, subtitle, status, isStart, isEnd }
-                // We need to linearize them or just show them as a list for now
-                if (workflow.nodes && Array.isArray(workflow.nodes)) {
-                    const mappedNodes: WorkflowNodeUI[] = workflow.nodes.map((node, index) => ({
-                        id: node.id,
-                        type: mapNodeType(node.type),
-                        title: node.data?.label || node.type,
-                        subtitle: node.data?.description || 'No description',
-                        status: 'Idle' as const, // Default status
-                        isStart: index === 0, // Simplified assumption
-                        isEnd: index === workflow.nodes!.length - 1 // Simplified assumption
-                    }));
-                    setData(mappedNodes);
-                }
+            const { data, error } = await api.get<Workflow>(`/api/v2/workflows/${id}`);
+            if (data) {
+                setWorkflow(data);
+                setTitle(data.name);
+                setIsActive(data.isActive);
             } else {
                 console.error("Error fetching details:", error);
             }
@@ -91,40 +41,15 @@ const WorkflowDetailScreen: React.FC<Props> = ({ navigation, route }) => {
         }
     };
 
-    const mapNodeType = (backendType: string): 'trigger' | 'action' | 'logic' | 'db' => {
-        // Map backend node types to mobile icon types
-        // Example: 'webhook' -> 'trigger', 'gmail' -> 'action'
-        if (backendType?.includes('trigger') || backendType?.includes('webhook')) return 'trigger';
-        if (backendType?.includes('action') || backendType?.includes('gmail')) return 'action';
-        return 'action'; // Default
-    };
-
     const toggleWorkflow = async (value: boolean): Promise<void> => {
-        // Optimistic update
         setIsActive(value);
         try {
             await api.post(`/api/v2/workflows/${id}/${value ? 'activate' : 'deactivate'}`);
         } catch (error) {
             console.error("Toggle error:", error);
-            setIsActive(!value); // Revert on error
+            setIsActive(!value);
         }
     };
-
-    const handleDragStart = (itemId: string): void => {
-        setDraggingId(itemId);
-        setScrollEnabled(false);
-    };
-
-    const handleDragMove = (_itemId: string, _dy: number): void => {
-        // Placeholder
-    };
-
-    const handleDragEnd = (): void => {
-        setDraggingId(null);
-        setScrollEnabled(true);
-    };
-
-    const getDisplacement = (_index: number): number => 0;
 
     const handleDelete = (): void => {
         Alert.alert(
@@ -149,6 +74,35 @@ const WorkflowDetailScreen: React.FC<Props> = ({ navigation, route }) => {
         );
     };
 
+    const handleExecute = async (): Promise<void> => {
+        try {
+            const { data, error } = await api.post(`/api/v2/workflows/${id}/execute`, {});
+            if (data) {
+                Alert.alert("Success", "Workflow execution started!");
+            } else {
+                Alert.alert("Error", error?.message || "Failed to execute workflow");
+            }
+        } catch (e) {
+            Alert.alert("Error", "Failed to execute workflow");
+        }
+    };
+
+    const formatDate = (date: Date | string | null | undefined): string => {
+        if (!date) return 'Never';
+        const d = new Date(date);
+        return d.toLocaleDateString() + ' ' + d.toLocaleTimeString();
+    };
+
+    if (loading) {
+        return (
+            <GradientBackground>
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color="#3b82f6" />
+                </View>
+            </GradientBackground>
+        );
+    }
+
     return (
         <GradientBackground>
             <View style={styles.header}>
@@ -156,14 +110,14 @@ const WorkflowDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                     <ArrowLeft color="#fff" size={24} />
                 </TouchableOpacity>
                 <View style={styles.titleContainer}>
-                    <Text style={styles.headerTitle}>{title}</Text>
+                    <Text style={styles.headerTitle} numberOfLines={1}>{title}</Text>
                     <View style={styles.statusRow}>
                         <View style={[styles.statusDot, { backgroundColor: isActive ? '#4ade80' : '#ef4444' }]} />
                         <Text style={styles.statusText}>{isActive ? 'ACTIVE' : 'INACTIVE'}</Text>
                     </View>
                 </View>
-                <TouchableOpacity style={styles.settingsButton} onPress={handleDelete}>
-                    <Settings color="#fff" size={24} />
+                <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
+                    <Trash2 color="#ef4444" size={22} />
                 </TouchableOpacity>
             </View>
 
@@ -177,51 +131,87 @@ const WorkflowDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                 />
             </View>
 
-            {loading ? (
-                <ActivityIndicator size="large" color="#3b82f6" style={{ marginTop: 50 }} />
-            ) : (
+            <ScrollView
+                contentContainerStyle={styles.content}
+                showsVerticalScrollIndicator={false}
+            >
+                {workflow && (
+                    <>
+                        {/* Description */}
+                        {workflow.description && (
+                            <GlassCard style={styles.card}>
+                                <Text style={styles.cardLabel}>Description</Text>
+                                <Text style={styles.cardValue}>{workflow.description}</Text>
+                            </GlassCard>
+                        )}
 
+                        {/* Trigger Info */}
+                        <GlassCard style={styles.card}>
+                            <View style={styles.cardHeader}>
+                                <Zap color="#f59e0b" size={20} />
+                                <Text style={styles.cardTitle}>Trigger</Text>
+                            </View>
+                            <View style={styles.infoRow}>
+                                <Text style={styles.infoLabel}>Provider</Text>
+                                <Text style={styles.infoValue}>{workflow.triggerProvider}</Text>
+                            </View>
+                            <View style={styles.infoRow}>
+                                <Text style={styles.infoLabel}>Type</Text>
+                                <Text style={styles.infoValue}>{workflow.triggerId}</Text>
+                            </View>
+                            {Object.keys(workflow.triggerConfig || {}).length > 0 && (
+                                <View style={styles.configSection}>
+                                    <Text style={styles.configLabel}>Config:</Text>
+                                    <Text style={styles.configValue}>
+                                        {JSON.stringify(workflow.triggerConfig, null, 2)}
+                                    </Text>
+                                </View>
+                            )}
+                        </GlassCard>
 
+                        {/* Action Info */}
+                        <GlassCard style={styles.card}>
+                            <View style={styles.cardHeader}>
+                                <Target color="#10b981" size={20} />
+                                <Text style={styles.cardTitle}>Action</Text>
+                            </View>
+                            <View style={styles.infoRow}>
+                                <Text style={styles.infoLabel}>Provider</Text>
+                                <Text style={styles.infoValue}>{workflow.actionProvider}</Text>
+                            </View>
+                            <View style={styles.infoRow}>
+                                <Text style={styles.infoLabel}>Type</Text>
+                                <Text style={styles.infoValue}>{workflow.actionId}</Text>
+                            </View>
+                            {Object.keys(workflow.actionConfig || {}).length > 0 && (
+                                <View style={styles.configSection}>
+                                    <Text style={styles.configLabel}>Config:</Text>
+                                    <Text style={styles.configValue}>
+                                        {JSON.stringify(workflow.actionConfig, null, 2)}
+                                    </Text>
+                                </View>
+                            )}
+                        </GlassCard>
 
-                <ScrollView
-                    scrollEnabled={scrollEnabled}
-                    contentContainerStyle={styles.canvas}
-                    showsVerticalScrollIndicator={false}
-                >
-                    {data.map((item, index) => (
-                        <DraggableItem
-                            key={item.id}
-                            item={item}
-                            index={index}
-                            isDragging={draggingId === item.id}
-                            displacement={getDisplacement(index)}
-                            onDragStart={() => handleDragStart(item.id)}
-                            onDragMove={(dy) => handleDragMove(item.id, dy)}
-                            onDragEnd={handleDragEnd}
-                        />
-                    ))}
+                        {/* Last Run Info */}
+                        <GlassCard style={styles.card}>
+                            <View style={styles.infoRow}>
+                                <Text style={styles.infoLabel}>Last Run</Text>
+                                <Text style={styles.infoValue}>{formatDate(workflow.lastRun)}</Text>
+                            </View>
+                            <View style={styles.infoRow}>
+                                <Text style={styles.infoLabel}>Created</Text>
+                                <Text style={styles.infoValue}>{formatDate(workflow.createdAt)}</Text>
+                            </View>
+                        </GlassCard>
+                    </>
+                )}
 
-                    <TouchableOpacity style={styles.addNodeButton}>
-                        <LinearGradient
-                            colors={['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.05)']}
-                            style={styles.addNodeGradient}
-                        >
-                            <Text style={styles.addNodeText}>+ Add Node</Text>
-                        </LinearGradient>
-                    </TouchableOpacity>
+                <View style={{ height: 120 }} />
+            </ScrollView>
 
-                    <View style={{ height: 100 }} />
-                </ScrollView>
-            )}
             <View style={styles.bottomBar}>
-                <View style={styles.toolbar}>
-                    <TouchableOpacity style={styles.toolBtn}>
-                        <Settings color="#94a3b8" size={20} />
-                        <Text style={styles.toolText}>Config</Text>
-                    </TouchableOpacity>
-                </View>
-
-                <TouchableOpacity style={styles.runButton}>
+                <TouchableOpacity style={styles.runButton} onPress={handleExecute}>
                     <LinearGradient
                         colors={['#2563eb', '#1d4ed8']}
                         style={styles.runGradient}
@@ -233,7 +223,7 @@ const WorkflowDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                     </LinearGradient>
                 </TouchableOpacity>
             </View>
-        </GradientBackground >
+        </GradientBackground>
     );
 };
 
@@ -253,7 +243,9 @@ const styles = StyleSheet.create({
         alignItems: 'flex-start',
     },
     titleContainer: {
+        flex: 1,
         alignItems: 'center',
+        marginHorizontal: 10,
     },
     headerTitle: {
         color: '#fff',
@@ -277,7 +269,7 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         letterSpacing: 1,
     },
-    settingsButton: {
+    deleteButton: {
         width: 40,
         height: 40,
         justifyContent: 'center',
@@ -291,7 +283,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 10,
+        marginBottom: 16,
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.05)',
     },
@@ -300,68 +292,84 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '600',
     },
-    canvas: {
+    content: {
         paddingHorizontal: 20,
-        paddingBottom: 40,
     },
-    itemContainer: {
-        height: ITEM_HEIGHT,
+    loadingContainer: {
+        flex: 1,
         justifyContent: 'center',
-    },
-    addNodeButton: {
-        marginTop: 20,
-        borderRadius: 20,
-        overflow: 'hidden',
-    },
-    addNodeGradient: {
-        paddingVertical: 12,
         alignItems: 'center',
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
-        borderStyle: 'dashed',
-        borderRadius: 20,
     },
-    addNodeText: {
+    card: {
+        padding: 16,
+        marginBottom: 12,
+    },
+    cardHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 12,
+    },
+    cardTitle: {
         color: '#fff',
+        fontSize: 16,
+        fontWeight: '700',
+        marginLeft: 8,
+    },
+    cardLabel: {
+        color: '#94a3b8',
+        fontSize: 12,
         fontWeight: '600',
+        marginBottom: 4,
+    },
+    cardValue: {
+        color: '#fff',
+        fontSize: 14,
+    },
+    infoRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingVertical: 8,
+        borderBottomWidth: 1,
+        borderBottomColor: 'rgba(255,255,255,0.05)',
+    },
+    infoLabel: {
+        color: '#94a3b8',
+        fontSize: 14,
+    },
+    infoValue: {
+        color: '#fff',
+        fontSize: 14,
+        fontWeight: '500',
+    },
+    configSection: {
+        marginTop: 12,
+    },
+    configLabel: {
+        color: '#94a3b8',
+        fontSize: 12,
+        marginBottom: 4,
+    },
+    configValue: {
+        color: '#64748b',
+        fontSize: 12,
+        fontFamily: 'monospace',
     },
     bottomBar: {
         position: 'absolute',
         bottom: 30,
         left: 20,
         right: 20,
-        backgroundColor: '#020617',
-        borderRadius: 24,
-        flexDirection: 'row',
-        padding: 6,
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
-        elevation: 10,
-    },
-    toolbar: {
-        flex: 1,
-        flexDirection: 'row',
-        paddingLeft: 10,
-        alignItems: 'center',
-    },
-    toolBtn: {
-        alignItems: 'center',
-        marginRight: 20,
-    },
-    toolText: {
-        color: '#94a3b8',
-        fontSize: 10,
-        marginTop: 2,
     },
     runButton: {
-        flex: 1.5,
+        borderRadius: 18,
+        overflow: 'hidden',
     },
     runGradient: {
-        borderRadius: 18,
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
-        height: 50,
+        height: 56,
     },
     runText: {
         color: '#fff',

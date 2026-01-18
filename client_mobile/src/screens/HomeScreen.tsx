@@ -96,7 +96,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
                             <WorkflowItem
                                 key={workflow.id}
                                 title={workflow.name}
-                                lastRun={workflow.lastRun || "Never"}
+                                lastRun={workflow.lastRun ? String(workflow.lastRun) : "Never"}
                                 iconType="filter" // TODO: Dynamic icon based on triggers
                                 status={workflow.isActive ? "Active" : "Paused"}
                                 initialActive={workflow.isActive}

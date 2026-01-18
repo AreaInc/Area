@@ -10,14 +10,21 @@ export interface User {
 }
 
 export interface Workflow {
-    id: string;
+    id: number;
+    userId: string;
     name: string;
+    description?: string | null;
+    triggerProvider: string;
+    triggerId: string;
+    triggerConfig: Record<string, any>;
+    actionProvider: string;
+    actionId: string;
+    actionConfig: Record<string, any>;
+    actionCredentialsId?: number | null;
     isActive: boolean;
-    lastRun?: string;
-    nodes?: WorkflowNode[];
-    connections?: Record<string, string[]>;
-    createdAt?: string;
-    updatedAt?: string;
+    lastRun?: Date | string | null;
+    createdAt: Date | string;
+    updatedAt: Date | string;
 }
 
 export interface WorkflowNode {
@@ -30,6 +37,7 @@ export interface WorkflowNode {
     };
     position?: { x: number; y: number };
 }
+
 
 export interface WorkflowNodeUI {
     id: string;
@@ -55,7 +63,7 @@ export interface ApiError {
 // Navigation types
 export type RootStackParamList = {
     Home: undefined;
-    WorkflowDetail: { id: string; title: string; status: string };
+    WorkflowDetail: { id: number; title: string; status: string };
     CreateWorkflow: undefined;
     Profile: undefined;
     Login: undefined;
