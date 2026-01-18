@@ -290,8 +290,20 @@ export class GmailPollingService implements OnModuleInit, OnModuleDestroy {
         const message = (error as Error)?.message || "";
         if (message.includes("Requested entity was not found")) {
           this.logger.warn(
-            `HistoryId ${historyId} not found for credential ${credential.id}, re-initializing`,
+            `HistoryId ${historyId} not found for credential ${credential.id}, fetching recent emails directly`,
           );
+
+          try {
+            emails = await this.getRecentEmailsDirect(gmail, gmailClient);
+            this.logger.log(
+              `Fetched ${emails.length} recent email(s) for credential ${credential.id}`,
+            );
+          } catch (directError) {
+            this.logger.error(
+              `Failed to fetch recent emails: ${(directError as Error).message}`,
+            );
+          }
+
           const refreshedHistoryId = await this.getProfileHistoryId(gmail);
           if (refreshedHistoryId) {
             await this.updateHistoryId(credential.id, refreshedHistoryId);
@@ -299,9 +311,13 @@ export class GmailPollingService implements OnModuleInit, OnModuleDestroy {
               `Re-initialized historyId ${refreshedHistoryId} for credential ${credential.id}`,
             );
           }
-          return;
+
+          if (emails.length === 0) {
+            return;
+          }
+        } else {
+          throw error;
         }
-        throw error;
       }
 
       if (emails.length === 0) {
@@ -359,6 +375,69 @@ export class GmailPollingService implements OnModuleInit, OnModuleDestroy {
     const profileResponse = await gmail.users.getProfile({ userId: "me" });
     const historyId = profileResponse?.data?.historyId;
     return historyId ? String(historyId) : "";
+  }
+
+  private async getRecentEmailsDirect(
+    gmail: ReturnType<typeof google.gmail>,
+    gmailClient: GmailClient,
+  ) {
+    const profileResponse = await gmail.users.getProfile({ userId: "me" });
+    const selfEmail = profileResponse?.data?.emailAddress || null;
+
+    const listResponse = await gmail.users.messages.list({
+      userId: "me",
+      maxResults: 10,
+      labelIds: ["INBOX"],
+    });
+
+    const messagesList = listResponse.data.messages || [];
+    const messages: Array<Record<string, any>> = [];
+
+    for (const msgRef of messagesList) {
+      if (!msgRef.id) continue;
+
+      const messageResponse = await gmail.users.messages.get({
+        userId: "me",
+        id: msgRef.id,
+        format: "full",
+      });
+
+      const data = messageResponse.data as any;
+      const headers = data?.payload?.headers || [];
+      const headerMap = new Map(
+        headers
+          .filter((header: { name?: string }) => header?.name)
+          .map((header: { name: string; value: string }) => [
+            header.name.toLowerCase(),
+            header.value,
+          ]),
+      );
+
+      if (headerMap.get("x-area-generated")) {
+        continue;
+      }
+
+      const from = String(headerMap.get("from") || "");
+      if (selfEmail && from.includes(selfEmail)) {
+        continue;
+      }
+
+      const details = gmailClient.getMessageDetails(data);
+      messages.push({
+        messageId: details.id,
+        threadId: details.threadId,
+        from: details.from,
+        to: details.to,
+        subject: details.subject,
+        body: details.body,
+        htmlBody: details.htmlBody,
+        date: details.date,
+        attachments: details.attachments,
+        historyId: data.historyId ? String(data.historyId) : undefined,
+      });
+    }
+
+    return messages;
   }
 
   private async getNewEmails(

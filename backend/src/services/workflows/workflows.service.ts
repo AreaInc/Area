@@ -3,6 +3,7 @@ import {
   BadRequestException,
   NotFoundException,
   Inject,
+  Logger,
 } from "@nestjs/common";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { DRIZZLE } from "../../db/drizzle.module";
@@ -48,12 +49,66 @@ export interface UpdateWorkflowDto {
 
 @Injectable()
 export class WorkflowsService {
+  private readonly logger = new Logger(WorkflowsService.name);
+
   constructor(
     @Inject(DRIZZLE) private readonly db: PostgresJsDatabase<typeof schema>,
     private readonly temporalClient: TemporalClientService,
     private readonly triggerRegistry: TriggerRegistryService,
     private readonly actionRegistry: ActionRegistryService,
   ) {}
+
+  async loadActiveWorkflows() {
+    this.logger.log("Loading active workflows from database...");
+
+    const activeWorkflows = await this.db
+      .select()
+      .from(workflows)
+      .where(eq(workflows.isActive, true));
+
+    this.logger.log(
+      `Found ${activeWorkflows.length} active workflow(s) to register`,
+    );
+
+    for (const workflow of activeWorkflows) {
+      try {
+        const trigger = this.triggerRegistry.get(
+          workflow.triggerProvider,
+          workflow.triggerId,
+        );
+
+        if (!trigger) {
+          this.logger.warn(
+            `Trigger not found for workflow ${workflow.id}: ${workflow.triggerProvider}:${workflow.triggerId}`,
+          );
+          continue;
+        }
+
+        const triggerConfig = workflow.triggerConfig as Record<string, any>;
+        const triggerCredentialsId = triggerConfig.credentialsId
+          ? Number(triggerConfig.credentialsId)
+          : undefined;
+
+        const finalCredentialsId =
+          triggerCredentialsId ||
+          (workflow.actionCredentialsId
+            ? Number(workflow.actionCredentialsId)
+            : undefined);
+
+        await trigger.register(workflow.id, triggerConfig, finalCredentialsId);
+
+        this.logger.log(
+          `Registered workflow ${workflow.id} (${workflow.name}) with trigger ${workflow.triggerProvider}:${workflow.triggerId}`,
+        );
+      } catch (error) {
+        this.logger.error(
+          `Failed to register workflow ${workflow.id}: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
+    }
+
+    this.logger.log("Active workflows loaded successfully");
+  }
 
   async createWorkflow(userId: string, dto: CreateWorkflowDto) {
     const trigger = this.triggerRegistry.get(
@@ -76,9 +131,6 @@ export class WorkflowsService {
       );
     }
 
-    // Validation is optional during creation - workflows can be created with empty configs
-    // and configured later. Validation will be enforced during activation.
-    // Only validate if config is not empty to allow creating workflow skeletons
     if (Object.keys(dto.trigger.config).length > 0) {
       try {
         await trigger.validateConfig(dto.trigger.config);
@@ -258,7 +310,6 @@ export class WorkflowsService {
       throw new BadRequestException("Action not found");
     }
 
-    // Validate configurations before activation
     try {
       await trigger.validateConfig(
         (workflow.triggerConfig as Record<string, any>) || {},
@@ -279,21 +330,17 @@ export class WorkflowsService {
       );
     }
 
-    // Update status FIRST so that immediate triggers (like On Activation) see the workflow as active
     await this.db
       .update(workflows)
       .set({ isActive: true, updatedAt: new Date() })
       .where(eq(workflows.id, workflowId));
 
     try {
-      // Check if trigger config has a credential ID (new frontend behavior)
       const triggerConfig = workflow.triggerConfig as Record<string, any>;
       const triggerCredentialsId = triggerConfig.credentialsId
         ? Number(triggerConfig.credentialsId)
         : undefined;
 
-      // Fallback to legacy actionCredentialsId if not present in config (for backward compatibility)
-      // and if the trigger actually needs credentials.
       const finalCredentialsId =
         triggerCredentialsId ||
         (workflow.actionCredentialsId
@@ -302,7 +349,6 @@ export class WorkflowsService {
 
       await trigger.register(workflowId, triggerConfig, finalCredentialsId);
     } catch (error) {
-      // Revert status if registration fails
       await this.db
         .update(workflows)
         .set({ isActive: false, updatedAt: new Date() })
