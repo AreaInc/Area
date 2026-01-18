@@ -17,11 +17,13 @@ import {
 import { CacheInterceptor, CacheKey, CacheTTL } from "@nestjs/cache-manager";
 import { ServicesService } from "../../services/services/services.service";
 import { ActionRegistryService } from "../../services/registries/action-registry.service";
+import { TriggerRegistryService } from "../../services/registries/trigger-registry.service";
 import { ServiceProvider } from "../../common/types/enums";
 import { AuthGuard } from "../guards/auth.guard";
 import {
   ServiceResponseDto,
   ActionResponseDto,
+  TriggerResponseDto,
 } from "../dtos/service-response.dto";
 
 @ApiTags("Services")
@@ -32,6 +34,7 @@ export class ServicesController {
   constructor(
     private readonly servicesService: ServicesService,
     private readonly actionRegistry: ActionRegistryService,
+    private readonly triggerRegistry: TriggerRegistryService,
   ) {}
 
   @Get()
@@ -41,7 +44,7 @@ export class ServicesController {
   @ApiOperation({ summary: "Get all available services" })
   @ApiResponse({
     status: 200,
-    description: "List of all services with their actions",
+    description: "List of all services with their actions and triggers",
     type: [ServiceResponseDto],
     example: [
       {
@@ -75,6 +78,29 @@ export class ServicesController {
             },
           },
         ],
+        triggers: [
+          {
+            id: "gmail_new_email",
+            name: "New Email",
+            description: "Triggers when a new email is received",
+            triggerType: "webhook",
+            configSchema: {
+              type: "object",
+              properties: {
+                folder: { type: "string" },
+              },
+            },
+            outputSchema: {
+              type: "object",
+              properties: {
+                from: { type: "string" },
+                subject: { type: "string" },
+                body: { type: "string" },
+              },
+            },
+            requiresCredentials: true,
+          },
+        ],
       },
     ],
   })
@@ -82,6 +108,9 @@ export class ServicesController {
     const services = await this.servicesService.getAllServices();
     return services.map((service) => {
       const actions = this.actionRegistry.getByProvider(
+        service.provider as string,
+      );
+      const triggers = this.triggerRegistry.getByProvider(
         service.provider as string,
       );
 
@@ -102,6 +131,15 @@ export class ServicesController {
           inputSchema: action.inputSchema,
           outputSchema: action.outputSchema,
         })),
+        triggers: triggers.map((trigger) => ({
+          id: trigger.id,
+          name: trigger.name,
+          description: trigger.description,
+          triggerType: trigger.triggerType,
+          configSchema: trigger.configSchema,
+          outputSchema: trigger.outputSchema,
+          requiresCredentials: trigger.requiresCredentials,
+        })),
       };
     });
   }
@@ -111,7 +149,7 @@ export class ServicesController {
   @ApiParam({ name: "provider", description: "Service provider identifier" })
   @ApiResponse({
     status: 200,
-    description: "Service details",
+    description: "Service details with actions and triggers",
     type: ServiceResponseDto,
     example: {
       id: 1,
@@ -144,6 +182,29 @@ export class ServicesController {
           },
         },
       ],
+      triggers: [
+        {
+          id: "gmail_new_email",
+          name: "New Email",
+          description: "Triggers when a new email is received",
+          triggerType: "webhook",
+          configSchema: {
+            type: "object",
+            properties: {
+              folder: { type: "string" },
+            },
+          },
+          outputSchema: {
+            type: "object",
+            properties: {
+              from: { type: "string" },
+              subject: { type: "string" },
+              body: { type: "string" },
+            },
+          },
+          requiresCredentials: true,
+        },
+      ],
     },
   })
   @ApiResponse({ status: 404, description: "Service not found" })
@@ -159,6 +220,7 @@ export class ServicesController {
     }
 
     const actions = this.actionRegistry.getByProvider(serviceProvider);
+    const triggers = this.triggerRegistry.getByProvider(serviceProvider);
 
     return {
       id: service.id,
@@ -176,6 +238,15 @@ export class ServicesController {
         type: action.id.replace(/-/g, "_"), // Convert "send-email" to "send_email"
         inputSchema: action.inputSchema,
         outputSchema: action.outputSchema,
+      })),
+      triggers: triggers.map((trigger) => ({
+        id: trigger.id,
+        name: trigger.name,
+        description: trigger.description,
+        triggerType: trigger.triggerType,
+        configSchema: trigger.configSchema,
+        outputSchema: trigger.outputSchema,
+        requiresCredentials: trigger.requiresCredentials,
       })),
     };
   }
