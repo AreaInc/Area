@@ -26,7 +26,8 @@ interface WorkflowRegistration {
 
 @Injectable()
 export class GoogleCalendarPollingService
-  implements OnModuleInit, OnModuleDestroy {
+  implements OnModuleInit, OnModuleDestroy
+{
   private readonly logger = new Logger(GoogleCalendarPollingService.name);
   private readonly pollIntervalMs = 10000; // 10 seconds
   private isPolling = false;
@@ -39,7 +40,7 @@ export class GoogleCalendarPollingService
     private readonly newEventTrigger: NewEventTrigger,
     private readonly eventCancelledTrigger: EventCancelledTrigger,
     private readonly workflowsService: WorkflowsService,
-  ) { }
+  ) {}
 
   async onModuleInit() {
     await this.startPolling();
