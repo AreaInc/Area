@@ -1,13 +1,13 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import { 
-  type Node, 
-  type Edge, 
-  type NodeChange, 
-  type EdgeChange, 
-  type Connection, 
-  addEdge, 
-  applyNodeChanges, 
-  applyEdgeChanges 
+import {
+  type Node,
+  type Edge,
+  type NodeChange,
+  type EdgeChange,
+  type Connection,
+  addEdge,
+  applyNodeChanges,
+  applyEdgeChanges
 } from '@xyflow/react';
 import { INITIAL_NODES } from '../../mocks/nodes';
 
@@ -47,9 +47,9 @@ const flowSlice = createSlice({
       state.edges = addEdge(action.payload, state.edges);
     },
     addNode: (state, action: PayloadAction<Node>) => {
-        state.nodes.push(action.payload);
+      state.nodes.push(action.payload);
     },
-    updateNodeData: (state, action: PayloadAction<{ id: string; data: any }>) => {
+    updateNodeData: (state, action: PayloadAction<{ id: string; data: Record<string, unknown> }>) => {
       const node = state.nodes.find((n) => n.id === action.payload.id);
       if (node) {
         node.data = { ...node.data, ...action.payload.data };
@@ -58,11 +58,11 @@ const flowSlice = createSlice({
   },
 });
 
-export const { 
-  setWorkflow, 
-  clearWorkflow, 
-  nodesChange, 
-  edgesChange, 
+export const {
+  setWorkflow,
+  clearWorkflow,
+  nodesChange,
+  edgesChange,
   connect,
   addNode,
   updateNodeData
