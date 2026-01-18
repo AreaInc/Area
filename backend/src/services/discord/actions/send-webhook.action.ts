@@ -1,5 +1,8 @@
 import { Injectable } from "@nestjs/common";
-import { IAction, ActionMetadata } from "../../../common/types/action.interface";
+import {
+  IAction,
+  ActionMetadata,
+} from "../../../common/types/action.interface";
 
 @Injectable()
 export class SendDiscordWebhookAction implements IAction {

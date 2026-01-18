@@ -1,8 +1,17 @@
-export { sendEmailActivity, readEmailActivity } from "../../services/gmail/gmail.activities";
-export type { SendEmailInput, ReadEmailInput } from "../../services/gmail/gmail.activities";
+export {
+  sendEmailActivity,
+  readEmailActivity,
+} from "../../services/gmail/gmail.activities";
+export type {
+  SendEmailInput,
+  ReadEmailInput,
+} from "../../services/gmail/gmail.activities";
 
 export { sendDiscordWebhookActivity } from "../../services/discord/discord.activities";
-export type { SendDiscordWebhookInput, SendDiscordWebhookOutput } from "../../services/discord/discord.activities";
+export type {
+  SendDiscordWebhookInput,
+  SendDiscordWebhookOutput,
+} from "../../services/discord/discord.activities";
 
 export {
   sendTelegramMessageActivity,
@@ -12,7 +21,8 @@ export {
   unbanTelegramMemberActivity,
 } from "../../services/telegram/telegram.activities";
 export type {
-  SendTelegramMessageInput, SendTelegramMessageOutput,
+  SendTelegramMessageInput,
+  SendTelegramMessageOutput,
   SendTelegramPhotoInput,
   PinTelegramMessageInput,
   KickTelegramMemberInput,
@@ -31,11 +41,14 @@ export {
 } from "../../services/google-sheets/google-sheets.activities";
 
 export type {
-  CreateSpreadsheetInput, AddRowInput,
+  CreateSpreadsheetInput,
+  AddRowInput,
   UpdateCellInput,
-  CreateSheetInput, ClearRangeInput,
-  DuplicateSheetInput, FindReplaceInput,
-  SortRangeInput
+  CreateSheetInput,
+  ClearRangeInput,
+  DuplicateSheetInput,
+  FindReplaceInput,
+  SortRangeInput,
 } from "../../services/google-sheets/google-sheets.activities";
 
 export {
@@ -101,7 +114,3 @@ export type {
   CreateEventInput,
   QuickAddEventInput,
 } from "../../services/google-calendar/google-calendar.activities";
-
-
-
-

@@ -69,7 +69,7 @@ export class TelegramModule implements OnModuleInit {
     private readonly onVideoMessageTrigger: OnVideoMessageTrigger,
     private readonly onStartDmTrigger: OnStartDmTrigger,
     private readonly onMessageEditedTrigger: OnMessageEditedTrigger,
-  ) { }
+  ) {}
 
   onModuleInit() {
     // Actions
@@ -90,8 +90,6 @@ export class TelegramModule implements OnModuleInit {
     this.triggerRegistry.register(this.onStartDmTrigger);
     this.triggerRegistry.register(this.onMessageEditedTrigger);
 
-    console.log(
-      "[TelegramModule] Registered Telegram features"
-    );
+    console.log("[TelegramModule] Registered Telegram features");
   }
 }

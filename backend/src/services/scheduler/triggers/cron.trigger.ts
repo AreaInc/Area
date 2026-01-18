@@ -84,7 +84,10 @@ export class CronTrigger implements ITrigger {
     return this.registrations.has(workflowId);
   }
 
-  private getSchedule(cron: string): { intervalMs: number; firstDelayMs: number } {
+  private getSchedule(cron: string): {
+    intervalMs: number;
+    firstDelayMs: number;
+  } {
     const parts = cron.trim().split(/\s+/);
     if (parts.length < 5) {
       throw new Error("cron expression must have 5 fields (m h dom mon dow)");
@@ -131,7 +134,8 @@ export class CronTrigger implements ITrigger {
     const now = new Date();
     const next = new Date(now.getTime());
     const remainder = now.getMinutes() % everyMinutes;
-    let minutesToAdd = remainder === 0 ? everyMinutes : everyMinutes - remainder;
+    const minutesToAdd =
+      remainder === 0 ? everyMinutes : everyMinutes - remainder;
     next.setMinutes(now.getMinutes() + minutesToAdd, 0, 0);
     return next.getTime() - now.getTime();
   }
@@ -140,7 +144,7 @@ export class CronTrigger implements ITrigger {
     const now = new Date();
     const next = new Date(now.getTime());
     const remainder = now.getHours() % everyHours;
-    let hoursToAdd = remainder === 0 ? everyHours : everyHours - remainder;
+    const hoursToAdd = remainder === 0 ? everyHours : everyHours - remainder;
     next.setHours(now.getHours() + hoursToAdd, 0, 0, 0);
     return next.getTime() - now.getTime();
   }

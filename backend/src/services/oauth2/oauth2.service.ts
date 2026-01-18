@@ -29,7 +29,7 @@ export class OAuth2Service {
   constructor(
     @Inject(DRIZZLE) private readonly db: PostgresJsDatabase<typeof schema>,
     private readonly workflowsService: WorkflowsService,
-  ) { }
+  ) {}
 
   private getCallbackUrl(): string {
     if (process.env.OAUTH_CALLBACK_URL) {
@@ -170,7 +170,7 @@ export class OAuth2Service {
       return { authUrl, state };
     } else if (provider === ServiceProvider.SPOTIFY) {
       const params = new URLSearchParams({
-        client_id: credential.clientId!,
+        client_id: credential.clientId,
         response_type: "code",
         redirect_uri: callbackUrl,
         scope: OAUTH_CONFIG.spotify.scopes.join(" "),
@@ -182,7 +182,7 @@ export class OAuth2Service {
       };
     } else if (provider === ServiceProvider.TWITCH) {
       const params = new URLSearchParams({
-        client_id: credential.clientId!,
+        client_id: credential.clientId,
         response_type: "code",
         redirect_uri: callbackUrl,
         scope: OAUTH_CONFIG.twitch.scopes.join(" "),
@@ -195,8 +195,6 @@ export class OAuth2Service {
     }
 
     throw new BadRequestException(`Unsupported provider: ${provider}`);
-
-
   }
 
   async handleCallback(
@@ -279,8 +277,8 @@ export class OAuth2Service {
         if (!res.ok) {
           throw new Error(
             data.error_description ||
-            data.error ||
-            `Spotify API Error: ${responseText}`,
+              data.error ||
+              `Spotify API Error: ${responseText}`,
           );
         }
 
@@ -309,16 +307,16 @@ export class OAuth2Service {
         if (!profileRes.ok) {
           throw new Error(
             profile.error?.message ||
-            profile.error_description ||
-            `Spotify Profile API Error: ${JSON.stringify(profile)}`
+              profile.error_description ||
+              `Spotify Profile API Error: ${JSON.stringify(profile)}`,
           );
         }
 
         userEmail = profile.email || profile.id;
       } else if (provider === ServiceProvider.TWITCH) {
         const body = new URLSearchParams({
-          client_id: credential.clientId!,
-          client_secret: credential.clientSecret!,
+          client_id: credential.clientId,
+          client_secret: credential.clientSecret,
           code,
           grant_type: "authorization_code",
           redirect_uri: callbackUrl,
@@ -352,10 +350,10 @@ export class OAuth2Service {
         const profileRes = await fetch("https://api.twitch.tv/helix/users", {
           headers: {
             Authorization: `Bearer ${tokens.access_token}`,
-            "Client-Id": credential.clientId!,
+            "Client-Id": credential.clientId,
           },
         });
-        const profileData = (await profileRes.json()) as any;
+        const profileData = await profileRes.json();
         userEmail =
           profileData.data?.[0]?.email ||
           profileData.data?.[0]?.login ||
@@ -469,7 +467,7 @@ export class OAuth2Service {
           },
           body,
         });
-        const data = (await res.json()) as any;
+        const data = await res.json();
         if (!res.ok)
           throw new Error(
             data.error_description || "Failed to refresh Spotify token",
@@ -481,8 +479,8 @@ export class OAuth2Service {
         };
       } else if (provider === ServiceProvider.TWITCH) {
         const body = new URLSearchParams({
-          client_id: credential.clientId!,
-          client_secret: credential.clientSecret!,
+          client_id: credential.clientId,
+          client_secret: credential.clientSecret,
           grant_type: "refresh_token",
           refresh_token: credential.refreshToken,
         });
@@ -491,7 +489,7 @@ export class OAuth2Service {
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body,
         });
-        const data = (await res.json()) as any;
+        const data = await res.json();
         if (!res.ok)
           throw new Error(data.message || "Failed to refresh Twitch token");
         newTokens = {

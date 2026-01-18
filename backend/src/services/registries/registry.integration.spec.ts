@@ -104,9 +104,7 @@ describe("Action and Trigger registry integration", () => {
   it("handles webhook-style and scheduled providers alongside Gmail", async () => {
     const discordAction = new SendDiscordWebhookAction();
     const webhookTrigger = new PublicWebhookTrigger();
-    const scheduledTrigger = new CronTrigger(
-      mockWorkflowService as any,
-    );
+    const scheduledTrigger = new CronTrigger(mockWorkflowService as any);
 
     actionRegistry.register(gmailAction);
     actionRegistry.register(discordAction);

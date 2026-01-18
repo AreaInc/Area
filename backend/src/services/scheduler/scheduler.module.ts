@@ -14,11 +14,13 @@ export class SchedulerModule implements OnModuleInit {
     private readonly cronTrigger: CronTrigger,
     private readonly onActivationTrigger: OnActivationTrigger,
     private readonly triggerRegistry: TriggerRegistryService,
-  ) { }
+  ) {}
 
   onModuleInit() {
     this.triggerRegistry.register(this.cronTrigger);
     this.triggerRegistry.register(this.onActivationTrigger);
-    console.log("[SchedulerModule] Registered triggers: scheduler:cron, scheduler:on-activation");
+    console.log(
+      "[SchedulerModule] Registered triggers: scheduler:cron, scheduler:on-activation",
+    );
   }
 }

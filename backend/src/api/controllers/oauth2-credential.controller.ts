@@ -34,7 +34,7 @@ import {
 @ApiTags("OAuth2 Credentials")
 @Controller("api/oauth2-credential")
 export class OAuth2CredentialController {
-  constructor(private readonly oauth2Service: OAuth2Service) { }
+  constructor(private readonly oauth2Service: OAuth2Service) {}
 
   private buildCallbackUrl(): string {
     if (process.env.OAUTH_CALLBACK_URL) {

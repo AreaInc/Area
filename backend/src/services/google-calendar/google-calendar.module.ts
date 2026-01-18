@@ -10,47 +10,55 @@ import { NewEventTrigger } from "./triggers/new-event.trigger";
 import { EventCancelledTrigger } from "./triggers/event-cancelled.trigger";
 import { GoogleCalendarPollingService } from "./google-calendar-polling.service";
 @Module({
-    imports: [WorkflowsModule, DrizzleModule],
-    providers: [
-        CreateEventAction,
-        QuickAddAction,
-        NewEventTrigger,
-        EventCancelledTrigger,
-        GoogleCalendarPollingService,
-    ],
-    exports: [
-        CreateEventAction,
-        QuickAddAction,
-        NewEventTrigger,
-        EventCancelledTrigger,
-        GoogleCalendarPollingService,
-    ],
+  imports: [WorkflowsModule, DrizzleModule],
+  providers: [
+    CreateEventAction,
+    QuickAddAction,
+    NewEventTrigger,
+    EventCancelledTrigger,
+    GoogleCalendarPollingService,
+  ],
+  exports: [
+    CreateEventAction,
+    QuickAddAction,
+    NewEventTrigger,
+    EventCancelledTrigger,
+    GoogleCalendarPollingService,
+  ],
 })
 export class GoogleCalendarModule implements OnModuleInit {
-    constructor(
-        private readonly triggerRegistry: TriggerRegistryService,
-        private readonly actionRegistry: ActionRegistryService,
-        private readonly createEventAction: CreateEventAction,
-        private readonly quickAddAction: QuickAddAction,
-        private readonly newEventTrigger: NewEventTrigger,
-        private readonly eventCancelledTrigger: EventCancelledTrigger,
-    ) { }
+  constructor(
+    private readonly triggerRegistry: TriggerRegistryService,
+    private readonly actionRegistry: ActionRegistryService,
+    private readonly createEventAction: CreateEventAction,
+    private readonly quickAddAction: QuickAddAction,
+    private readonly newEventTrigger: NewEventTrigger,
+    private readonly eventCancelledTrigger: EventCancelledTrigger,
+  ) {}
 
-    onModuleInit() {
-        console.log("[GoogleCalendarModule] Initializing...");
+  onModuleInit() {
+    console.log("[GoogleCalendarModule] Initializing...");
 
-        this.actionRegistry.register(this.createEventAction);
-        console.log("[GoogleCalendarModule] Registered action: google-calendar:create-event");
+    this.actionRegistry.register(this.createEventAction);
+    console.log(
+      "[GoogleCalendarModule] Registered action: google-calendar:create-event",
+    );
 
-        this.actionRegistry.register(this.quickAddAction);
-        console.log("[GoogleCalendarModule] Registered action: google-calendar:quick-add");
+    this.actionRegistry.register(this.quickAddAction);
+    console.log(
+      "[GoogleCalendarModule] Registered action: google-calendar:quick-add",
+    );
 
-        this.triggerRegistry.register(this.newEventTrigger);
-        console.log("[GoogleCalendarModule] Registered trigger: google-calendar:new-event");
+    this.triggerRegistry.register(this.newEventTrigger);
+    console.log(
+      "[GoogleCalendarModule] Registered trigger: google-calendar:new-event",
+    );
 
-        this.triggerRegistry.register(this.eventCancelledTrigger);
-        console.log("[GoogleCalendarModule] Registered trigger: google-calendar:event-cancelled");
+    this.triggerRegistry.register(this.eventCancelledTrigger);
+    console.log(
+      "[GoogleCalendarModule] Registered trigger: google-calendar:event-cancelled",
+    );
 
-        console.log("[GoogleCalendarModule] Initialized.");
-    }
+    console.log("[GoogleCalendarModule] Initialized.");
+  }
 }

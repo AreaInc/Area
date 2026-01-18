@@ -25,23 +25,40 @@ async function ensureFreshAccessToken(credential: any) {
   if (!credential.accessToken) throw new Error("Missing access token");
   const expiresAt = credential.expiresAt?.getTime() || 0;
   if (expiresAt > 0 && expiresAt <= Date.now() + 60_000) {
-    if (!credential.refreshToken || !credential.clientId || !credential.clientSecret) {
+    if (
+      !credential.refreshToken ||
+      !credential.clientId ||
+      !credential.clientSecret
+    ) {
       throw new Error("Missing OAuth2 refresh credentials");
     }
-    const oauth2Client = new google.auth.OAuth2(credential.clientId, credential.clientSecret);
+    const oauth2Client = new google.auth.OAuth2(
+      credential.clientId,
+      credential.clientSecret,
+    );
     oauth2Client.setCredentials({ refresh_token: credential.refreshToken });
     const { credentials: newTokens } = await oauth2Client.refreshAccessToken();
-    const newExpiresAt = newTokens.expiry_date ? new Date(newTokens.expiry_date) : null;
+    const newExpiresAt = newTokens.expiry_date
+      ? new Date(newTokens.expiry_date)
+      : null;
 
-    await db.update(schema.credentials).set({
-      accessToken: newTokens.access_token || credential.accessToken,
-      refreshToken: newTokens.refresh_token || credential.refreshToken,
+    await db
+      .update(schema.credentials)
+      .set({
+        accessToken: newTokens.access_token || credential.accessToken,
+        refreshToken: newTokens.refresh_token || credential.refreshToken,
+        expiresAt: newExpiresAt,
+        isValid: true,
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.credentials.id, credential.id));
+
+    return {
+      ...credential,
+      accessToken: newTokens.access_token,
+      refreshToken: newTokens.refresh_token,
       expiresAt: newExpiresAt,
-      isValid: true,
-      updatedAt: new Date(),
-    }).where(eq(schema.credentials.id, credential.id));
-
-    return { ...credential, accessToken: newTokens.access_token, refreshToken: newTokens.refresh_token, expiresAt: newExpiresAt };
+    };
   }
   return credential;
 }
@@ -53,7 +70,9 @@ async function getClient(credentialId: number, userId: string) {
     data: {
       accessToken: credential.accessToken,
       refreshToken: credential.refreshToken,
-      expiresAt: credential.expiresAt ? new Date(credential.expiresAt).getTime() : undefined,
+      expiresAt: credential.expiresAt
+        ? new Date(credential.expiresAt).getTime()
+        : undefined,
     },
     clientId: credential.clientId || undefined,
     clientSecret: credential.clientSecret || undefined,
@@ -79,8 +98,12 @@ export async function sendEmailActivity(input: SendEmailInput) {
     to: replaceTemplateVariables(input.to, input.triggerData),
     subject: replaceTemplateVariables(input.subject, input.triggerData),
     body: replaceTemplateVariables(input.body, input.triggerData),
-    cc: input.cc?.map((email) => replaceTemplateVariables(email, input.triggerData)),
-    bcc: input.bcc?.map((email) => replaceTemplateVariables(email, input.triggerData)),
+    cc: input.cc?.map((email) =>
+      replaceTemplateVariables(email, input.triggerData),
+    ),
+    bcc: input.bcc?.map((email) =>
+      replaceTemplateVariables(email, input.triggerData),
+    ),
     isHtml: input.isHtml,
   });
 
@@ -97,6 +120,10 @@ export interface ReadEmailInput {
 
 export async function readEmailActivity(input: ReadEmailInput) {
   const client = await getClient(input.credentialId, input.userId);
-  const result = await client.readEmails(input.query, input.maxResults, input.labelIds);
+  const result = await client.readEmails(
+    input.query,
+    input.maxResults,
+    input.labelIds,
+  );
   return { messages: result.messages, totalCount: result.totalCount };
 }

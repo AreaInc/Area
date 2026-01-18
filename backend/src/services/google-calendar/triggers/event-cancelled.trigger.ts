@@ -1,55 +1,59 @@
 import { Injectable } from "@nestjs/common";
-import {
-    ITrigger,
-    TriggerType,
-} from "../../../common/types/trigger.interface";
+import { ITrigger, TriggerType } from "../../../common/types/trigger.interface";
 
 @Injectable()
 export class EventCancelledTrigger implements ITrigger {
-    id = "google-calendar:event-cancelled";
-    name = "Event Cancelled";
-    description = "Triggers when an event is cancelled";
-    serviceProvider = "google-calendar";
-    triggerType = TriggerType.POLLING;
-    requiresCredentials = true;
+  id = "google-calendar:event-cancelled";
+  name = "Event Cancelled";
+  description = "Triggers when an event is cancelled";
+  serviceProvider = "google-calendar";
+  triggerType = TriggerType.POLLING;
+  requiresCredentials = true;
 
-    configSchema = {
-        type: "object",
-        properties: {
-            calendarId: {
-                type: "string",
-                description: "Calendar ID (default: primary)",
-                default: "primary",
-            },
-        },
-    };
+  configSchema = {
+    type: "object",
+    properties: {
+      calendarId: {
+        type: "string",
+        description: "Calendar ID (default: primary)",
+        default: "primary",
+      },
+    },
+  };
 
-    outputSchema = {
-        type: "object",
-        properties: {
-            eventId: { type: "string" },
-            summary: { type: "string" },
-        },
-    };
+  outputSchema = {
+    type: "object",
+    properties: {
+      eventId: { type: "string" },
+      summary: { type: "string" },
+    },
+  };
 
-    private registrations = new Map<number, {
-        credentialsId?: number;
-        config: Record<string, any>;
-    }>();
-
-    async register(workflowId: number, config: Record<string, any>, credentialsId?: number): Promise<void> {
-        this.registrations.set(workflowId, { credentialsId, config });
+  private registrations = new Map<
+    number,
+    {
+      credentialsId?: number;
+      config: Record<string, any>;
     }
+  >();
 
-    async unregister(workflowId: number): Promise<void> {
-        this.registrations.delete(workflowId);
-    }
+  async register(
+    workflowId: number,
+    config: Record<string, any>,
+    credentialsId?: number,
+  ): Promise<void> {
+    this.registrations.set(workflowId, { credentialsId, config });
+  }
 
-    async validateConfig(config: Record<string, any>): Promise<boolean> {
-        return true;
-    }
+  async unregister(workflowId: number): Promise<void> {
+    this.registrations.delete(workflowId);
+  }
 
-    getRegistrations() {
-        return this.registrations;
-    }
+  async validateConfig(config: Record<string, any>): Promise<boolean> {
+    return true;
+  }
+
+  getRegistrations() {
+    return this.registrations;
+  }
 }

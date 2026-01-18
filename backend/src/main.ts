@@ -48,7 +48,9 @@ async function bootstrap() {
         password: process.env.REDIS_PASS,
         retryStrategy: (times: number) => {
           const delay = Math.min(times * 50, 2000);
-          console.log(`[Redis Microservice] Retrying connection (attempt ${times})...`);
+          console.log(
+            `[Redis Microservice] Retrying connection (attempt ${times})...`,
+          );
           return delay;
         },
         maxRetriesPerRequest: 3,

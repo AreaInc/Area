@@ -1,43 +1,48 @@
 import { Injectable } from "@nestjs/common";
-import { ITrigger, TriggerMetadata, TriggerType } from "../../../common/types/trigger.interface";
+import {
+  ITrigger,
+  TriggerMetadata,
+  TriggerType,
+} from "../../../common/types/trigger.interface";
 
 @Injectable()
 export class OnReplyMessageTrigger implements ITrigger {
-    id = "on-reply-message";
-    name = "On Reply Message (Telegram)";
-    description = "Triggers when a user replies to a message";
-    serviceProvider = "telegram";
-    triggerType = TriggerType.POLLING;
-    requiresCredentials = false;
+  id = "on-reply-message";
+  name = "On Reply Message (Telegram)";
+  description = "Triggers when a user replies to a message";
+  serviceProvider = "telegram";
+  triggerType = TriggerType.POLLING;
+  requiresCredentials = false;
 
-    configSchema = {
-        type: "object",
-        required: ["botToken"],
-        properties: {
-            botToken: { type: "string", description: "Telegram Bot Token" }
-        }
+  configSchema = {
+    type: "object",
+    required: ["botToken"],
+    properties: {
+      botToken: { type: "string", description: "Telegram Bot Token" },
+    },
+  };
+
+  async validateConfig(config: Record<string, any>): Promise<boolean> {
+    if (!config.botToken) throw new Error("Bot Token is required");
+    return true;
+  }
+
+  async register(
+    workflowId: number,
+    config: Record<string, any>,
+  ): Promise<void> {}
+
+  async unregister(workflowId: number): Promise<void> {}
+
+  getMetadata(): TriggerMetadata {
+    return {
+      id: this.id,
+      name: this.name,
+      description: this.description,
+      serviceProvider: this.serviceProvider,
+      triggerType: this.triggerType,
+      configSchema: this.configSchema,
+      requiresCredentials: this.requiresCredentials,
     };
-
-    async validateConfig(config: Record<string, any>): Promise<boolean> {
-        if (!config.botToken) throw new Error("Bot Token is required");
-        return true;
-    }
-
-    async register(workflowId: number, config: Record<string, any>): Promise<void> {
-    }
-
-    async unregister(workflowId: number): Promise<void> {
-    }
-
-    getMetadata(): TriggerMetadata {
-        return {
-            id: this.id,
-            name: this.name,
-            description: this.description,
-            serviceProvider: this.serviceProvider,
-            triggerType: this.triggerType,
-            configSchema: this.configSchema,
-            requiresCredentials: this.requiresCredentials
-        };
-    }
+  }
 }

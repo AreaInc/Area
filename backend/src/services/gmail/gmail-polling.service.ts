@@ -38,7 +38,7 @@ export class GmailPollingService implements OnModuleInit, OnModuleDestroy {
     @Inject(DRIZZLE) private readonly db: PostgresJsDatabase<typeof schema>,
     private readonly receiveEmailTrigger: ReceiveEmailTrigger,
     private readonly workflowsService: WorkflowsService,
-  ) { }
+  ) {}
 
   async onModuleInit() {
     await this.startPolling();
@@ -95,21 +95,19 @@ export class GmailPollingService implements OnModuleInit, OnModuleDestroy {
       workflowRows.map((row) => [row.id, row]),
     );
 
-    const userIds = Array.from(
-      new Set(workflowRows.map((row) => row.userId)),
-    );
+    const userIds = Array.from(new Set(workflowRows.map((row) => row.userId)));
 
     const credentialRows =
       userIds.length > 0
         ? await this.db
-          .select()
-          .from(credentials)
-          .where(
-            and(
-              eq(credentials.serviceProvider, "gmail" as any),
-              inArray(credentials.userId, userIds),
-            ),
-          )
+            .select()
+            .from(credentials)
+            .where(
+              and(
+                eq(credentials.serviceProvider, "gmail" as any),
+                inArray(credentials.userId, userIds),
+              ),
+            )
         : [];
 
     const credentialsById = new Map(
@@ -275,11 +273,7 @@ export class GmailPollingService implements OnModuleInit, OnModuleDestroy {
 
       let emails: Array<Record<string, any>> = [];
       try {
-        emails = await this.getNewEmails(
-          gmail,
-          gmailClient,
-          historyId,
-        );
+        emails = await this.getNewEmails(gmail, gmailClient, historyId);
       } catch (error) {
         const message = (error as Error)?.message || "";
         if (message.includes("Requested entity was not found")) {

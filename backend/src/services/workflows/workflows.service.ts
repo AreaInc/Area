@@ -53,7 +53,7 @@ export class WorkflowsService {
     private readonly temporalClient: TemporalClientService,
     private readonly triggerRegistry: TriggerRegistryService,
     private readonly actionRegistry: ActionRegistryService,
-  ) { }
+  ) {}
 
   async createWorkflow(userId: string, dto: CreateWorkflowDto) {
     const trigger = this.triggerRegistry.get(
@@ -288,17 +288,19 @@ export class WorkflowsService {
     try {
       // Check if trigger config has a credential ID (new frontend behavior)
       const triggerConfig = workflow.triggerConfig as Record<string, any>;
-      const triggerCredentialsId = triggerConfig.credentialsId ? Number(triggerConfig.credentialsId) : undefined;
+      const triggerCredentialsId = triggerConfig.credentialsId
+        ? Number(triggerConfig.credentialsId)
+        : undefined;
 
       // Fallback to legacy actionCredentialsId if not present in config (for backward compatibility)
       // and if the trigger actually needs credentials.
-      const finalCredentialsId = triggerCredentialsId || (workflow.actionCredentialsId ? Number(workflow.actionCredentialsId) : undefined);
+      const finalCredentialsId =
+        triggerCredentialsId ||
+        (workflow.actionCredentialsId
+          ? Number(workflow.actionCredentialsId)
+          : undefined);
 
-      await trigger.register(
-        workflowId,
-        triggerConfig,
-        finalCredentialsId,
-      );
+      await trigger.register(workflowId, triggerConfig, finalCredentialsId);
     } catch (error) {
       // Revert status if registration fails
       await this.db

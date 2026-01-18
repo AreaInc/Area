@@ -51,7 +51,9 @@ import { auth } from "./auth";
           ttl: 60, // 60 seconds default TTL
           retryStrategy: (times) => {
             const delay = Math.min(times * 50, 2000);
-            console.log(`[Redis Cache] Retrying connection (attempt ${times})...`);
+            console.log(
+              `[Redis Cache] Retrying connection (attempt ${times})...`,
+            );
             return delay;
           },
           maxRetriesPerRequest: 3,
@@ -96,4 +98,4 @@ import { auth } from "./auth";
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}
