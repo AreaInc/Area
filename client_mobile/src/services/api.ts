@@ -8,16 +8,7 @@ interface RequestOptions extends RequestInit {
 }
 
 const request = async <T = unknown>(endpoint: string, options: RequestOptions = {}): Promise<ApiResponse<T>> => {
-    // Production API Compatibility Layer
-    // Rewrite metadata endpoints to match Prod V2 routes
-    let finalEndpoint = endpoint;
-    if (endpoint.includes('/workflows/metadata/triggers')) {
-        finalEndpoint = endpoint.replace('/workflows/metadata/triggers', '/triggers');
-    } else if (endpoint.includes('/workflows/metadata/actions')) {
-        finalEndpoint = endpoint.replace('/workflows/metadata/actions', '/actions');
-    }
-
-    const url = `${BASE_URL}${finalEndpoint}`;
+    const url = `${BASE_URL}${endpoint}`;
 
     const defaultHeaders: Record<string, string> = {
         'Content-Type': 'application/json',

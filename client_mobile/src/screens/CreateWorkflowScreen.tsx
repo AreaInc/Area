@@ -89,8 +89,8 @@ const CreateWorkflowScreen: React.FC<Props> = ({ navigation }) => {
     const fetchMetadata = async (): Promise<void> => {
         try {
             const [triggersRes, actionsRes] = await Promise.all([
-                api.get<TriggerMetadata[]>('/api/v2/workflows/metadata/triggers'),
-                api.get<ActionMetadata[]>('/api/v2/workflows/metadata/actions')
+                api.get<TriggerMetadata[]>('/api/v2/triggers'),
+                api.get<ActionMetadata[]>('/api/v2/actions')
             ]);
 
             if (triggersRes.data) setTriggers(triggersRes.data);
