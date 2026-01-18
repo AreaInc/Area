@@ -1,10 +1,25 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useActions } from '@area/shared';
 import { useCredentials } from '@area/shared';
 import type { ActionConfig } from '@area/shared';
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
   SelectContent,
@@ -12,6 +27,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ActionSelectorProps {
   value?: ActionConfig;
@@ -22,12 +39,25 @@ export function ActionSelector({ value, onChange }: ActionSelectorProps) {
   const { data: actions, isLoading: actionsLoading } = useActions();
   const { data: credentials, isLoading: credentialsLoading } = useCredentials();
   const [config, setConfig] = useState<Record<string, any>>(value?.config || {});
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     if (value?.config) {
       setConfig(value.config);
     }
   }, [value?.config]);
+
+  const groupedActions = useMemo(() => {
+    if (!actions) return {};
+    return actions.reduce((acc, action) => {
+      const provider = action.serviceProvider;
+      if (!acc[provider]) {
+        acc[provider] = [];
+      }
+      acc[provider].push(action);
+      return acc;
+    }, {} as Record<string, typeof actions>);
+  }, [actions]);
 
   if (actionsLoading || credentialsLoading) {
     return <div className="text-muted-foreground">Loading actions...</div>;
@@ -43,17 +73,15 @@ export function ActionSelector({ value, onChange }: ActionSelectorProps) {
 
   const inputSchema = selectedAction?.inputSchema as any;
 
-  const handleActionChange = (val: string) => {
-    const [provider, actionId] = val.split(':');
-    if (provider && actionId) {
-      onChange({
-        provider,
-        actionId,
-        config: {},
-        credentialsId: value?.credentialsId,
-      });
-      setConfig({});
-    }
+  const handleActionSelect = (provider: string, actionId: string) => {
+    onChange({
+      provider,
+      actionId,
+      config: {},
+      credentialsId: value?.credentialsId,
+    });
+    setConfig({});
+    setOpen(false);
   };
 
   const handleConfigChange = (key: string, newValue: any) => {
@@ -170,24 +198,54 @@ export function ActionSelector({ value, onChange }: ActionSelectorProps) {
     <div className="space-y-6">
       <div className="space-y-2">
         <Label>Select Action</Label>
-        <Select
-          value={value ? `${value.provider}:${value.actionId}` : ''}
-          onValueChange={handleActionChange}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select an action..." />
-          </SelectTrigger>
-          <SelectContent>
-            {actions?.map((action) => (
-              <SelectItem
-                key={`${action.serviceProvider}:${action.id}`}
-                value={`${action.serviceProvider}:${action.id}`}
-              >
-                {action.name} ({action.serviceProvider})
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={open}
+              className="w-full justify-between"
+            >
+              {value ? (
+                selectedAction ? `${selectedAction.name} (${selectedAction.serviceProvider})` : "Action not found"
+              ) : (
+                "Select an action..."
+              )}
+              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+            <Command className="h-auto">
+              <CommandInput placeholder="Search action..." />
+              <ScrollArea className="h-[300px]">
+                <CommandList className="max-h-full overflow-hidden">
+                  <CommandEmpty>No action found.</CommandEmpty>
+                  {Object.entries(groupedActions).map(([provider, actions]) => (
+                    <CommandGroup key={provider} heading={provider}>
+                      {actions.map((action) => (
+                        <CommandItem
+                          key={`${action.serviceProvider}:${action.id}`}
+                          value={`${action.serviceProvider} ${action.name}`}
+                          onSelect={() => handleActionSelect(action.serviceProvider, action.id)}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              value?.provider === action.serviceProvider && value?.actionId === action.id
+                                ? "opacity-100"
+                                : "opacity-0"
+                            )}
+                          />
+                          {action.name}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  ))}
+                </CommandList>
+              </ScrollArea>
+            </Command>
+          </PopoverContent>
+        </Popover>
       </div>
 
       {selectedAction && (

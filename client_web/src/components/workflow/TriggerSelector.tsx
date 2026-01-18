@@ -1,9 +1,24 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTriggers, useCredentials } from '@area/shared';
 import type { TriggerConfig } from '@area/shared';
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
   SelectContent,
@@ -11,6 +26,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface TriggerSelectorProps {
   value?: TriggerConfig;
@@ -21,12 +38,25 @@ export function TriggerSelector({ value, onChange }: TriggerSelectorProps) {
   const { data: triggers, isLoading: triggersLoading } = useTriggers();
   const { data: credentials, isLoading: credentialsLoading } = useCredentials();
   const [config, setConfig] = useState<Record<string, any>>(value?.config || {});
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     if (value?.config) {
       setConfig(value.config);
     }
   }, [value?.config]);
+
+  const groupedTriggers = useMemo(() => {
+    if (!triggers) return {};
+    return triggers.reduce((acc, trigger) => {
+      const provider = trigger.serviceProvider;
+      if (!acc[provider]) {
+        acc[provider] = [];
+      }
+      acc[provider].push(trigger);
+      return acc;
+    }, {} as Record<string, typeof triggers>);
+  }, [triggers]);
 
   if (triggersLoading || credentialsLoading) {
     return <div className="text-gray-400">Loading triggers...</div>;
@@ -42,16 +72,14 @@ export function TriggerSelector({ value, onChange }: TriggerSelectorProps) {
     (c) => c.serviceProvider === value?.provider && c.isValid
   );
 
-  const handleTriggerChange = (value: string) => {
-    const [provider, triggerId] = value.split(':');
-    if (provider && triggerId) {
-      onChange({
-        provider,
-        triggerId,
-        config: {},
-      });
-      setConfig({});
-    }
+  const handleTriggerSelect = (provider: string, triggerId: string) => {
+    onChange({
+      provider,
+      triggerId,
+      config: {},
+    });
+    setConfig({});
+    setOpen(false);
   };
 
   const handleConfigChange = (key: string, newValue: any) => {
@@ -172,24 +200,54 @@ export function TriggerSelector({ value, onChange }: TriggerSelectorProps) {
     <div className="space-y-6">
       <div className="space-y-2">
         <Label>Select Trigger</Label>
-        <Select
-          value={value ? `${value.provider}:${value.triggerId}` : ''}
-          onValueChange={handleTriggerChange}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select a trigger..." />
-          </SelectTrigger>
-          <SelectContent>
-            {triggers?.map((trigger) => (
-              <SelectItem
-                key={`${trigger.serviceProvider}:${trigger.id}`}
-                value={`${trigger.serviceProvider}:${trigger.id}`}
-              >
-                {trigger.name} ({trigger.serviceProvider})
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={open}
+              className="w-full justify-between"
+            >
+              {value ? (
+                selectedTrigger ? `${selectedTrigger.name} (${selectedTrigger.serviceProvider})` : "Trigger not found"
+              ) : (
+                "Select a trigger..."
+              )}
+              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+            <Command className="h-auto">
+              <CommandInput placeholder="Search trigger..." />
+              <ScrollArea className="h-[300px]">
+                <CommandList className="max-h-full overflow-hidden">
+                  <CommandEmpty>No trigger found.</CommandEmpty>
+                  {Object.entries(groupedTriggers).map(([provider, triggers]) => (
+                    <CommandGroup key={provider} heading={provider}>
+                      {triggers.map((trigger) => (
+                        <CommandItem
+                          key={`${trigger.serviceProvider}:${trigger.id}`}
+                          value={`${trigger.serviceProvider} ${trigger.name}`}
+                          onSelect={() => handleTriggerSelect(trigger.serviceProvider, trigger.id)}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              value?.provider === trigger.serviceProvider && value?.triggerId === trigger.id
+                                ? "opacity-100"
+                                : "opacity-0"
+                            )}
+                          />
+                          {trigger.name}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  ))}
+                </CommandList>
+              </ScrollArea>
+            </Command>
+          </PopoverContent>
+        </Popover>
       </div>
 
       {selectedTrigger && (

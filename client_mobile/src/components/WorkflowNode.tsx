@@ -54,10 +54,10 @@ const WorkflowNode: React.FC<WorkflowNodeProps> = ({
     const Container = Platform.OS === 'android' ? View : BlurView;
     const containerProps = Platform.OS === 'android'
         ? { style: [styles.card, styles.androidCard] }
-        : { intensity: 20, tint: "dark" as const, style: styles.card };
+        : { intensity: 60, tint: "dark" as const, style: styles.card };
 
     return (
-        <View style={styles.wrapper}>
+        <View style={styles.wrapper} pointerEvents="box-none">
             {!isStart && <View style={[styles.line, { height: 20 }]} />}
 
             <Container {...containerProps}>
@@ -74,18 +74,19 @@ const WorkflowNode: React.FC<WorkflowNodeProps> = ({
 const styles = StyleSheet.create({
     wrapper: {
         alignItems: 'center',
+        width: '100%',
     },
     line: {
         width: 2,
-        backgroundColor: 'rgba(255,255,255,0.1)',
+        backgroundColor: 'rgba(255,255,255,0.08)',
     },
     card: {
         width: '100%',
-        height: 80, // Fixed height for DragSortableView
-        borderRadius: 16,
+        height: 80,
+        borderRadius: 20,
         overflow: 'hidden',
-        backgroundColor: 'rgba(30, 41, 59, 0.4)',
-        borderColor: 'rgba(255, 255, 255, 0.1)',
+        backgroundColor: 'rgba(30, 41, 59, 0.25)',
+        borderColor: 'rgba(255, 255, 255, 0.08)',
         borderWidth: 1,
         position: 'relative',
     },
@@ -96,6 +97,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         padding: 16,
+        height: '100%',
     },
     iconContainer: {
         width: 48,
@@ -123,8 +125,8 @@ const styles = StyleSheet.create({
     statusLine: {
         position: 'absolute',
         left: 0,
-        top: 16,
-        bottom: 16,
+        top: 20,
+        bottom: 20,
         width: 4,
         borderTopRightRadius: 2,
         borderBottomRightRadius: 2,
