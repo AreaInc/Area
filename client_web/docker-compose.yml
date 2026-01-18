@@ -17,12 +17,12 @@ services:
     develop:
       watch:
         - action: sync
-          path: ./client_web/src
+          path: ./src
           target: /app/src
           ignore:
             - node_modules/
         - action: rebuild
-          path: ./client_web/package.json
+          path: ./package.json
     depends_on:
       - backend
     networks:

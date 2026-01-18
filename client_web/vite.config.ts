@@ -11,6 +11,18 @@ export default defineConfig({
     TanStackRouterVite(),
     tailwindcss(),
   ],
+  server: {
+    host: true, 
+    port: 8081,
+    watch: {
+      usePolling: true,
+      interval: 100,
+    },
+    hmr: {
+      clientPort: 8081, 
+      host: 'localhost'
+    },
+  },
   resolve: {
     alias: {
       '@area/shared': path.resolve(__dirname, '../packages/shared'),

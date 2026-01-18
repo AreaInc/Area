@@ -9,8 +9,9 @@ import { routeTree } from './routeTree.gen'
 import './index.css'
 import { setApiBase } from '@area/shared'
 
-const router = createRouter({ routeTree })
 setApiBase("http://localhost:8080/api")
+
+const router = createRouter({ routeTree })
 
 declare module '@tanstack/react-router' {
   interface Register {

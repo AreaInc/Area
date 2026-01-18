@@ -245,22 +245,22 @@ function Dashboard() {
   return (
     <div className="h-full overflow-y-auto p-6 flex flex-col w-full">
       <div className="w-full max-w-7xl mx-auto space-y-8">
-        <DashboardHeader 
-            workflowName={workflowName}
-            onNameChange={setWorkflowName}
-            isActive={selectedWorkflow.isActive}
-            onToggleActive={handleToggleActive}
-            onSave={handleSave}
-            onDelete={handleDelete}
-            isSaving={isSaving}
-            isPending={activateMutation.isPending || deactivateMutation.isPending || deleteMutation.isPending}
-            templates={QUICK_TEMPLATES}
-            onApplyTemplate={applyTemplate}
+        <DashboardHeader
+          workflowName={workflowName}
+          onNameChange={setWorkflowName}
+          isActive={selectedWorkflow.isActive}
+          onToggleActive={handleToggleActive}
+          onSave={handleSave}
+          onDelete={handleDelete}
+          isSaving={isSaving}
+          isPending={activateMutation.isPending || deactivateMutation.isPending || deleteMutation.isPending}
+          templates={QUICK_TEMPLATES}
+          onApplyTemplate={applyTemplate}
         />
 
-        <WorkflowSteps 
-            triggerNode={<TriggerCard trigger={trigger} onChange={setTrigger} />}
-            actionNode={<ActionCard action={action} onChange={setAction} />}
+        <WorkflowSteps
+          triggerNode={<TriggerCard trigger={trigger} onChange={setTrigger} />}
+          actionNode={<ActionCard action={action} onChange={setAction} />}
         />
 
         {selectedWorkflow.lastRun && (
@@ -270,20 +270,20 @@ function Dashboard() {
         )}
 
         <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        This action cannot be undone. This will permanently delete the workflow "{selectedWorkflow.name}".
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                        {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
-                    </AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the workflow "{selectedWorkflow.name}".
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
         </AlertDialog>
       </div>
     </div>
