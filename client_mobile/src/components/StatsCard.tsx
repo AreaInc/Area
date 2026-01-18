@@ -2,9 +2,17 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Zap, Activity } from 'lucide-react-native';
-// import GlassCard from './GlassCard'; // Can use GlassCard or Gradient for these
 
-const StatsCard = ({ title, value, subtext, icon, trend, colors }) => {
+interface StatsCardProps {
+    title: string;
+    value: string;
+    subtext?: string;
+    icon: 'zap' | 'activity';
+    trend?: string;
+    colors?: [string, string, ...string[]];
+}
+
+const StatsCard: React.FC<StatsCardProps> = ({ title, value, icon, trend, colors }) => {
     const IconComponent = icon === 'zap' ? Zap : Activity;
 
     return (

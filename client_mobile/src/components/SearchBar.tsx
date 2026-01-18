@@ -3,7 +3,7 @@ import { StyleSheet, TextInput, View } from 'react-native';
 import { Search, SlidersHorizontal } from 'lucide-react-native';
 import GlassCard from './GlassCard';
 
-const SearchBar = () => {
+const SearchBar: React.FC = () => {
     return (
         <GlassCard style={styles.container}>
             <View style={styles.content}>

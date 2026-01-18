@@ -1,12 +1,32 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, Switch, Image, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, Switch, TouchableOpacity } from 'react-native';
 import { Share2, Mail, Filter, Database } from 'lucide-react-native';
 import GlassCard from './GlassCard';
 
-const WorkflowItem = ({ title, lastRun, status, iconType, initialActive = true, onPress }) => {
-    const [isActive, setIsActive] = useState(initialActive);
+type IconType = 'social' | 'mail' | 'filter' | 'db';
 
-    const getIcon = () => {
+interface WorkflowItemProps {
+    title: string;
+    lastRun: string;
+    status?: string;
+    iconType: IconType;
+    initialActive?: boolean;
+    onPress?: () => void;
+    onToggle?: (newStatus: boolean) => void;
+}
+
+const WorkflowItem: React.FC<WorkflowItemProps> = ({
+    title,
+    lastRun,
+    status,
+    iconType,
+    initialActive = true,
+    onPress,
+    onToggle
+}) => {
+    const [isActive, setIsActive] = useState<boolean>(initialActive);
+
+    const getIcon = (): React.JSX.Element => {
         switch (iconType) {
             case 'social': return <Share2 size={20} color="#38bdf8" />;
             case 'mail': return <Mail size={20} color="#fb923c" />;
@@ -14,9 +34,9 @@ const WorkflowItem = ({ title, lastRun, status, iconType, initialActive = true, 
             case 'db': return <Database size={20} color="#4ade80" />;
             default: return <Share2 size={20} color="#fff" />;
         }
-    }
+    };
 
-    const getIconBg = () => {
+    const getIconBg = (): string => {
         switch (iconType) {
             case 'social': return 'rgba(56, 189, 248, 0.15)'; // sky
             case 'mail': return 'rgba(251, 146, 60, 0.15)'; // orange
@@ -24,7 +44,13 @@ const WorkflowItem = ({ title, lastRun, status, iconType, initialActive = true, 
             case 'db': return 'rgba(74, 222, 128, 0.15)'; // green
             default: return 'rgba(255, 255, 255, 0.1)';
         }
-    }
+    };
+
+    const handleToggle = (): void => {
+        const newStatus = !isActive;
+        setIsActive(newStatus);
+        onToggle?.(newStatus);
+    };
 
     return (
         <GlassCard style={styles.container}>
@@ -45,7 +71,7 @@ const WorkflowItem = ({ title, lastRun, status, iconType, initialActive = true, 
                     trackColor={{ false: "#334155", true: "#2563eb" }}
                     thumbColor={isActive ? "#fff" : "#94a3b8"}
                     ios_backgroundColor="#334155"
-                    onValueChange={() => setIsActive(!isActive)}
+                    onValueChange={handleToggle}
                     value={isActive}
                 />
             </TouchableOpacity>

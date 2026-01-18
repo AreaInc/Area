@@ -3,27 +3,30 @@ import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, ActivityInd
 import { useAuth } from '../../context/AuthContext';
 import GradientBackground from '../../components/GradientBackground';
 import GlassCard from '../../components/GlassCard';
-import { Mail, Lock, User, ArrowRight } from 'lucide-react-native';
+import { Mail, Lock, ArrowRight } from 'lucide-react-native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '../../types';
 
-const RegisterScreen = ({ navigation }) => {
-    const { signUp } = useAuth();
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [loading, setLoading] = useState(false);
+type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
-    const handleRegister = async () => {
-        if (!name || !email || !password) {
+const LoginScreen: React.FC<Props> = ({ navigation }) => {
+    const { signIn } = useAuth();
+    const [email, setEmail] = useState<string>('');
+    const [password, setPassword] = useState<string>('');
+    const [loading, setLoading] = useState<boolean>(false);
+
+    const handleLogin = async (): Promise<void> => {
+        if (!email || !password) {
             Alert.alert('Error', 'Please fill in all fields');
             return;
         }
 
         setLoading(true);
-        const result = await signUp(name, email, password);
+        const result = await signIn(email, password);
         setLoading(false);
 
         if (result.error) {
-            Alert.alert('Registration Failed', result.error.message || 'Something went wrong');
+            Alert.alert('Login Failed', result.error.message || 'Invalid credentials');
         }
     };
 
@@ -35,25 +38,12 @@ const RegisterScreen = ({ navigation }) => {
             >
                 <View style={styles.content}>
                     <View style={styles.header}>
-                        <Text style={styles.title}>Create Account</Text>
-                        <Text style={styles.subtitle}>Sign up to start automating</Text>
+                        <Text style={styles.title}>Welcome Back</Text>
+                        <Text style={styles.subtitle}>Sign in to continue to Area</Text>
+
                     </View>
 
                     <GlassCard style={styles.formCard}>
-                        <View style={styles.inputContainer}>
-                            <User color="#94a3b8" size={20} style={styles.icon} />
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Full Name"
-                                placeholderTextColor="#64748b"
-                                autoCapitalize="words"
-                                value={name}
-                                onChangeText={setName}
-                            />
-                        </View>
-
-                        <View style={styles.divider} />
-
                         <View style={styles.inputContainer}>
                             <Mail color="#94a3b8" size={20} style={styles.icon} />
                             <TextInput
@@ -84,22 +74,22 @@ const RegisterScreen = ({ navigation }) => {
 
                     <TouchableOpacity
                         style={styles.button}
-                        onPress={handleRegister}
+                        onPress={handleLogin}
                         disabled={loading}
                     >
                         {loading ? (
                             <ActivityIndicator color="#fff" />
                         ) : (
                             <>
-                                <Text style={styles.buttonText}>Sign Up</Text>
+                                <Text style={styles.buttonText}>Sign In</Text>
                                 <ArrowRight color="#fff" size={20} />
                             </>
                         )}
                     </TouchableOpacity>
 
-                    <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.linkContainer}>
+                    <TouchableOpacity onPress={() => navigation.navigate('Register')} style={styles.linkContainer}>
                         <Text style={styles.linkText}>
-                            Already have an account? <Text style={styles.linkBold}>Sign In</Text>
+                            Don't have an account? <Text style={styles.linkBold}>Sign Up</Text>
                         </Text>
                     </TouchableOpacity>
                 </View>
@@ -185,4 +175,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default RegisterScreen;
+export default LoginScreen;
