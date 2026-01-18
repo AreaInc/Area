@@ -80,4 +80,5 @@ export interface AuthContextType {
     signUp: (name: string, email: string, password: string) => Promise<{ error?: ApiError; success?: boolean }>;
     signOut: () => Promise<void>;
     checkSession: () => Promise<void>;
+    updateProfile: (data: { name?: string; password?: string }) => Promise<{ error?: ApiError; success?: boolean }>;
 }
