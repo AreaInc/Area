@@ -78,9 +78,11 @@ export class GmailPollingService implements OnModuleInit, OnModuleDestroy {
   private async pollAllRegistrations() {
     const registrations = this.receiveEmailTrigger.getRegistrations();
     if (registrations.size === 0) {
+      this.logger.debug("No Gmail workflow registrations found");
       return;
     }
 
+    this.logger.debug(`Polling Gmail for ${registrations.size} workflow(s)`);
     const workflowIds = Array.from(registrations.keys());
 
     const workflowRows = await this.db
@@ -277,6 +279,10 @@ export class GmailPollingService implements OnModuleInit, OnModuleDestroy {
         return;
       }
 
+      this.logger.debug(
+        `Checking for new emails with historyId ${historyId} for credential ${credential.id}`,
+      );
+
       let emails: Array<Record<string, any>> = [];
       try {
         emails = await this.getNewEmails(gmail, gmailClient, historyId);
@@ -284,11 +290,14 @@ export class GmailPollingService implements OnModuleInit, OnModuleDestroy {
         const message = (error as Error)?.message || "";
         if (message.includes("Requested entity was not found")) {
           this.logger.warn(
-            `HistoryId ${historyId} not found for credential ${credential.id}, re-initializing`,
+            `HistoryId ${historyId} not found for credential ${credential.id}, fetching recent emails directly`,
           );
 
           try {
             emails = await this.getRecentEmailsDirect(gmail, gmailClient);
+            this.logger.log(
+              `Fetched ${emails.length} recent email(s) for credential ${credential.id}`,
+            );
           } catch (directError) {
             this.logger.error(
               `Failed to fetch recent emails: ${(directError as Error).message}`,
@@ -298,6 +307,9 @@ export class GmailPollingService implements OnModuleInit, OnModuleDestroy {
           const refreshedHistoryId = await this.getProfileHistoryId(gmail);
           if (refreshedHistoryId) {
             await this.updateHistoryId(credential.id, refreshedHistoryId);
+            this.logger.log(
+              `Re-initialized historyId ${refreshedHistoryId} for credential ${credential.id}`,
+            );
           }
 
           if (emails.length === 0) {
@@ -309,6 +321,9 @@ export class GmailPollingService implements OnModuleInit, OnModuleDestroy {
       }
 
       if (emails.length === 0) {
+        this.logger.debug(
+          `No new emails found for credential ${credential.id}`,
+        );
         return;
       }
 
@@ -317,8 +332,15 @@ export class GmailPollingService implements OnModuleInit, OnModuleDestroy {
       );
 
       for (const email of emails) {
+        this.logger.debug(
+          `Processing email: ${email.subject} from ${email.from}`,
+        );
+
         for (const workflow of workflowRegistrations) {
           if (!this.receiveEmailTrigger.matchesConfig(email, workflow.config)) {
+            this.logger.debug(
+              `Email does not match config for workflow ${workflow.workflowId}`,
+            );
             continue;
           }
 
@@ -335,6 +357,9 @@ export class GmailPollingService implements OnModuleInit, OnModuleDestroy {
 
       const latestHistoryId = this.findLatestHistoryId(emails);
       if (latestHistoryId) {
+        this.logger.debug(
+          `Updating historyId to ${latestHistoryId} for credential ${credential.id}`,
+        );
         await this.updateHistoryId(credential.id, latestHistoryId);
       }
     } catch (error) {
