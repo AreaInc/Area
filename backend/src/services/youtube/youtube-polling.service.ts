@@ -11,7 +11,7 @@ import { YouTubeClient } from "./youtube-client";
 @Injectable()
 export class YouTubePollingService implements OnModuleInit, OnModuleDestroy {
     private readonly logger = new Logger(YouTubePollingService.name);
-    private readonly pollIntervalMs = 60000; // 1 min (Quota management)
+    private readonly pollIntervalMs = 10000; // 10s base tick
     private isPolling = false;
     private pollingIntervalId: NodeJS.Timeout | null = null;
     private processingCredentials = new Set<number>();
@@ -80,7 +80,7 @@ export class YouTubePollingService implements OnModuleInit, OnModuleDestroy {
             if (!existing || existing.updatedAt < c.updatedAt) userDefaultCred.set(c.userId, c);
         });
 
-        const tasksByCredential = new Map<number, { liked: number[], channel: number[] }>();
+        const tasksByCredential = new Map<number, { liked: number[], channel: number[], minInterval: number }>();
 
         const addToMap = (wid: number, reg: any, type: 'liked' | 'channel') => {
             const wf = workflowRows.find(w => w.id === wid);
@@ -88,8 +88,13 @@ export class YouTubePollingService implements OnModuleInit, OnModuleDestroy {
             let cred = reg.credentialsId ? credMap.get(reg.credentialsId) : userDefaultCred.get(wf.userId);
             if (cred && cred.userId !== wf.userId) cred = userDefaultCred.get(wf.userId);
             if (cred) {
-                if (!tasksByCredential.has(cred.id)) tasksByCredential.set(cred.id, { liked: [], channel: [] });
-                tasksByCredential.get(cred.id)![type].push(wid);
+                if (!tasksByCredential.has(cred.id)) tasksByCredential.set(cred.id, { liked: [], channel: [], minInterval: 300 }); // Default 5 mins safety
+                const data = tasksByCredential.get(cred.id)!;
+                data[type].push(wid);
+
+                // Update minInterval
+                const requiredInterval = reg.config.pollInterval || 60;
+                if (requiredInterval < data.minInterval) data.minInterval = requiredInterval;
             }
         };
 
@@ -120,11 +125,23 @@ export class YouTubePollingService implements OnModuleInit, OnModuleDestroy {
             });
 
             // State init
+            // State init
             let state = (credential.pollingState as any) || {
                 lastLikedVideoId: null,
-                channelUploads: {} // Map channelId -> lastVideoId
+                channelUploads: {},
+                lastCheckedAt: 0
             };
             let stateChanged = false;
+
+            // Check Polling Interval
+            const now = Date.now();
+            const minIntervalMs = (tasks.minInterval || 60) * 1000;
+            if (now - (state.lastCheckedAt || 0) < minIntervalMs) {
+                // Not enough time passed
+                return;
+            }
+            state.lastCheckedAt = now;
+            stateChanged = true;
 
             // Check Liked Videos
             if (tasks.liked.length > 0) {

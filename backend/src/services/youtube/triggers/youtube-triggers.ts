@@ -10,7 +10,12 @@ export class NewLikedVideoTrigger implements ITrigger {
     triggerType = TriggerType.POLLING;
     requiresCredentials = true;
 
-    configSchema = { type: "object", properties: {} };
+    configSchema = {
+        type: "object",
+        properties: {
+            pollInterval: { type: "integer", description: "Polling Interval (seconds)", default: 60 }
+        }
+    };
     outputSchema = { type: "object", properties: { videoId: { type: "string" }, title: { type: "string" } } };
 
     private workflowRegistrations = new Map<number, { config: Record<string, any>; credentialsId?: number }>();
@@ -32,7 +37,10 @@ export class NewVideoFromChannelTrigger implements ITrigger {
     configSchema = {
         type: "object",
         required: ["channelId"],
-        properties: { channelId: { type: "string", description: "Channel ID to monitor" } }
+        properties: {
+            channelId: { type: "string", description: "Channel ID to monitor" },
+            pollInterval: { type: "integer", description: "Polling Interval (seconds)", default: 60 }
+        }
     };
     outputSchema = { type: "object", properties: { videoId: { type: "string" }, title: { type: "string" }, url: { type: "string" } } };
 
