@@ -1,5 +1,3 @@
-import { SpotifyClient } from "./spotify-client";
-
 const mockDb = {
   select: jest.fn().mockReturnThis(),
   from: jest.fn().mockReturnThis(),

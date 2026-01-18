@@ -13,7 +13,6 @@ describe("SpotifyClient", () => {
   };
 
   beforeEach(() => {
-    // @ts-ignore
     global.fetch = jest.fn();
     client = new SpotifyClient(mockCreds as any);
   });

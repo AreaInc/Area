@@ -425,8 +425,7 @@ describe("SpotifyPollingService", () => {
     });
 
     it("should log fatal error and clean up processing set", async () => {
-      const SpotifyClientMock = require("./spotify-client").SpotifyClient;
-      SpotifyClientMock.mockImplementationOnce(() => {
+      (SpotifyClient as jest.Mock).mockImplementationOnce(() => {
         throw new Error("Constructor Fail");
       });
 
