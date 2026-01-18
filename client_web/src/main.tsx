@@ -7,8 +7,10 @@ import { store } from './store/store'
 import { queryClient } from './lib/query-client'
 import { routeTree } from './routeTree.gen'
 import './index.css'
+import { setApiBase } from '@area/shared'
 
 const router = createRouter({ routeTree })
+setApiBase("http://localhost:8080/api")
 
 declare module '@tanstack/react-router' {
   interface Register {
