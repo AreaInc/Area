@@ -18,6 +18,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
   SelectContent,
@@ -218,30 +219,32 @@ export function TriggerSelector({ value, onChange }: TriggerSelectorProps) {
           <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
             <Command className="h-auto">
               <CommandInput placeholder="Search trigger..." />
-              <CommandList>
-                <CommandEmpty>No trigger found.</CommandEmpty>
-                {Object.entries(groupedTriggers).map(([provider, triggers]) => (
-                  <CommandGroup key={provider} heading={provider}>
-                    {triggers.map((trigger) => (
-                      <CommandItem
-                        key={`${trigger.serviceProvider}:${trigger.id}`}
-                        value={`${trigger.serviceProvider} ${trigger.name}`}
-                        onSelect={() => handleTriggerSelect(trigger.serviceProvider, trigger.id)}
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            value?.provider === trigger.serviceProvider && value?.triggerId === trigger.id
-                              ? "opacity-100"
-                              : "opacity-0"
-                          )}
-                        />
-                        {trigger.name}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                ))}
-              </CommandList>
+              <ScrollArea className="h-[300px]">
+                <CommandList className="max-h-full overflow-hidden">
+                  <CommandEmpty>No trigger found.</CommandEmpty>
+                  {Object.entries(groupedTriggers).map(([provider, triggers]) => (
+                    <CommandGroup key={provider} heading={provider}>
+                      {triggers.map((trigger) => (
+                        <CommandItem
+                          key={`${trigger.serviceProvider}:${trigger.id}`}
+                          value={`${trigger.serviceProvider} ${trigger.name}`}
+                          onSelect={() => handleTriggerSelect(trigger.serviceProvider, trigger.id)}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              value?.provider === trigger.serviceProvider && value?.triggerId === trigger.id
+                                ? "opacity-100"
+                                : "opacity-0"
+                            )}
+                          />
+                          {trigger.name}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  ))}
+                </CommandList>
+              </ScrollArea>
             </Command>
           </PopoverContent>
         </Popover>

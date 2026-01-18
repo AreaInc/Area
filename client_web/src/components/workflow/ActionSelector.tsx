@@ -19,6 +19,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
   SelectContent,
@@ -216,30 +217,32 @@ export function ActionSelector({ value, onChange }: ActionSelectorProps) {
           <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
             <Command className="h-auto">
               <CommandInput placeholder="Search action..." />
-              <CommandList>
-                <CommandEmpty>No action found.</CommandEmpty>
-                {Object.entries(groupedActions).map(([provider, actions]) => (
-                  <CommandGroup key={provider} heading={provider}>
-                    {actions.map((action) => (
-                      <CommandItem
-                        key={`${action.serviceProvider}:${action.id}`}
-                        value={`${action.serviceProvider} ${action.name}`}
-                        onSelect={() => handleActionSelect(action.serviceProvider, action.id)}
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            value?.provider === action.serviceProvider && value?.actionId === action.id
-                              ? "opacity-100"
-                              : "opacity-0"
-                          )}
-                        />
-                        {action.name}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                ))}
-              </CommandList>
+              <ScrollArea className="h-[300px]">
+                <CommandList className="max-h-full overflow-hidden">
+                  <CommandEmpty>No action found.</CommandEmpty>
+                  {Object.entries(groupedActions).map(([provider, actions]) => (
+                    <CommandGroup key={provider} heading={provider}>
+                      {actions.map((action) => (
+                        <CommandItem
+                          key={`${action.serviceProvider}:${action.id}`}
+                          value={`${action.serviceProvider} ${action.name}`}
+                          onSelect={() => handleActionSelect(action.serviceProvider, action.id)}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              value?.provider === action.serviceProvider && value?.actionId === action.id
+                                ? "opacity-100"
+                                : "opacity-0"
+                            )}
+                          />
+                          {action.name}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  ))}
+                </CommandList>
+              </ScrollArea>
             </Command>
           </PopoverContent>
         </Popover>
