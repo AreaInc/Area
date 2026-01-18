@@ -344,7 +344,8 @@ export class WorkflowsService {
       .where(eq(workflows.id, workflowId));
 
     try {
-      const triggerConfig = workflow.triggerConfig as Record<string, any>;
+      const triggerConfig =
+        (workflow.triggerConfig as Record<string, any>) || {};
       const triggerCredentialsId = triggerConfig.credentialsId
         ? Number(triggerConfig.credentialsId)
         : undefined;

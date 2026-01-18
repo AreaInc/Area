@@ -171,7 +171,29 @@ describe("WorkflowsService", () => {
         validateInput: jest.fn().mockRejectedValue(new Error("Fail")),
       });
       await expect(service.createWorkflow(userId, createDto)).rejects.toThrow(
-        "Invalid action configuration",
+        "Invalid action configuration: Fail",
+      );
+    });
+
+    it("should throw if trigger validation fails with non-Error in create", async () => {
+      triggerRegistryMock.get.mockReturnValue({
+        validateConfig: jest.fn().mockRejectedValue("Fail String"),
+      });
+      actionRegistryMock.get.mockReturnValue({});
+      await expect(service.createWorkflow(userId, createDto)).rejects.toThrow(
+        "Invalid trigger configuration: Fail String",
+      );
+    });
+
+    it("should throw if action validation fails with non-Error in create", async () => {
+      triggerRegistryMock.get.mockReturnValue({
+        validateConfig: jest.fn().mockResolvedValue(true),
+      });
+      actionRegistryMock.get.mockReturnValue({
+        validateInput: jest.fn().mockRejectedValue("Fail String"),
+      });
+      await expect(service.createWorkflow(userId, createDto)).rejects.toThrow(
+        "Invalid action configuration: Fail String",
       );
     });
   });
@@ -239,7 +261,20 @@ describe("WorkflowsService", () => {
       );
     });
 
-    it("should throw if trigger validation fails", async () => {
+    it("should throw if trigger validation fails with Error", async () => {
+      dbMock.select.mockImplementationOnce(() => createQueryMock([workflow]));
+      triggerRegistryMock.get.mockReturnValue({
+        validateConfig: jest.fn().mockRejectedValue(new Error("Fail Error")),
+      });
+      actionRegistryMock.get.mockReturnValue({ validateInput: jest.fn() });
+      await expect(
+        service.activateWorkflow(userId, workflowId),
+      ).rejects.toThrow(
+        "Cannot activate workflow: Invalid trigger configuration - Fail Error",
+      );
+    });
+
+    it("should throw if trigger validation fails with string", async () => {
       dbMock.select.mockImplementationOnce(() => createQueryMock([workflow]));
       triggerRegistryMock.get.mockReturnValue({
         validateConfig: jest.fn().mockRejectedValue("Fail String"),
@@ -247,18 +282,54 @@ describe("WorkflowsService", () => {
       actionRegistryMock.get.mockReturnValue({ validateInput: jest.fn() });
       await expect(
         service.activateWorkflow(userId, workflowId),
-      ).rejects.toThrow("Invalid trigger configuration");
+      ).rejects.toThrow(
+        "Cannot activate workflow: Invalid trigger configuration - Fail String",
+      );
     });
 
-    it("should throw if action validation fails", async () => {
+    it("should throw if action validation fails with Error", async () => {
       dbMock.select.mockImplementationOnce(() => createQueryMock([workflow]));
       triggerRegistryMock.get.mockReturnValue({ validateConfig: jest.fn() });
       actionRegistryMock.get.mockReturnValue({
-        validateInput: jest.fn().mockRejectedValue(new Error("Fail")),
+        validateInput: jest.fn().mockRejectedValue(new Error("Fail Error")),
       });
       await expect(
         service.activateWorkflow(userId, workflowId),
-      ).rejects.toThrow("Invalid action configuration");
+      ).rejects.toThrow(
+        "Cannot activate workflow: Invalid action configuration - Fail Error",
+      );
+    });
+
+    it("should throw if action validation fails with string", async () => {
+      dbMock.select.mockImplementationOnce(() => createQueryMock([workflow]));
+      triggerRegistryMock.get.mockReturnValue({ validateConfig: jest.fn() });
+      actionRegistryMock.get.mockReturnValue({
+        validateInput: jest.fn().mockRejectedValue("Fail String"),
+      });
+      await expect(
+        service.activateWorkflow(userId, workflowId),
+      ).rejects.toThrow(
+        "Cannot activate workflow: Invalid action configuration - Fail String",
+      );
+    });
+
+    it("should activate even if triggerConfig or actionConfig are null", async () => {
+      dbMock.select.mockImplementationOnce(() =>
+        createQueryMock([
+          { ...workflow, triggerConfig: null, actionConfig: null },
+        ]),
+      );
+      const triggerMock = {
+        validateConfig: jest.fn(),
+        register: jest.fn(),
+      };
+      const actionMock = { validateInput: jest.fn() };
+      triggerRegistryMock.get.mockReturnValue(triggerMock);
+      actionRegistryMock.get.mockReturnValue(actionMock);
+
+      await service.activateWorkflow(userId, workflowId);
+      expect(triggerMock.validateConfig).toHaveBeenCalledWith({});
+      expect(actionMock.validateInput).toHaveBeenCalledWith({});
     });
 
     it("should throw if trigger not found", async () => {
@@ -470,7 +541,21 @@ describe("WorkflowsService", () => {
       ).rejects.toThrow(BadRequestException);
     });
 
-    it("should throw if trigger validation fails", async () => {
+    it("should throw if trigger validation fails with Error", async () => {
+      dbMock.select.mockImplementationOnce(() =>
+        createQueryMock([{ id: 1, userId: "u", isActive: false }]),
+      );
+      triggerRegistryMock.get.mockReturnValue({
+        validateConfig: jest.fn().mockRejectedValue(new Error("Fail Error")),
+      });
+      await expect(
+        service.updateWorkflow("u", 1, {
+          trigger: { provider: "p", triggerId: "t", config: {} },
+        }),
+      ).rejects.toThrow("Invalid trigger configuration: Fail Error");
+    });
+
+    it("should throw if trigger validation fails with string", async () => {
       dbMock.select.mockImplementationOnce(() =>
         createQueryMock([{ id: 1, userId: "u", isActive: false }]),
       );
@@ -481,21 +566,35 @@ describe("WorkflowsService", () => {
         service.updateWorkflow("u", 1, {
           trigger: { provider: "p", triggerId: "t", config: {} },
         }),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow("Invalid trigger configuration: Fail String");
     });
 
-    it("should throw if action validation fails", async () => {
+    it("should throw if action validation fails with Error", async () => {
       dbMock.select.mockImplementationOnce(() =>
         createQueryMock([{ id: 1, userId: "u", isActive: false }]),
       );
       actionRegistryMock.get.mockReturnValue({
-        validateInput: jest.fn().mockRejectedValue(new Error("Fail")),
+        validateInput: jest.fn().mockRejectedValue(new Error("Fail Error")),
       });
       await expect(
         service.updateWorkflow("u", 1, {
           action: { provider: "p", actionId: "a", config: {} },
         }),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow("Invalid action configuration: Fail Error");
+    });
+
+    it("should throw if action validation fails with string", async () => {
+      dbMock.select.mockImplementationOnce(() =>
+        createQueryMock([{ id: 1, userId: "u", isActive: false }]),
+      );
+      actionRegistryMock.get.mockReturnValue({
+        validateInput: jest.fn().mockRejectedValue("Fail String"),
+      });
+      await expect(
+        service.updateWorkflow("u", 1, {
+          action: { provider: "p", actionId: "a", config: {} },
+        }),
+      ).rejects.toThrow("Invalid action configuration: Fail String");
     });
 
     it("should throw if update returns empty", async () => {
@@ -510,14 +609,25 @@ describe("WorkflowsService", () => {
   });
 
   describe("deleteWorkflow", () => {
-    it("should delete successfully", async () => {
+    it("should delete successfully when active", async () => {
       jest
         .spyOn(service, "getWorkflowById")
         .mockResolvedValueOnce({ id: 1, userId: "u", isActive: true } as any);
-      jest
+      const deactivateSpy = jest
         .spyOn(service, "deactivateWorkflow")
         .mockResolvedValueOnce({ success: true });
       await service.deleteWorkflow("u", 1);
+      expect(deactivateSpy).toHaveBeenCalled();
+      expect(dbMock.delete).toHaveBeenCalled();
+    });
+
+    it("should delete successfully when inactive", async () => {
+      jest
+        .spyOn(service, "getWorkflowById")
+        .mockResolvedValueOnce({ id: 1, userId: "u", isActive: false } as any);
+      const deactivateSpy = jest.spyOn(service, "deactivateWorkflow");
+      await service.deleteWorkflow("u", 1);
+      expect(deactivateSpy).not.toHaveBeenCalled();
       expect(dbMock.delete).toHaveBeenCalled();
     });
   });
@@ -586,7 +696,7 @@ describe("WorkflowsService", () => {
       expect(spy).toHaveBeenCalled();
     });
 
-    it("should log error if registration fails on startup", async () => {
+    it("should log error if registration fails on startup with string", async () => {
       dbMock.select.mockImplementationOnce(() =>
         createQueryMock([
           { id: 1, triggerProvider: "p", triggerId: "t", triggerConfig: {} },
@@ -594,6 +704,20 @@ describe("WorkflowsService", () => {
       );
       triggerRegistryMock.get.mockReturnValue({
         register: jest.fn().mockRejectedValue("Fail String"),
+      });
+      const spy = jest.spyOn(Logger.prototype, "error").mockImplementation();
+      await service.loadActiveWorkflows();
+      expect(spy).toHaveBeenCalled();
+    });
+
+    it("should log error if registration fails on startup with Error", async () => {
+      dbMock.select.mockImplementationOnce(() =>
+        createQueryMock([
+          { id: 1, triggerProvider: "p", triggerId: "t", triggerConfig: {} },
+        ]),
+      );
+      triggerRegistryMock.get.mockReturnValue({
+        register: jest.fn().mockRejectedValue(new Error("Fail Error")),
       });
       const spy = jest.spyOn(Logger.prototype, "error").mockImplementation();
       await service.loadActiveWorkflows();
