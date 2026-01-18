@@ -12,6 +12,7 @@ export enum ServiceProvider {
   TRELLO = "trello",
   NOTION = "notion",
   SCHEDULER = "scheduler",
+  GOOGLE_CALENDAR = "google-calendar",
 }
 
 export enum ActionType {

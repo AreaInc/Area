@@ -623,6 +623,7 @@ export class OAuth2Service {
       ServiceProvider.GMAIL,
       ServiceProvider.GOOGLE_SHEETS,
       ServiceProvider.YOUTUBE,
+      ServiceProvider.GOOGLE_CALENDAR,
     ].includes(provider as ServiceProvider);
   }
 }
