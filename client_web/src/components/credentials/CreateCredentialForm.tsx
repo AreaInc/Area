@@ -80,6 +80,15 @@ export default function CreateCredentialForm({ onSuccess, onCancel }: CreateCred
           helperText: 'Obtain these from the Twitch Developer Console.',
           dashboardUrl: 'https://dev.twitch.tv/console',
         };
+      case 'github':
+        return {
+          clientIdLabel: 'Client ID',
+          clientIdPlaceholder: 'e.g. Iv1.a1b2c3d4e5f6g7h8',
+          clientSecretLabel: 'Client Secret',
+          clientSecretPlaceholder: 'e.g. 1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0',
+          helperText: 'Obtain these from your GitHub OAuth App settings.',
+          dashboardUrl: 'https://github.com/settings/developers',
+        };
       default:
         return {
           clientIdLabel: 'Client ID',
@@ -121,6 +130,7 @@ export default function CreateCredentialForm({ onSuccess, onCancel }: CreateCred
             <SelectItem value="twitch">Twitch</SelectItem>
             <SelectItem value="youtube">YouTube</SelectItem>
             <SelectItem value="google-calendar">Google Calendar</SelectItem>
+            <SelectItem value="github">GitHub</SelectItem>
           </SelectContent>
         </Select>
       </div>
