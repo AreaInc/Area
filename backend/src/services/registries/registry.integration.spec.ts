@@ -44,7 +44,7 @@ describe("Action and Trigger registry integration", () => {
         expect.objectContaining({
           id: "receive-email",
           serviceProvider: "gmail",
-          triggerType: TriggerType.EVENT,
+          triggerType: TriggerType.POLLING,
           configSchema: expect.any(Object),
           outputSchema: expect.any(Object),
         }),

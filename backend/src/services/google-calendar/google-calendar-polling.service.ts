@@ -26,8 +26,7 @@ interface WorkflowRegistration {
 
 @Injectable()
 export class GoogleCalendarPollingService
-  implements OnModuleInit, OnModuleDestroy
-{
+  implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(GoogleCalendarPollingService.name);
   private readonly pollIntervalMs = 10000; // 10 seconds
   private isPolling = false;
@@ -40,7 +39,7 @@ export class GoogleCalendarPollingService
     private readonly newEventTrigger: NewEventTrigger,
     private readonly eventCancelledTrigger: EventCancelledTrigger,
     private readonly workflowsService: WorkflowsService,
-  ) {}
+  ) { }
 
   async onModuleInit() {
     await this.startPolling();
@@ -190,7 +189,6 @@ export class GoogleCalendarPollingService
         const result = await client.listEvents({
           calendarId: "primary",
           syncToken: syncToken,
-          maxResults: 50,
         });
 
         // If we didn't have a syncToken, we just save the new one and don't trigger (to avoid triggering for all existing events)
@@ -223,7 +221,6 @@ export class GoogleCalendarPollingService
                   // Only trigger if this workflow listens to "New Event"
                   // TODO: We need to know WHICH trigger mechanism requested this workflow.
                   // Current architecture combines all registrations in `workflows`.
-                  // So we need to check if the workflow ID exists in `newEventTrigger.registrations`.
                   if (
                     this.newEventTrigger.getRegistrations().has(wf.workflowId)
                   ) {
