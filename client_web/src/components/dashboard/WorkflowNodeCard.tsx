@@ -49,7 +49,7 @@ export function WorkflowNodeCard({ type, data, onChange }: WorkflowNodeCardProps
     const description = metadata?.description || (isConfigured ? '' : `Choose the ${type} for your workflow.`);
 
     // Visual styles based on type
-    const borderColorClass = isAction ? "hover:border-node-action/50" : "hover:border-node-webhook/50";
+    const borderColorClass = isAction ? "hover:border-node-action/30" : "hover:border-node-webhook/30";
     const iconBgClass = isAction ? "bg-node-action/10 text-node-action" : "bg-node-webhook/10 text-node-webhook";
 
     const Icon = isAction ? Play : Zap;
@@ -72,53 +72,56 @@ export function WorkflowNodeCard({ type, data, onChange }: WorkflowNodeCardProps
     return (
         <>
             <Card
-                onClick={() => setIsOpen(true)}
-                role="button"
-                tabIndex={0}
                 className={cn(
-                    "relative h-full flex flex-col cursor-pointer transition-all hover:shadow-md border-2 border-transparent bg-card focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+                    "relative h-full flex flex-col transition-all border-2 border-transparent bg-card/60 backdrop-blur-none group overflow-hidden",
                     borderColorClass,
                     !isConfigured && "border-dashed border-border bg-muted/5"
                 )}
             >
-                <CardHeader className="flex flex-row items-center gap-4 space-y-0">
-                    {renderPlaceholderImage()}
-                    <div className="flex flex-col">
-                        <CardTitle className="text-base font-bold">
-                            {name}
-                        </CardTitle>
-                        {isConfigured && (
-                            <p className="text-xs text-muted-foreground capitalize">{provider}</p>
-                        )}
-                    </div>
-                </CardHeader>
+                {/* Hover Blur and Gradient Effect */}
+                <div className="absolute inset-0 bg-gradient-to-br from-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-0" />
+                <div className="absolute inset-0 backdrop-blur-none group-hover:backdrop-blur-md transition-all duration-300 pointer-events-none z-0" />
 
-                <CardContent className="flex-grow py-2">
-                    <p className={cn("text-sm text-muted-foreground line-clamp-2", !isConfigured && "italic")}>
-                        {description}
-                    </p>
-                    {isConfigured && (
-                        <div className="mt-4 flex flex-wrap gap-1">
-                            {Object.keys(data.config).map(key => (
-                                <Badge key={key} variant="secondary" className="text-[10px] px-1 py-0 h-5">
-                                    {key}
-                                </Badge>
-                            ))}
+                <div className="relative z-10 flex flex-col h-full">
+                    <CardHeader className="flex flex-row items-center gap-4 space-y-0">
+                        {renderPlaceholderImage()}
+                        <div className="flex flex-col">
+                            <CardTitle className="text-base font-bold">
+                                {name}
+                            </CardTitle>
+                            {isConfigured && (
+                                <p className="text-xs text-muted-foreground capitalize">{provider}</p>
+                            )}
                         </div>
-                    )}
-                </CardContent>
+                    </CardHeader>
 
-                <CardFooter className="pt-2">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full gap-2 text-xs h-8"
-                        onClick={(e) => { e.stopPropagation(); setIsOpen(true); }}
-                    >
-                        <Settings2 size={14} />
-                        {isConfigured ? 'Configure' : 'Setup'}
-                    </Button>
-                </CardFooter>
+                    <CardContent className="flex-grow py-2">
+                        <p className={cn("text-sm text-muted-foreground line-clamp-2", !isConfigured && "italic")}>
+                            {description}
+                        </p>
+                        {isConfigured && (
+                            <div className="mt-4 flex flex-wrap gap-1">
+                                {Object.keys(data.config).map(key => (
+                                    <Badge key={key} variant="secondary" className="text-[10px] px-1 py-0 h-5">
+                                        {key}
+                                    </Badge>
+                                ))}
+                            </div>
+                        )}
+                    </CardContent>
+
+                    <CardFooter className="pt-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full gap-2 text-xs h-8 bg-background/50 backdrop-blur-sm hover:bg-background/80 transition-colors"
+                            onClick={() => setIsOpen(true)}
+                        >
+                            <Settings2 size={14} />
+                            {isConfigured ? 'Configure' : 'Setup'}
+                        </Button>
+                    </CardFooter>
+                </div>
             </Card>
 
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
