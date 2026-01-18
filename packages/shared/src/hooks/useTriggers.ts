@@ -18,3 +18,21 @@ export function useTriggers() {
     },
   });
 }
+
+export function useServiceTriggers(service: string) {
+  return useQuery<TriggerMetadata[]>({
+    queryKey: ['triggers', service],
+    queryFn: async () => {
+      const response = await fetch(`${API_BASE}/v2/triggers/${service}`, {
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch service triggers');
+      }
+
+      return response.json();
+    },
+    enabled: !!service,
+  });
+}

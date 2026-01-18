@@ -1,50 +1,55 @@
 import { Link } from '@tanstack/react-router';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ArrowRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ServiceCardProps {
     provider: string;
     name: string;
     description: string;
-    imageUrl: string;
-    isConnected?: boolean;
-    onConnect?: () => void;
+    imageUrl?: string;
 }
 
-export function ServiceCard({ provider, name, description, imageUrl, isConnected = false }: ServiceCardProps) {
+export function ServiceCard({ provider, name, description, imageUrl }: ServiceCardProps) {
     return (
-        <div className="bg-card border border-border rounded-xl p-6 hover:border-muted-foreground/20 transition-colors flex flex-col h-full">
-            <Link 
-                to="/dashboard/services/$provider" 
-                params={{ provider }}
-                className="flex-1 group"
-            >
-                <div className="flex items-center gap-4 mb-4">
-                    <div className="p-3 bg-muted rounded-lg text-foreground w-14 h-14 flex items-center justify-center overflow-hidden">
+        <Link 
+            to="/dashboard/services/$provider" 
+            params={{ provider }}
+            className="group block h-full outline-none"
+        >
+            <Card className="h-full transition-all hover:shadow-md hover:border-primary/20 bg-card/50 hover:bg-card border-muted flex flex-col">
+                <CardHeader className="flex flex-row items-center gap-4 pb-3">
+                    <div className={cn(
+                        "h-12 w-12 rounded-xl bg-background p-2.5 flex items-center justify-center shrink-0 border border-border shadow-sm group-hover:scale-105 transition-transform",
+                        !imageUrl && "bg-muted"
+                    )}>
                         {imageUrl ? (
                             <img src={imageUrl} alt={name} className="w-full h-full object-contain" />
                         ) : (
-                            <div className="w-8 h-8 bg-gray-400 rounded-full" />
+                            <span className="text-lg font-bold uppercase text-muted-foreground">
+                                {name.charAt(0)}
+                            </span>
                         )}
                     </div>
-                    <div>
-                        <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">{name}</h3>
-                        <span className={`text-xs uppercase tracking-wider ${isConnected ? 'text-green-500' : 'text-muted-foreground'}`}>
-                            {isConnected ? 'Connected' : 'Not Connected'}
-                        </span>
+                    <div className="flex flex-col space-y-1">
+                         <CardTitle className="text-base font-semibold group-hover:text-primary transition-colors">
+                            {name}
+                         </CardTitle>
+                         <Badge variant="outline" className="w-fit text-[10px] px-2 py-0 h-5 capitalize font-normal text-muted-foreground bg-background/50">
+                            {provider}
+                         </Badge>
                     </div>
-                </div>
-                <p className="text-muted-foreground text-sm mb-6 line-clamp-3">{description}</p>
-            </Link>
-            
-            <button 
-                onClick={() => {}}
-                className={`w-full py-2 rounded-lg transition-colors border ${
-                    isConnected 
-                        ? 'bg-secondary/50 text-muted-foreground border-border cursor-default' 
-                        : 'bg-secondary hover:bg-secondary/80 text-secondary-foreground border-border'
-                }`}
-            >
-                {isConnected ? 'Connected' : 'Connect'}
-            </button>
-        </div>
+                </CardHeader>
+                <CardContent className="pb-4 flex-grow">
+                    <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
+                        {description}
+                    </p>
+                </CardContent>
+                <CardFooter className="pt-0 text-xs font-medium text-muted-foreground group-hover:text-primary flex items-center gap-1 transition-colors">
+                    Explore Integration <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+                </CardFooter>
+            </Card>
+        </Link>
     );
 }
