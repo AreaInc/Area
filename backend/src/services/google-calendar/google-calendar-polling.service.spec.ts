@@ -1,10 +1,9 @@
-import { Test } from "@nestjs/testing";
+import { Test, TestingModule } from "@nestjs/testing";
 import { GoogleCalendarPollingService } from "./google-calendar-polling.service";
 import { DRIZZLE } from "../../db/drizzle.module";
 import { WorkflowsService } from "../workflows/workflows.service";
 import { NewEventTrigger } from "./triggers/new-event.trigger";
 import { EventCancelledTrigger } from "./triggers/event-cancelled.trigger";
-import { TestingModule as NestTestingModule } from "@nestjs/testing";
 
 jest.mock("../../db/drizzle.module", () => ({
   DRIZZLE: "DRIZZLE_TOKEN",
@@ -54,7 +53,7 @@ describe("GoogleCalendarPollingService", () => {
       getRegistrations: jest.fn().mockReturnValue(new Map()),
     };
 
-    const module: NestTestingModule = await Test.createTestingModule({
+    const module: TestingModule = await Test.createTestingModule({
       providers: [
         GoogleCalendarPollingService,
         { provide: DRIZZLE, useValue: dbMock },

@@ -1,4 +1,4 @@
-import { Test } from "@nestjs/testing";
+import { Test, TestingModule } from "@nestjs/testing";
 import { TwitchPollingService } from "./twitch-polling.service";
 import { DRIZZLE } from "../../db/drizzle.module";
 import { WorkflowsService } from "../workflows/workflows.service";
@@ -8,7 +8,6 @@ import {
   NewFollowerTrigger,
   ViewerCountThresholdTrigger,
 } from "./triggers/twitch-triggers";
-import { TestingModule as NestTestingModule } from "@nestjs/testing";
 
 jest.mock("../../db/drizzle.module", () => ({
   DRIZZLE: "DRIZZLE_TOKEN",
@@ -69,7 +68,7 @@ describe("TwitchPollingService", () => {
       getRegistrations: jest.fn().mockReturnValue(new Map()),
     };
 
-    const module: NestTestingModule = await Test.createTestingModule({
+    const module: TestingModule = await Test.createTestingModule({
       providers: [
         TwitchPollingService,
         { provide: DRIZZLE, useValue: dbMock },

@@ -41,6 +41,7 @@ describe("TemporalClientService", () => {
       close: jest.fn(),
     });
     await service.onModuleInit();
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(Connection.connect).toHaveBeenCalled();
     expect(Client).toHaveBeenCalled();
   });
@@ -54,6 +55,7 @@ describe("TemporalClientService", () => {
     jest.spyOn(global, "setTimeout").mockImplementation((cb: any) => cb());
 
     await service.onModuleInit();
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(Connection.connect).toHaveBeenCalledTimes(2);
   });
 
@@ -76,7 +78,13 @@ describe("TemporalClientService", () => {
 
     await service.startAutomationWorkflow("wf-id", {
       workflowId: 1,
+      userId: "user1",
+      triggerProvider: "gmail",
+      triggerId: "on-message",
       triggerData: {},
+      actionProvider: "discord",
+      actionId: "send-webhook",
+      actionConfig: {},
     });
     expect(clientMock.workflow.start).toHaveBeenCalled();
   });

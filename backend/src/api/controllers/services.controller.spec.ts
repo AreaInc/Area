@@ -118,7 +118,7 @@ describe("ServicesController", () => {
         inputSchema: {},
         outputSchema: {},
       });
-      const result = await controller.getAction("gmail", "send-email");
+      const result = controller.getAction("gmail", "send-email");
       expect(result.id).toBe("send-email");
     });
 

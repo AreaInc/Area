@@ -3,8 +3,8 @@ import { YouTubePollingService } from "./youtube-polling.service";
 import { DRIZZLE } from "../../db/drizzle.module";
 import { WorkflowsService } from "../workflows/workflows.service";
 import {
-  NewLikedVideoTrigger,
   NewVideoFromChannelTrigger,
+  NewLikedVideoTrigger,
 } from "./triggers/youtube-triggers";
 
 jest.mock("../../db/drizzle.module", () => ({
