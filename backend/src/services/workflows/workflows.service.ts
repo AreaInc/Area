@@ -282,6 +282,10 @@ export class WorkflowsService {
       await this.deactivateWorkflow(userId, workflowId);
     }
 
+    await this.db
+      .delete(workflowExecutions)
+      .where(eq(workflowExecutions.workflowId, workflowId));
+
     await this.db.delete(workflows).where(eq(workflows.id, workflowId));
 
     return { success: true };
