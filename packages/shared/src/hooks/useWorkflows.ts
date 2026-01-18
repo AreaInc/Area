@@ -196,37 +196,3 @@ export function useWorkflowExecutions(workflowId: number) {
     enabled: !!workflowId,
   });
 }
-
-export function useTriggers() {
-  return useQuery<TriggerMetadata[]>({
-    queryKey: ['triggers'],
-    queryFn: async () => {
-      const response = await fetch(`${API_BASE}/v2/workflows/metadata/triggers`, {
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch triggers');
-      }
-
-      return response.json();
-    },
-  });
-}
-
-export function useActions() {
-  return useQuery<ActionMetadata[]>({
-    queryKey: ['actions'],
-    queryFn: async () => {
-      const response = await fetch(`${API_BASE}/v2/workflows/metadata/actions`, {
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch actions');
-      }
-
-      return response.json();
-    },
-  });
-}

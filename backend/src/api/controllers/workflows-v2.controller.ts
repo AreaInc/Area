@@ -17,8 +17,6 @@ import type {
   CreateWorkflowDto as ServiceCreateWorkflowDto,
   UpdateWorkflowDto as ServiceUpdateWorkflowDto,
 } from "../../services/workflows/workflows.service";
-import { TriggerRegistryService } from "../../services/registries/trigger-registry.service";
-import { ActionRegistryService } from "../../services/registries/action-registry.service";
 import {
   ApiTags,
   ApiOperation,
@@ -33,8 +31,6 @@ import {
   ExecuteWorkflowDto,
   WorkflowResponseDto,
   WorkflowExecutionResponseDto,
-  TriggerMetadataResponseDto,
-  ActionMetadataResponseDto,
   SuccessResponseDto,
 } from "../dtos";
 
@@ -43,11 +39,7 @@ import {
 @Controller("api/v2/workflows")
 @UseGuards(AuthGuard)
 export class WorkflowsV2Controller {
-  constructor(
-    private readonly workflowsService: WorkflowsService,
-    private readonly triggerRegistry: TriggerRegistryService,
-    private readonly actionRegistry: ActionRegistryService,
-  ) {}
+  constructor(private readonly workflowsService: WorkflowsService) {}
 
   @Post()
   @ApiOperation({
@@ -365,35 +357,5 @@ export class WorkflowsV2Controller {
     }
 
     return this.workflowsService.getWorkflowExecutions(user.id, parseInt(id));
-  }
-
-  @Get("metadata/triggers")
-  @ApiOperation({
-    summary: "Get all available triggers",
-    description:
-      "Returns metadata for all available triggers across all service providers. This includes trigger IDs, names, descriptions, configuration schemas, and output schemas. Useful for building workflow creation UIs.",
-  })
-  @ApiResponse({
-    status: 200,
-    description: "List of available triggers",
-    type: [TriggerMetadataResponseDto],
-  })
-  async getAvailableTriggers() {
-    return this.triggerRegistry.getAllMetadata();
-  }
-
-  @Get("metadata/actions")
-  @ApiOperation({
-    summary: "Get all available actions",
-    description:
-      "Returns metadata for all available actions across all service providers. This includes action IDs, names, descriptions, input schemas, and output schemas. Useful for building workflow creation UIs.",
-  })
-  @ApiResponse({
-    status: 200,
-    description: "List of available actions",
-    type: [ActionMetadataResponseDto],
-  })
-  async getAvailableActions() {
-    return this.actionRegistry.getAllMetadata();
   }
 }

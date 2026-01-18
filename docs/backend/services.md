@@ -32,9 +32,25 @@ sequenceDiagram
     Backend-->>Temporal: Activity Result
 ```
 
+## Platform Statistics
+
+| Service | Triggers | Actions | Total Features |
+| :--- | :---: | :---: | :---: |
+| **Spotify** | 2 | 6 | 8 |
+| **Discord** | 0 | 1 | 1 |
+| **Gmail** | 1 | 2 | 3 |
+| **Google Calendar** | 2 | 2 | 4 |
+| **Google Sheets** | 0 | 8 | 8 |
+| **Telegram** | 9 | 5 | 14 |
+| **Twitch** | 4 | 6 | 10 |
+| **YouTube** | 2 | 6 | 8 |
+| **Scheduler** | 2 | 0 | 2 |
+| **Webhooks** | 1 | 0 | 1 |
+| **TOTAL** | **23** | **36** | **59** |
+
 ---
 
-## Spotify
+## Spotify (2 Triggers, 6 Actions)
 
 Integration with Spotify for music automation.
 
@@ -62,7 +78,7 @@ Operations that can be performed.
 
 ---
 
-## Discord
+## Discord (0 Triggers, 1 Action)
 
 Integration with Discord for community management and notifications.
 
@@ -74,7 +90,7 @@ Integration with Discord for community management and notifications.
 
 ---
 
-## Gmail
+## Gmail (1 Trigger, 2 Actions)
 
 Manage emails automatically.
 
@@ -95,7 +111,7 @@ Manage emails automatically.
 
 ---
 
-## Google Calendar
+## Google Calendar (2 Triggers, 2 Actions)
 
 Schedule management integration.
 
@@ -115,21 +131,26 @@ Schedule management integration.
 
 ---
 
-## Google Sheets
+## Google Sheets (0 Triggers, 8 Actions)
 
 Data manipulation in spreadsheets.
 
 ### Actions
 
-| ID | Name | Description |
-| :--- | :--- | :--- |
-| `add_row` | **Add Row** | Appends a new row of data to a spreadsheet. |
-| `create_spreadsheet`| **Create Spreadsheet**| Creates a brand new Google Sheet. |
-| `other_actions` | **Other Actions** | Additional manipulation references. |
+| ID | Name | Description | Inputs |
+| :--- | :--- | :--- | :--- |
+| `add_row` | **Add Row** | Appends a new row of data to a spreadsheet. | `spreadsheetId`, `range`, `values` |
+| `create_spreadsheet`| **Create Spreadsheet**| Creates a brand new Google Sheet. | `title` |
+| `write_in_cell` | **Write in Cell** | Updates a cell value. | `spreadsheetId`, `range`, `value` |
+| `create_sheet` | **Create Sheet** | Adds a new sheet/tab. | `spreadsheetId`, `sheetTitle` |
+| `clear_in_range` | **Clear Range** | Clears values in a range. | `spreadsheetId`, `range` |
+| `duplicate_sheet` | **Duplicate Spreadsheet**| Duplicates a spreadsheet file. | `spreadsheetId`, `newTitle` |
+| `find_to_replace` | **Find and Replace** | Finds and replaces text. | `spreadsheetId`, `find`, `replacement`, `sheetId` |
+| `sort_data_in_range`| **Sort Range** | Sorts a range of data. | `spreadsheetId`, `range`, `sortColumn`, `ascending` |
 
 ---
 
-## Telegram
+## Telegram (9 Triggers, 5 Actions)
 
 Bot integration for Telegram messaging.
 
@@ -144,6 +165,8 @@ Bot integration for Telegram messaging.
 | `on_video_message`| **Video Message** | Triggers on receiving a video note. |
 | `on_reply_message`| **Reply Message** | Triggers when a user replies to a message. |
 | `on_start_dm` | **Start DM** | Triggers when a user starts a DM with the bot. |
+| `on_pinned_message`| **Pinned Message** | Triggers when a message is pinned in a chat. |
+| `on_message_edited`| **Message Edited** | Triggers when a message is edited. |
 
 ### Actions
 
@@ -157,43 +180,57 @@ Bot integration for Telegram messaging.
 
 ---
 
-## Twitch
+## Twitch (4 Triggers, 6 Actions)
 
 Streaming platform integration.
 
 ### Triggers
 
-| ID | Name | Description |
-| :--- | :--- | :--- |
-| `twitch_triggers` | **Twitch Triggers** | Monitor stream status, new followers, etc. |
+| ID | Name | Description | Output Data |
+| :--- | :--- | :--- | :--- |
+| `stream_started` | **Stream Started** | Triggers when the stream starts. | `startedAt`, `title` |
+| `stream_ended` | **Stream Ended** | Triggers when the stream ends. | `endedAt` |
+| `new_follower` | **New Follower** | Triggers when the channel gets a new follower. | `followerName`, `followerId`, `followedAt` |
+| `viewer_count_threshold`| **Viewer Count Threshold**| Triggers when viewer count exceeds a value.| `viewerCount` |
 
 ### Actions
 
-| ID | Name | Description |
-| :--- | :--- | :--- |
-| `twitch_actions` | **Twitch Actions** | Interact with chat, update stream info, etc. |
+| ID | Name | Description | Inputs |
+| :--- | :--- | :--- | :--- |
+| `update_stream_title`| **Update Stream Title**| Updates the channel's stream title. | `title` |
+| `update_stream_game` | **Update Stream Game** | Updates the channel's game/category. | `gameName` |
+| `send_chat_message` | **Send Chat Message** | Sends a message to the chat. | `message` |
+| `create_clip` | **Create Clip** | Creates a clip of the stream. | `hasDelay` |
+| `start_commercial` | **Start Commercial** | Starts a commercial break. | `length` |
+| `create_stream_marker`| **Create Stream Marker**| Creates a marker in the stream VOD. | `description` |
 
 ---
 
-## YouTube
+## YouTube (2 Triggers, 6 Actions)
 
 Video platform integration.
 
 ### Triggers
 
-| ID | Name | Description |
-| :--- | :--- | :--- |
-| `youtube_triggers`| **YouTube Triggers**| Monitor new videos, subscribers, etc. |
+| ID | Name | Description | Output Data |
+| :--- | :--- | :--- | :--- |
+| `new_liked_video` | **New Liked Video** | Triggers when you like a new video. | `videoId`, `title` |
+| `new_video_from_channel`| **New Video From Channel**| Triggers when a channel uploads a new video.| `videoId`, `title`, `url` |
 
 ### Actions
 
-| ID | Name | Description |
-| :--- | :--- | :--- |
-| `youtube_actions` | **YouTube Actions** | Comment, like, or upload videos. |
+| ID | Name | Description | Inputs |
+| :--- | :--- | :--- | :--- |
+| `create_playlist` | **Create Playlist** | Creates a new private playlist. | `title`, `description` |
+| `delete_playlist` | **Delete Playlist** | Deletes a playlist by name. | `playlistName` |
+| `rate_video` | **Rate Video** | Likes, dislikes, or removes rating. | `videoId`, `rating` |
+| `subscribe_channel` | **Subscribe to Channel** | Subscribes to a YouTube channel. | `channelName` |
+| `unsubscribe_channel`| **Unsubscribe from Channel**| Unsubscribes from a channel. | `channelName` |
+| `comment_video` | **Comment on Video** | Posts a comment on a video. | `videoId`, `comment` |
 
 ---
 
-## Scheduler
+## Scheduler (2 Triggers, 0 Actions)
 
 Time-based triggers.
 
@@ -206,7 +243,7 @@ Time-based triggers.
 
 ---
 
-## Webhooks
+## Webhooks (1 Trigger, 0 Actions)
 
 Generic webhook integration.
 
