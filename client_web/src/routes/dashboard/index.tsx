@@ -33,8 +33,7 @@ import { toast } from 'sonner';
 
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { WorkflowSteps } from '@/components/dashboard/WorkflowSteps';
-import { TriggerCard } from '@/components/dashboard/TriggerCard';
-import { ActionCard } from '@/components/dashboard/ActionCard';
+import { WorkflowNodeCard } from '@/components/dashboard/WorkflowNodeCard';
 import { QUICK_TEMPLATES } from '@/lib/templates';
 
 export const Route = createFileRoute('/dashboard/')({
@@ -268,8 +267,8 @@ function Dashboard() {
         />
 
         <WorkflowSteps
-          triggerNode={<TriggerCard trigger={trigger} onChange={setTrigger} />}
-          actionNode={<ActionCard action={action} onChange={setAction} />}
+          triggerNode={<WorkflowNodeCard type="trigger" data={trigger} onChange={setTrigger} />}
+          actionNode={<WorkflowNodeCard type="action" data={action} onChange={setAction} />}
         />
 
         <WorkflowExecutionsTable workflowId={selectedWorkflow.id} />
