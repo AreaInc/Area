@@ -3,7 +3,7 @@ namespace: ${PATRONI_NAMESPACE}
 name: ${PATRONI_NAME}
 
 log:
-  level: ERROR
+  level: WARNING
 
 restapi:
   listen: ${PATRONI_RESTAPI_LISTEN}
