@@ -38,6 +38,14 @@ const {
   commentVideoActivity,
   createEventActivity,
   quickAddEventActivity,
+  createIssueActivity,
+  addCommentActivity,
+  starRepositoryActivity,
+  createRepositoryActivity,
+  addLabelActivity,
+  closeIssueActivity,
+  createPullRequestActivity,
+  mergePullRequestActivity,
 } = proxyActivities<typeof activities>({
   startToCloseTimeout: "5 minutes",
   retry: {
@@ -442,6 +450,106 @@ export async function automationWorkflow(
           credentialId: input.actionCredentialsId,
           userId: input.userId,
           triggerData: input.triggerData,
+        });
+        break;
+
+      case "github:create_issue":
+        if (!input.actionCredentialsId) throw new Error("Credentials required");
+        actionResult = await createIssueActivity({
+          owner: input.actionConfig.owner,
+          repo: input.actionConfig.repo,
+          title: input.actionConfig.title,
+          body: input.actionConfig.body,
+          labels: input.actionConfig.labels,
+          assignees: input.actionConfig.assignees,
+          credentialId: input.actionCredentialsId,
+          userId: input.userId,
+        });
+        break;
+
+      case "github:add_comment":
+        if (!input.actionCredentialsId) throw new Error("Credentials required");
+        actionResult = await addCommentActivity({
+          owner: input.actionConfig.owner,
+          repo: input.actionConfig.repo,
+          issueNumber: input.actionConfig.issueNumber,
+          body: input.actionConfig.body,
+          credentialId: input.actionCredentialsId,
+          userId: input.userId,
+        });
+        break;
+
+      case "github:star_repository":
+        if (!input.actionCredentialsId) throw new Error("Credentials required");
+        actionResult = await starRepositoryActivity({
+          owner: input.actionConfig.owner,
+          repo: input.actionConfig.repo,
+          credentialId: input.actionCredentialsId,
+          userId: input.userId,
+        });
+        break;
+
+      case "github:create_repository":
+        if (!input.actionCredentialsId) throw new Error("Credentials required");
+        actionResult = await createRepositoryActivity({
+          name: input.actionConfig.name,
+          description: input.actionConfig.description,
+          private: input.actionConfig.private,
+          autoInit: input.actionConfig.autoInit,
+          credentialId: input.actionCredentialsId,
+          userId: input.userId,
+        });
+        break;
+
+      case "github:add_label":
+        if (!input.actionCredentialsId) throw new Error("Credentials required");
+        actionResult = await addLabelActivity({
+          owner: input.actionConfig.owner,
+          repo: input.actionConfig.repo,
+          issueNumber: input.actionConfig.issueNumber,
+          labels: input.actionConfig.labels,
+          credentialId: input.actionCredentialsId,
+          userId: input.userId,
+        });
+        break;
+
+      case "github:close_issue":
+        if (!input.actionCredentialsId) throw new Error("Credentials required");
+        actionResult = await closeIssueActivity({
+          owner: input.actionConfig.owner,
+          repo: input.actionConfig.repo,
+          issueNumber: input.actionConfig.issueNumber,
+          credentialId: input.actionCredentialsId,
+          userId: input.userId,
+        });
+        break;
+
+      case "github:create_pull_request":
+        if (!input.actionCredentialsId) throw new Error("Credentials required");
+        actionResult = await createPullRequestActivity({
+          owner: input.actionConfig.owner,
+          repo: input.actionConfig.repo,
+          title: input.actionConfig.title,
+          head: input.actionConfig.head,
+          base: input.actionConfig.base,
+          body: input.actionConfig.body,
+          draft: input.actionConfig.draft,
+          credentialId: input.actionCredentialsId,
+          userId: input.userId,
+        });
+        break;
+
+      case "github:merge_pull_request":
+        if (!input.actionCredentialsId) throw new Error("Credentials required");
+        actionResult = await mergePullRequestActivity({
+          owner: input.actionConfig.owner,
+          repo: input.actionConfig.repo,
+          pullNumber: input.actionConfig.pullNumber,
+          commitTitle: input.actionConfig.commitTitle,
+          commitMessage: input.actionConfig.commitMessage,
+          mergeMethod: input.actionConfig.mergeMethod,
+          credentialId: input.actionCredentialsId,
+          userId: input.userId,
         });
         break;
 

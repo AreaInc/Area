@@ -43,4 +43,17 @@ export const OAUTH_CONFIG = {
       "https://www.googleapis.com/auth/calendar.events",
     ],
   },
+  github: {
+    authUrl: "https://github.com/login/oauth/authorize",
+    tokenUrl: "https://github.com/login/oauth/access_token",
+    scopes: [
+      "repo",
+      "user",
+      "notifications",
+      "write:org",
+      "read:org",
+      "admin:repo_hook",
+      "delete_repo",
+    ],
+  },
 };

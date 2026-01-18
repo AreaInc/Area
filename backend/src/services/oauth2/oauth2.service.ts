@@ -192,6 +192,17 @@ export class OAuth2Service {
         authUrl: `${OAUTH_CONFIG.twitch.authUrl}?${params.toString()}`,
         state,
       };
+    } else if (provider === (ServiceProvider.GITHUB as string)) {
+      const params = new URLSearchParams({
+        client_id: credential.clientId,
+        redirect_uri: callbackUrl,
+        scope: OAUTH_CONFIG.github.scopes.join(" "),
+        state: state,
+      });
+      return {
+        authUrl: `${OAUTH_CONFIG.github.authUrl}?${params.toString()}`,
+        state,
+      };
     }
 
     throw new BadRequestException(`Unsupported provider: ${provider}`);
@@ -358,6 +369,72 @@ export class OAuth2Service {
           profileData.data?.[0]?.email ||
           profileData.data?.[0]?.login ||
           "Twitch User";
+      } else if (provider === (ServiceProvider.GITHUB as string)) {
+        const body = new URLSearchParams({
+          client_id: credential.clientId,
+          client_secret: credential.clientSecret,
+          code,
+        });
+        const res = await fetch(OAUTH_CONFIG.github.tokenUrl, {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body,
+        });
+        const responseText = await res.text();
+        let data: any;
+        try {
+          data = JSON.parse(responseText);
+        } catch {
+          throw new Error(
+            `Failed to parse GitHub response: ${responseText.substring(0, 100)}`,
+          );
+        }
+
+        if (!res.ok || data.error) {
+          throw new Error(
+            data.error_description ||
+              data.error ||
+              `GitHub API Error: ${responseText}`,
+          );
+        }
+
+        tokens = {
+          access_token: data.access_token,
+          refresh_token: data.refresh_token,
+          expiry_date: null, // GitHub tokens don't expire
+          scope: data.scope,
+        };
+
+        // Get Profile
+        const profileRes = await fetch("https://api.github.com/user", {
+          headers: {
+            Authorization: `Bearer ${tokens.access_token}`,
+            Accept: "application/vnd.github+json",
+            "User-Agent": "Area-App",
+          },
+        });
+
+        const profileText = await profileRes.text();
+        let profile: any;
+        try {
+          profile = JSON.parse(profileText);
+        } catch {
+          throw new Error(
+            `Failed to parse GitHub Profile response. Status: ${profileRes.status}. Body: ${profileText.substring(0, 150)}`,
+          );
+        }
+
+        if (!profileRes.ok) {
+          throw new Error(
+            profile.message ||
+              `GitHub Profile API Error: ${JSON.stringify(profile)}`,
+          );
+        }
+
+        userEmail = profile.email || profile.login;
       } else {
         throw new BadRequestException(`Unsupported provider: ${provider}`);
       }

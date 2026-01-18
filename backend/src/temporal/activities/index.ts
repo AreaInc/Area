@@ -114,3 +114,25 @@ export type {
   CreateEventInput,
   QuickAddEventInput,
 } from "../../services/google-calendar/google-calendar.activities";
+
+export {
+  createIssueActivity,
+  addCommentActivity,
+  starRepositoryActivity,
+  createRepositoryActivity,
+  addLabelActivity,
+  closeIssueActivity,
+  createPullRequestActivity,
+  mergePullRequestActivity,
+} from "../../services/github/github.activities";
+
+export type {
+  CreateIssueInput as GitHubCreateIssueInput,
+  AddCommentInput,
+  StarRepositoryInput,
+  CreateRepositoryInput as GitHubCreateRepositoryInput,
+  AddLabelInput,
+  CloseIssueInput,
+  CreatePullRequestInput,
+  MergePullRequestInput,
+} from "../../services/github/github.activities";
