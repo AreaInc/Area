@@ -71,6 +71,8 @@ export class YouTubePollingService implements OnModuleInit, OnModuleDestroy {
             .from(credentials)
             .where(and(eq(credentials.serviceProvider, "youtube"), inArray(credentials.userId, userIds)));
 
+        this.logger.log(`Found ${credentialRows.length} YouTube credentials for ${userIds.length} users`);
+
         const credMap = new Map(); credentialRows.forEach(c => credMap.set(c.id, c));
         const userDefaultCred = new Map();
         credentialRows.forEach(c => {
@@ -126,10 +128,14 @@ export class YouTubePollingService implements OnModuleInit, OnModuleDestroy {
 
             // Check Liked Videos
             if (tasks.liked.length > 0) {
+                this.logger.debug(`Checking liked videos for cred ${credential.id}`);
                 const likedVideos = await client.getLikedVideos(5);
                 if (likedVideos.length > 0) {
                     const latestVideo = likedVideos[0];
+                    this.logger.debug(`Latest liked video for cred ${credential.id}: ${latestVideo.id} (cached: ${state.lastLikedVideoId})`);
+
                     if (state.lastLikedVideoId && state.lastLikedVideoId !== latestVideo.id) {
+                        this.logger.log(`Triggering new_liked_video for cred ${credential.id} - Video: ${latestVideo.id}`);
                         // Found new liked video (simplified check: top video changed)
                         // In reality, should check if new ID is not in previous cache, etc.
                         // For now, if top video ID changed compared to stored ID, trigger.
@@ -140,6 +146,8 @@ export class YouTubePollingService implements OnModuleInit, OnModuleDestroy {
                         state.lastLikedVideoId = latestVideo.id;
                         stateChanged = true;
                     }
+                } else {
+                    this.logger.debug(`No liked videos found for cred ${credential.id}`);
                 }
             }
 
@@ -152,10 +160,13 @@ export class YouTubePollingService implements OnModuleInit, OnModuleDestroy {
                     const channelId = reg.config.channelId;
 
                     try {
+                        this.logger.debug(`Checking uploads for channel ${channelId}`);
                         const uploads = await client.getLatestUploads(channelId);
                         if (uploads.length > 0) {
                             const latest = uploads[0];
                             const lastSeen = state.channelUploads?.[channelId];
+
+                            this.logger.debug(`Latest upload for channel ${channelId}: ${latest.id} (cached: ${lastSeen})`);
 
                             if (lastSeen && lastSeen !== latest.id) {
                                 const data = {
@@ -163,6 +174,7 @@ export class YouTubePollingService implements OnModuleInit, OnModuleDestroy {
                                     title: latest.snippet.title,
                                     url: `https://www.youtube.com/watch?v=${latest.contentDetails.videoId}`
                                 };
+                                this.logger.log(`Triggering new_video_from_channel for workflow ${wid}`);
                                 await this.workflowsService.triggerWorkflowExecution(wid, data);
                             }
 
