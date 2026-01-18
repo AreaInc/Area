@@ -5,12 +5,16 @@ import GradientBackground from '../components/GradientBackground';
 import GlassCard from '../components/GlassCard';
 import { api } from '../services/api';
 import { LinearGradient } from 'expo-linear-gradient';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { RootStackParamList, Workflow } from '../types';
 
-const CreateWorkflowScreen = ({ navigation }) => {
-    const [name, setName] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
+type Props = NativeStackScreenProps<RootStackParamList, 'CreateWorkflow'>;
 
-    const handleCreate = async () => {
+const CreateWorkflowScreen: React.FC<Props> = ({ navigation }) => {
+    const [name, setName] = useState<string>('');
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+
+    const handleCreate = async (): Promise<void> => {
         if (!name.trim()) {
             Alert.alert('Error', 'Please enter a workflow name');
             return;
@@ -18,7 +22,7 @@ const CreateWorkflowScreen = ({ navigation }) => {
 
         setIsLoading(true);
         try {
-            const { data, error } = await api.post('/api/workflows', {
+            const { data, error } = await api.post<Workflow>('/api/v2/workflows', {
                 name,
                 nodes: [],
                 connections: {}
@@ -92,6 +96,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         marginBottom: 30,
     },
+    backButton: {},
     headerTitle: {
         color: '#fff',
         fontSize: 20,

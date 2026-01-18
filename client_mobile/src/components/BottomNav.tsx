@@ -5,9 +5,13 @@ import GlassCard from './GlassCard';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '../types';
 
-const BottomNav = () => {
-    const navigation = useNavigation();
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+
+const BottomNav: React.FC = () => {
+    const navigation = useNavigation<NavigationProp>();
 
     return (
         <GlassCard style={styles.container}>

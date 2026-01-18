@@ -1,8 +1,14 @@
-import React from 'react';
-import { StyleSheet, View, Platform } from 'react-native';
+import React, { ReactNode } from 'react';
+import { StyleSheet, View, Platform, ViewStyle, StyleProp } from 'react-native';
 import { BlurView } from 'expo-blur';
 
-const GlassCard = ({ children, style, intensity = 20 }) => {
+interface GlassCardProps {
+    children: ReactNode;
+    style?: StyleProp<ViewStyle>;
+    intensity?: number;
+}
+
+const GlassCard: React.FC<GlassCardProps> = ({ children, style, intensity = 20 }) => {
     // On Android, BlurView can be resource intensive or buggy in some versions/devices.
     // We can use a semi-transparent background as a fallback or if we want a specific look.
     // For this "n8n-like" modern look, a dark semi-transparent bg matches well.

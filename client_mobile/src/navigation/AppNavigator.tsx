@@ -12,10 +12,11 @@ import RegisterScreen from '../screens/auth/RegisterScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 
 import { useAuth } from '../context/AuthContext';
+import type { RootStackParamList } from '../types';
 
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
-const AppNavigator = () => {
+const AppNavigator: React.FC = () => {
     const { isAuthenticated, isLoading } = useAuth();
 
     if (isLoading) {

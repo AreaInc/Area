@@ -3,10 +3,14 @@ import { StyleSheet, Text, View, Image, TouchableOpacity } from 'react-native';
 import { Settings } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '../types';
 
-const Header = () => {
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+
+const Header: React.FC = () => {
     const { user } = useAuth();
-    const navigation = useNavigation();
+    const navigation = useNavigation<NavigationProp>();
 
     return (
         <View style={styles.container}>

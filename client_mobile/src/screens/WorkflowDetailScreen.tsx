@@ -1,15 +1,29 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Switch, ScrollView, Animated, PanResponder, Alert, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, Switch, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { ArrowLeft, Play, Settings } from 'lucide-react-native';
 import GradientBackground from '../components/GradientBackground';
 import WorkflowNode from '../components/WorkflowNode';
 import { LinearGradient } from 'expo-linear-gradient';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { RootStackParamList, Workflow, WorkflowNodeUI } from '../types';
 
 import { api } from '../services/api';
 
 const ITEM_HEIGHT = 100;
 
-const DraggableItem = ({ item, index, isDragging, displacement, onDragStart, onDragMove, onDragEnd }) => {
+type Props = NativeStackScreenProps<RootStackParamList, 'WorkflowDetail'>;
+
+interface DraggableItemProps {
+    item: WorkflowNodeUI;
+    index: number;
+    isDragging: boolean;
+    displacement: number;
+    onDragStart: () => void;
+    onDragMove: (dy: number) => void;
+    onDragEnd: () => void;
+}
+
+const DraggableItem: React.FC<DraggableItemProps> = ({ item, onDragStart }) => {
     return (
         <View style={styles.itemContainer}>
             <TouchableOpacity onLongPress={onDragStart} delayLongPress={200}>
@@ -27,17 +41,16 @@ const DraggableItem = ({ item, index, isDragging, displacement, onDragStart, onD
     );
 };
 
-const WorkflowDetailScreen = ({ navigation, route }) => {
+const WorkflowDetailScreen: React.FC<Props> = ({ navigation, route }) => {
     const { id, title: initialTitle, status: initialStatus } = route.params || {};
-    const [data, setData] = useState([]);
-    const [title, setTitle] = useState(initialTitle || "Loading...");
-    const [isActive, setIsActive] = useState(initialStatus === 'Active');
-    const [loading, setLoading] = useState(true);
+    const [data, setData] = useState<WorkflowNodeUI[]>([]);
+    const [title, setTitle] = useState<string>(initialTitle || "Loading...");
+    const [isActive, setIsActive] = useState<boolean>(initialStatus === 'Active');
+    const [loading, setLoading] = useState<boolean>(true);
 
     // Drag state
-    const [draggingId, setDraggingId] = useState(null);
-    const [dragState, setDragState] = useState({ srcIndex: null, destIndex: null });
-    const [scrollEnabled, setScrollEnabled] = useState(true);
+    const [draggingId, setDraggingId] = useState<string | null>(null);
+    const [scrollEnabled, setScrollEnabled] = useState<boolean>(true);
 
     useEffect(() => {
         if (id) {
@@ -45,9 +58,9 @@ const WorkflowDetailScreen = ({ navigation, route }) => {
         }
     }, [id]);
 
-    const fetchWorkflowDetails = async () => {
+    const fetchWorkflowDetails = async (): Promise<void> => {
         try {
-            const { data: workflow, error } = await api.get(`/api/workflows/${id}`);
+            const { data: workflow, error } = await api.get<Workflow>(`/api/v2/workflows/${id}`);
             if (workflow) {
                 setTitle(workflow.name);
                 setIsActive(workflow.isActive);
@@ -57,14 +70,14 @@ const WorkflowDetailScreen = ({ navigation, route }) => {
                 // Mobile UI expects: { id, type, title, subtitle, status, isStart, isEnd }
                 // We need to linearize them or just show them as a list for now
                 if (workflow.nodes && Array.isArray(workflow.nodes)) {
-                    const mappedNodes = workflow.nodes.map((node, index) => ({
+                    const mappedNodes: WorkflowNodeUI[] = workflow.nodes.map((node, index) => ({
                         id: node.id,
                         type: mapNodeType(node.type),
                         title: node.data?.label || node.type,
                         subtitle: node.data?.description || 'No description',
-                        status: 'Idle', // Default status
+                        status: 'Idle' as const, // Default status
                         isStart: index === 0, // Simplified assumption
-                        isEnd: index === workflow.nodes.length - 1 // Simplified assumption
+                        isEnd: index === workflow.nodes!.length - 1 // Simplified assumption
                     }));
                     setData(mappedNodes);
                 }
@@ -78,7 +91,7 @@ const WorkflowDetailScreen = ({ navigation, route }) => {
         }
     };
 
-    const mapNodeType = (backendType) => {
+    const mapNodeType = (backendType: string): 'trigger' | 'action' | 'logic' | 'db' => {
         // Map backend node types to mobile icon types
         // Example: 'webhook' -> 'trigger', 'gmail' -> 'action'
         if (backendType?.includes('trigger') || backendType?.includes('webhook')) return 'trigger';
@@ -86,34 +99,34 @@ const WorkflowDetailScreen = ({ navigation, route }) => {
         return 'action'; // Default
     };
 
-    const toggleWorkflow = async (value) => {
+    const toggleWorkflow = async (value: boolean): Promise<void> => {
         // Optimistic update
         setIsActive(value);
         try {
-            await api.post(`/api/workflows/${id}/${value ? 'activate' : 'deactivate'}`);
+            await api.post(`/api/v2/workflows/${id}/${value ? 'activate' : 'deactivate'}`);
         } catch (error) {
             console.error("Toggle error:", error);
             setIsActive(!value); // Revert on error
         }
     };
 
-    const handleDragStart = (id) => {
-        setDraggingId(id);
+    const handleDragStart = (itemId: string): void => {
+        setDraggingId(itemId);
         setScrollEnabled(false);
     };
 
-    const handleDragMove = (id, dy) => {
+    const handleDragMove = (_itemId: string, _dy: number): void => {
         // Placeholder
     };
 
-    const handleDragEnd = () => {
+    const handleDragEnd = (): void => {
         setDraggingId(null);
         setScrollEnabled(true);
     };
 
-    const getDisplacement = (index) => 0;
+    const getDisplacement = (_index: number): number => 0;
 
-    const handleDelete = () => {
+    const handleDelete = (): void => {
         Alert.alert(
             "Delete Workflow",
             "Are you sure you want to delete this workflow?",
@@ -124,7 +137,7 @@ const WorkflowDetailScreen = ({ navigation, route }) => {
                     style: "destructive",
                     onPress: async () => {
                         try {
-                            await api.delete(`/api/workflows/${id}`);
+                            await api.delete(`/api/v2/workflows/${id}`);
                             navigation.goBack();
                         } catch (error) {
                             console.error("Delete error:", error);
@@ -286,21 +299,6 @@ const styles = StyleSheet.create({
         color: '#cbd5e1',
         fontSize: 14,
         fontWeight: '600',
-    },
-    hintContainer: {
-        marginHorizontal: 20,
-        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-        borderRadius: 12,
-        padding: 12,
-        marginBottom: 10,
-        borderWidth: 1,
-        borderColor: 'rgba(59, 130, 246, 0.3)',
-    },
-    hintText: {
-        color: '#93c5fd',
-        fontSize: 13,
-        textAlign: 'center',
-        fontWeight: '500',
     },
     canvas: {
         paddingHorizontal: 20,
