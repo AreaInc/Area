@@ -1,6 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { ITrigger } from "../../../common/types/trigger.interface";
-import { TriggerType } from "../../../common/types/enums";
+import { ITrigger, TriggerType } from "../../../common/types/trigger.interface";
 
 @Injectable()
 export class NewStarTrigger implements ITrigger {
@@ -8,8 +7,8 @@ export class NewStarTrigger implements ITrigger {
   name = "New Star";
   description = "Triggers when someone stars a repository";
   serviceProvider = "github";
-  triggerType = TriggerType.WEBHOOK;
-  requiresCredentials = false;
+  triggerType = TriggerType.POLLING;
+  requiresCredentials = true;
 
   configSchema = {
     type: "object",

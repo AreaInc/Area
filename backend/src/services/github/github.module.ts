@@ -22,6 +22,8 @@ import {
   ReleasePublishedTrigger,
 } from "./triggers/github-triggers";
 
+import { GitHubPollingService } from "./github-polling.service";
+
 @Module({
   imports: [WorkflowsModule],
   providers: [
@@ -40,6 +42,7 @@ import {
     IssueLabeledTrigger,
     PullRequestReviewRequestedTrigger,
     ReleasePublishedTrigger,
+    GitHubPollingService,
   ],
   exports: [
     CreateIssueAction,

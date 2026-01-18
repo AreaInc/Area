@@ -292,4 +292,21 @@ export class GitHubClient {
       email: response.data.email,
     };
   }
+
+  async getStargazers(
+    owner: string,
+    repo: string,
+    perPage: number = 10,
+  ): Promise<any> {
+    const response = await this.octokit.rest.activity.listStargazersForRepo({
+      owner,
+      repo,
+      per_page: perPage,
+      headers: {
+        Accept: "application/vnd.github.v3.star+json", // Required for starred_at timestamp
+      },
+    });
+
+    return response.data;
+  }
 }
