@@ -98,6 +98,4 @@ Follow these instructions to get the project up and running on your local machin
 - **Frontend (Mobile)**: React Native, Expo.
 - **DevOps**: Docker, Docker Compose.
 
----
 
-*Generated with ❤️ by the AREA Team.*
