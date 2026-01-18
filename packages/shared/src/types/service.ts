@@ -5,6 +5,8 @@ export interface Action {
   type: string;
   inputSchema: Record<string, any>;
   outputSchema?: Record<string, any>;
+  serviceProvider?: string;
+  serviceImageUrl?: string | null;
 }
 
 export interface Trigger {
@@ -15,6 +17,8 @@ export interface Trigger {
   configSchema?: Record<string, any>;
   outputSchema?: Record<string, any>;
   requiresCredentials: boolean;
+  serviceProvider?: string;
+  serviceImageUrl?: string | null;
 }
 
 export interface Service {
