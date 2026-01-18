@@ -1,18 +1,27 @@
 import { API_URL } from '@env';
 import type { ApiResponse } from '../types';
 
-const BASE_URL: string = API_URL || 'http://10.0.2.2:8080';
+const BASE_URL: string = API_URL || 'https://api.areamoncul.click';
 
 interface RequestOptions extends RequestInit {
     headers?: Record<string, string>;
 }
 
 const request = async <T = unknown>(endpoint: string, options: RequestOptions = {}): Promise<ApiResponse<T>> => {
-    const url = `${BASE_URL}${endpoint}`;
+    // Production API Compatibility Layer
+    // Rewrite metadata endpoints to match Prod V2 routes
+    let finalEndpoint = endpoint;
+    if (endpoint.includes('/workflows/metadata/triggers')) {
+        finalEndpoint = endpoint.replace('/workflows/metadata/triggers', '/triggers');
+    } else if (endpoint.includes('/workflows/metadata/actions')) {
+        finalEndpoint = endpoint.replace('/workflows/metadata/actions', '/actions');
+    }
+
+    const url = `${BASE_URL}${finalEndpoint}`;
 
     const defaultHeaders: Record<string, string> = {
         'Content-Type': 'application/json',
-        'Origin': BASE_URL, // Required for auth endpoints
+        'Origin': 'area://mobile',
     };
 
     console.log(`[API] Requesting: ${options.method || 'GET'} ${url}`);
