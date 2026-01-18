@@ -1,11 +1,15 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import GradientBackground from '../components/GradientBackground';
 import GlassCard from '../components/GlassCard';
 import { LogOut, User, ChevronLeft } from 'lucide-react-native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '../types';
 
-const ProfileScreen = ({ navigation }) => {
+type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
+
+const ProfileScreen: React.FC<Props> = ({ navigation }) => {
     const { user, signOut } = useAuth();
 
     return (
@@ -60,6 +64,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         marginBottom: 30,
     },
+    backButton: {},
     headerTitle: {
         color: '#fff',
         fontSize: 20,

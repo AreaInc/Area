@@ -1,5 +1,5 @@
 packages:
   - 'client_web'
   - 'backend'
-  - 'client_mobile/dev-area'
+  - 'client_mobile'
   - 'packages/*'

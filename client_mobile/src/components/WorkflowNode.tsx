@@ -1,11 +1,30 @@
 import React from 'react';
 import { StyleSheet, Text, View, Platform } from 'react-native';
 import { BlurView } from 'expo-blur';
-import { Play, Hexagon, Database, Mail, MessageSquare, MoreVertical, GitBranch } from 'lucide-react-native';
+import { Hexagon, Database, Mail, MessageSquare, MoreVertical, GitBranch } from 'lucide-react-native';
 
-const WorkflowNode = ({ type, title, subtitle, status, isStart = false, isEnd = false }) => {
+type NodeType = 'trigger' | 'action' | 'logic' | 'db';
+type NodeStatus = 'success' | 'error' | 'waiting' | 'Idle';
 
-    const getIcon = () => {
+interface WorkflowNodeProps {
+    type: NodeType;
+    title: string;
+    subtitle: string;
+    status: NodeStatus;
+    isStart?: boolean;
+    isEnd?: boolean;
+}
+
+const WorkflowNode: React.FC<WorkflowNodeProps> = ({
+    type,
+    title,
+    subtitle,
+    status,
+    isStart = false,
+    isEnd = false
+}) => {
+
+    const getIcon = (): React.JSX.Element => {
         switch (type) {
             case 'trigger': return <Hexagon size={24} color="#f472b6" fill="#f472b6" fillOpacity={0.2} />;
             case 'action': return <Mail size={24} color="#38bdf8" />;
@@ -17,7 +36,7 @@ const WorkflowNode = ({ type, title, subtitle, status, isStart = false, isEnd = 
 
     const statusColor = status === 'success' ? '#4ade80' : status === 'error' ? '#ef4444' : '#64748b';
 
-    const NodeContent = () => (
+    const NodeContent: React.FC = () => (
         <View style={styles.inner}>
             <View style={styles.iconContainer}>
                 {getIcon()}
@@ -33,7 +52,9 @@ const WorkflowNode = ({ type, title, subtitle, status, isStart = false, isEnd = 
     );
 
     const Container = Platform.OS === 'android' ? View : BlurView;
-    const containerProps = Platform.OS === 'android' ? { style: [styles.card, styles.androidCard] } : { intensity: 20, tint: "dark", style: styles.card };
+    const containerProps = Platform.OS === 'android'
+        ? { style: [styles.card, styles.androidCard] }
+        : { intensity: 20, tint: "dark" as const, style: styles.card };
 
     return (
         <View style={styles.wrapper}>
@@ -98,6 +119,7 @@ const styles = StyleSheet.create({
         color: '#94a3b8',
         fontSize: 12,
     },
+    meta: {},
     statusLine: {
         position: 'absolute',
         left: 0,
