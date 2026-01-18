@@ -1,120 +1,103 @@
-# AREA - Action Reaction Automation Platform
+# AREA - Automation Platform
 
-> You are looking at an n8n-like automation project :)
+> **A comprehensive automation platform connecting your favorite services.**
 
-[![NestJS](https://img.shields.io/badge/NestJS-E0234E?style=flat&logo=nestjs&logoColor=white)](https://nestjs.com/)
-[![React](https://img.shields.io/badge/React-61DAFB?style=flat&logo=react&logoColor=black)](https://reactjs.org/)
-[![React Native](https://img.shields.io/badge/React_Native-61DAFB?style=flat&logo=react&logoColor=black)](https://reactnative.dev/)
-[![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)](https://www.docker.com/)
+Welcome to the **AREA** project! This repository contains a powerful automation platform that allows you to trigger actions based on specific events across various services like Discord, Spotify, Google, and more. It features a robust NestJS backend, a modern React web client, and a React Native mobile client.
 
-## Starting the app
+## 📚 Documentation Navigation
 
-```bash
-git clone https://github.com/EpitechPGE3-2025/G-DEV-500-LYN-5-2-area-3.git
-cd G-DEV-500-LYN-5-2-area-3
+This project is documented extensively. Please refer to the following sections for deep dives into specific components:
 
-docker-compose up -d
+- **[Backend Documentation](./docs/backend/README.md)**: Architecture, Services, Auth, and Workflows.
+- **[Web Client Documentation](./docs/client_web/README.md)**: Components, Routing, and State.
+- **[Mobile Client Documentation](./docs/client_mobile/README.md)**: Screens and Navigation.
+- **[API Documentation](./docs/backend/api.md)**: Detailed API endpoints and usage.
 
-# Web: http://localhost:8081
-# API: http://localhost:8080
+## 🏗 Global Architecture
+
+The following diagram illustrates the high-level architecture of the AREA platform, showing how the different clients interact with the backend and how the backend orchestrates services and database interactions.
+
+```mermaid
+graph TD
+    subgraph Clients
+        Web[Web Client\n(React + Vite)]
+        Mobile[Mobile Client\n(React Native)]
+    end
+
+    subgraph Backend_Infrastructure [Backend Infrastructure]
+        NestJS[NestJS API Server]
+        Redis[Redis Queue]
+        Postgres[PostgreSQL Database]
+        Temporal[Temporal Worker]
+    end
+
+    subgraph External_Services [External Services]
+        Google[Google APIs]
+        Spotify[Spotify API]
+        Discord[Discord API]
+        Others[Other Service APIs...]
+    end
+
+    Web -->|HTTP/REST| NestJS
+    Mobile -->|HTTP/REST| NestJS
+    NestJS -->|Read/Write| Postgres
+    NestJS -->|Jobs| Redis
+    NestJS -->|Workflows| Temporal
+    NestJS -->|OAuth & API Calls| External_Services
+    Temporal -->|Execute Workflows| External_Services
 ```
 
-## Prerequisites
+## 🚀 Quick Start
 
-- Docker & Docker Compose
-- Node
+Follow these instructions to get the project up and running on your local machine.
 
-## Integrated services
-These services are INCOMING and not yet implemented
+### Prerequisites
 
-| Service | Actions | Reactions | Auth |
-|---------|---------|-----------|------|
-| Timer | 3 | 0 | None |
-| Gmail | 3 | 2 | OAuth2 |
-| Discord | 2 | 3 | OAuth2 |
-| GitHub | 4 | 2 | OAuth2 |
-| Weather | 2 | 0 | API |
-| Slack | 2 | 3 | OAuth2 |
+- **Docker** and **Docker Compose** installed.
+- **Node.js** (LTS version) and **pnpm** installed.
 
-## Development
+### Installation & Execution
 
-### Local Installation
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/YourOrg/area.git
+    cd area
+    ```
 
-```bash
-# Back
-cd backend
-pnpm install
-pnpm start:dev
+2.  **Environment Setup:**
+    Duplicate the example environment file and configure your keys.
+    ```bash
+    cp .env.example .env
+    ```
+    > **Note:** You will need valid API keys for Google, Spotify, etc., to fully test all integrations.
 
-# Front
-cd frontend/web
-pnpm install
-pnpm dev
+3.  **Start with Docker Compose:**
+    This will start the Database, Redis, Temporal, and the Backend API.
+    ```bash
+    docker-compose up -d --build
+    ```
 
-# Mobile
-cd frontend/mobile
-npm install
-npx expo start
-```
+4.  **Run Clients:**
+    *   **Web Client**:
+        ```bash
+        cd client_web
+        pnpm install
+        pnpm dev
+        ```
+    *   **Mobile Client** (Android/iOS):
+        ```bash
+        cd client_mobile
+        pnpm install
+        pnpm start
+        ```
 
-### Base de données
+## 🛠 Tech Stack
 
-```bash
-# Drizzle
-docker compose up -d area-postgres
-cd backend
-pnpm db:generate && pnpm db:migrate
-```
+- **Backend**: NestJS, TypeScript, Temporal.io, PostgreSQL, Redis.
+- **Frontend (Web)**: React, Vite, TailwindCSS, TanStack Query.
+- **Frontend (Mobile)**: React Native, Expo.
+- **DevOps**: Docker, Docker Compose.
 
-### Tests
+---
 
-```bash
-pnpm test
-npm run test:e2e
-npm run test:cov
-```
-
-## Configuration
-
-Please check our `.env.example` to setup environment variables
-
-## Contributing
-
-For guidelines on how to extend the project by adding new services, actions, or reactions, please refer to our [HOWTOCONTRIBUTE.md](./HOWTOCONTRIBUTE.md) documentation.
-
-## Tech stack
-
-### Backend
-- **Framework**: NestJS
-- **Database**: PostgreSQL + Drizzle ORM
-
-### Frontend Web
-- **Framework**: React + TypeScript
-- **Build**: Vite
-- **Styling**: Tailwind CSS
-- **State**: React Query
-
-### Frontend Mobile
-- **Framework**: React Native + Expo
-- **Navigation**: React Navigation
-- **State**: React Query
-
-## Équipe
-
-| Nom | Rôle |
-|-----|------|
-| Laurent GONZALEZ | Backend Lead |
-| William JOLIVET | Backend Dev |
-| Florian REYNAUD | Frontend Lead |
-| Noa SMOTTER | Mobile Lead |
-| Charly PALIERE | DevOps |
-| Raphaël GEORGET | Full-Stack |
-
-## Planning
-
-- **Sprint 0** (Sem 1): Setup & Architecture
-- **Sprint 1** (Sem 2-3): Core Foundation
-- **Sprint 2** (Sem 4-5): MVP Features
-- **Sprint 3** (Sem 6): Integration & Tests
-- **Sprint 4** (Sem 7-8): Scale & Polish
-- **Sprint 5** (Sem 9): Final Release
+*Generated with ❤️ by the AREA Team.*

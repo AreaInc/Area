@@ -37,11 +37,7 @@ graph TD
 
 Navigate to the detailed documentation for specific components:
 
-- **[Services & Integrations](../../docs/backend/services.md)**: Exhaustive list of all supported triggers and actions (Spotify, Google, etc.).
-- **[Authentication Flow](../../docs/backend/auth.md)**: How OAuth2 and JWTs are handled.
-- **[Workflows Engine](../../docs/backend/workflows.md)**: Deep dive into Temporal integration.
-- **[API Reference](../../docs/backend/api.md)**: Endpoints and payload details.
-
----
-
-*Navigate to `../docs/backend/` for more details.*
+- **[Services & Integrations](./services.md)**: Exhaustive list of all supported triggers and actions (Spotify, Google, etc.).
+- **[Authentication Flow](./auth.md)**: How OAuth2 and JWTs are handled.
+- **[Workflows Engine](./workflows.md)**: Deep dive into Temporal integration.
+- **[API Reference](./api.md)**: Endpoints and payload details.
