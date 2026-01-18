@@ -1,29 +1,20 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { ServiceDetails } from '../../../components/services/ServiceDetails'
-import { useService } from '@area/shared'
+import { useService, useServiceTriggers, useServiceActions } from '@area/shared'
 import { Loader2 } from 'lucide-react'
-
-type ServiceSearch = {
-  success?: boolean
-  error?: boolean
-}
 
 export const Route = createFileRoute('/dashboard/services/$provider')({
   component: ServicePage,
-  validateSearch: (search: Record<string, unknown>): ServiceSearch => {
-    return {
-      success: search.success === true || search.success === 'true',
-      error: search.error === true || search.error === 'true',
-    }
-  },
 })
 
 function ServicePage() {
   const { provider } = Route.useParams()
-  const searchParams = Route.useSearch()
-  const { service, isLoading, isError } = useService(provider)
   
-  const authStatus = searchParams.success ? 'success' : (searchParams.error ? 'error' : undefined)
+  const { service, isLoading: isServiceLoading, isError: isServiceError } = useService(provider)
+  const { data: triggers, isLoading: isTriggersLoading } = useServiceTriggers(provider)
+  const { data: actions, isLoading: isActionsLoading } = useServiceActions(provider)
+
+  const isLoading = isServiceLoading || isTriggersLoading || isActionsLoading
 
   if (isLoading) {
     return (
@@ -33,7 +24,7 @@ function ServicePage() {
     )
   }
 
-  if (isError || !service) {
+  if (isServiceError || !service) {
     return (
       <div className="p-8 text-center">
         <div className="text-destructive bg-destructive/10 p-4 rounded-lg inline-block">
@@ -45,7 +36,11 @@ function ServicePage() {
 
   return (
     <div className="py-6 pr-6 h-full overflow-y-auto w-full">
-      <ServiceDetails service={service} authStatus={authStatus} />
+      <ServiceDetails 
+        service={service} 
+        triggers={triggers || []} 
+        actions={actions || []} 
+      />
     </div>
   )
 }
