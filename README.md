@@ -13,6 +13,23 @@ This project is documented extensively. Please refer to the following sections f
 - **[Mobile Client Documentation](./docs/client_mobile/README.md)**: Screens and Navigation.
 - **[API Documentation](./docs/backend/api.md)**: Detailed API endpoints and usage.
 
+## Architecture and Design
+
+We chose a modern, scalable technology stack to ensure performance, maintainability, and extensibility.
+
+### Why NestJS?
+NestJS provides a robust, modular architecture out-of-the-box. Its dependency injection system and TypeScript support make it ideal for building complex, scalable server-side applications. It organizes code into modules (Services, Controllers, Gateways), ensuring clean separation of concerns.
+
+### Why Temporal?
+Automation workflows are long-running processes that can fail at any step (e.g., API downtime). Temporal guarantees durable execution. If the server crashes or an API is temporarily unavailable, Temporal remembers the state and retries the specific activity without losing data, making our automation engine incredibly reliable.
+
+### Why PostgreSQL & Redis?
+- **PostgreSQL**: A powerful, strictly typed relational database that ensures data integrity for our Users, Workflows, and Credentials schemas.
+- **Redis**: Used as a high-performance job queue and cache, essential for handling the high throughput of polling triggers and background tasks.
+
+### Why React & React Native?
+Using **React** (Web) and **React Native** (Mobile) allows us to share business logic, hooks, and types between platforms. The component-based architecture ensures a consistent UI/UX across all devices, while strict typing (TypeScript) across the entire stack prevents runtime errors.
+
 ## Global Architecture
 
 The following diagram illustrates the high-level architecture of the AREA platform, showing how the different clients interact with the backend and how the backend orchestrates services and database interactions.
