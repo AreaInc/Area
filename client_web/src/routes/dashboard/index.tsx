@@ -6,6 +6,7 @@ import {
   useDeleteWorkflow,
   useActivateWorkflow,
   useDeactivateWorkflow,
+  useWorkflowExecutions,
   useActions,
 } from '@area/shared';
 import type { TriggerConfig, ActionConfig } from '@area/shared';
@@ -20,6 +21,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { toast } from 'sonner';
 
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
@@ -245,46 +254,103 @@ function Dashboard() {
   return (
     <div className="h-full overflow-y-auto p-6 flex flex-col w-full">
       <div className="w-full max-w-7xl mx-auto space-y-8">
-        <DashboardHeader 
-            workflowName={workflowName}
-            onNameChange={setWorkflowName}
-            isActive={selectedWorkflow.isActive}
-            onToggleActive={handleToggleActive}
-            onSave={handleSave}
-            onDelete={handleDelete}
-            isSaving={isSaving}
-            isPending={activateMutation.isPending || deactivateMutation.isPending || deleteMutation.isPending}
-            templates={QUICK_TEMPLATES}
-            onApplyTemplate={applyTemplate}
+        <DashboardHeader
+          workflowName={workflowName}
+          onNameChange={setWorkflowName}
+          isActive={selectedWorkflow.isActive}
+          onToggleActive={handleToggleActive}
+          onSave={handleSave}
+          onDelete={handleDelete}
+          isSaving={isSaving}
+          isPending={activateMutation.isPending || deactivateMutation.isPending || deleteMutation.isPending}
+          templates={QUICK_TEMPLATES}
+          onApplyTemplate={applyTemplate}
         />
 
-        <WorkflowSteps 
-            triggerNode={<TriggerCard trigger={trigger} onChange={setTrigger} />}
-            actionNode={<ActionCard action={action} onChange={setAction} />}
+        <WorkflowSteps
+          triggerNode={<TriggerCard trigger={trigger} onChange={setTrigger} />}
+          actionNode={<ActionCard action={action} onChange={setAction} />}
         />
 
-        {selectedWorkflow.lastRun && (
-          <div className="text-center text-sm text-muted-foreground">
-            Last run: {new Date(selectedWorkflow.lastRun).toLocaleString()}
-          </div>
-        )}
+        <WorkflowExecutionsTable workflowId={selectedWorkflow.id} />
 
         <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        This action cannot be undone. This will permanently delete the workflow "{selectedWorkflow.name}".
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                        {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
-                    </AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the workflow "{selectedWorkflow.name}".
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
         </AlertDialog>
+      </div>
+    </div>
+  );
+}
+
+function WorkflowExecutionsTable({ workflowId }: { workflowId: number }) {
+  const { data: executions, isLoading } = useWorkflowExecutions(workflowId);
+
+  return (
+    <div className="space-y-4">
+      <h3 className="text-lg font-medium">Recent Activity</h3>
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Status</TableHead>
+              <TableHead>Started</TableHead>
+              <TableHead>Completed</TableHead>
+              <TableHead>Message</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                  Loading history...
+                </TableCell>
+              </TableRow>
+            ) : !executions || executions.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                  No execution history
+                </TableCell>
+              </TableRow>
+            ) : (
+              executions.map((execution) => (
+                <TableRow key={execution.id}>
+                  <TableCell>
+                    <span
+                      className={`capitalize ${execution.status === 'completed'
+                          ? 'text-green-600'
+                          : execution.status === 'failed'
+                            ? 'text-red-600'
+                            : 'text-yellow-600'
+                        }`}
+                    >
+                      {execution.status}
+                    </span>
+                  </TableCell>
+                  <TableCell>{new Date(execution.startedAt).toLocaleString()}</TableCell>
+                  <TableCell>
+                    {execution.completedAt ? new Date(execution.completedAt).toLocaleString() : '-'}
+                  </TableCell>
+                  <TableCell className="max-w-[200px] truncate" title={execution.errorMessage || ''}>
+                    {execution.errorMessage || '-'}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
       </div>
     </div>
   );
