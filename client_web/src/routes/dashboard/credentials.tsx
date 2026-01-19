@@ -152,7 +152,7 @@ function CredentialsPage() {
             <Card key={credential.id} className="flex flex-col">
               <CardHeader className="pb-3">
                 <div className="flex justify-between items-start gap-2">
-                  <div>
+                  <div className="min-w-0">
                     <CardTitle className="text-lg truncate" title={credential.name}>
                       {credential.name}
                     </CardTitle>
