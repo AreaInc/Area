@@ -4,6 +4,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { View, ActivityIndicator } from 'react-native';
 
 import HomeScreen from '../screens/HomeScreen';
+import AllWorkflowsScreen from '../screens/AllWorkflowsScreen';
 import WorkflowDetailScreen from '../screens/WorkflowDetailScreen';
 import CreateWorkflowScreen from '../screens/CreateWorkflowScreen';
 import ServicesScreen from '../screens/ServicesScreen';
@@ -34,6 +35,7 @@ const AppNavigator: React.FC = () => {
                 {isAuthenticated ? (
                     <>
                         <Stack.Screen name="Home" component={HomeScreen} />
+                        <Stack.Screen name="AllWorkflows" component={AllWorkflowsScreen} />
                         <Stack.Screen name="WorkflowDetail" component={WorkflowDetailScreen} />
                         <Stack.Screen name="CreateWorkflow" component={CreateWorkflowScreen} />
                         <Stack.Screen name="Services" component={ServicesScreen} />
