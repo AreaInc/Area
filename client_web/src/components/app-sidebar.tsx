@@ -3,7 +3,6 @@ import {
   Plus,
   Key,
   Grid,
-  GalleryVerticalEnd,
   Settings,
   LogOut,
   ChevronsUpDown,
@@ -94,11 +93,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenuButton size="lg" asChild>
               <div className="cursor-pointer">
                 <div className="bg-primary text-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                  <GalleryVerticalEnd className="size-4" />
+                  {/* <GalleryVerticalEnd className="size-4" /> */}
+                  <img src="/area.svg" alt="Area Logo" className="w-5 h-5" />
                 </div>
                 <div className="flex flex-col gap-0.5 leading-none">
                   <span className="font-bold">Plug & Play</span>
-                  <span className="">v1.0.0</span>
                 </div>
               </div>
             </SidebarMenuButton>
