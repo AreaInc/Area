@@ -1,15 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Switch, ScrollView, Alert, ActivityIndicator, TextInput, KeyboardAvoidingView, Platform, FlatList } from 'react-native';
-import { ArrowLeft, Play, Settings, Zap, Target, Trash2, Save, X, Clock, CheckCircle, XCircle } from 'lucide-react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Switch, ScrollView, Alert, ActivityIndicator, TextInput, KeyboardAvoidingView, Platform, FlatList, Modal } from 'react-native';
+import { ArrowLeft, Play, Settings, Zap, Target, Trash2, Save, X, Clock, CheckCircle, XCircle, ChevronDown } from 'lucide-react-native';
 import GradientBackground from '../components/GradientBackground';
 import GlassCard from '../components/GlassCard';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { RootStackParamList, Workflow, WorkflowExecution } from '../types';
+import type { RootStackParamList, Workflow, WorkflowExecution, Schema, TriggerMetadata, ActionMetadata } from '../types';
+import DynamicConfigForm from '../components/DynamicConfigForm';
+import ServicePickerModal from '../components/ServicePickerModal';
 
 import { api } from '../services/api';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'WorkflowDetail'>;
+
+
 
 const WorkflowDetailScreen: React.FC<Props> = ({ navigation, route }) => {
     const { id, title: initialTitle, status: initialStatus } = route.params || {};
@@ -26,16 +30,80 @@ const WorkflowDetailScreen: React.FC<Props> = ({ navigation, route }) => {
     const [isEditing, setIsEditing] = useState<boolean>(false);
     const [editName, setEditName] = useState<string>("");
     const [editDescription, setEditDescription] = useState<string>("");
+
+    // Metadata State
+    const [triggers, setTriggers] = useState<TriggerMetadata[]>([]);
+    const [actions, setActions] = useState<ActionMetadata[]>([]);
+    const [loadingMetadata, setLoadingMetadata] = useState<boolean>(true);
+
+    const [selectedTrigger, setSelectedTrigger] = useState<TriggerMetadata | null>(null);
+    const [showTriggerModal, setShowTriggerModal] = useState<boolean>(false);
     const [editTriggerConfig, setEditTriggerConfig] = useState<Record<string, any>>({});
+
+    const [selectedAction, setSelectedAction] = useState<ActionMetadata | null>(null);
+    const [showActionModal, setShowActionModal] = useState<boolean>(false);
     const [editActionConfig, setEditActionConfig] = useState<Record<string, any>>({});
+
     const [saving, setSaving] = useState<boolean>(false);
 
     useEffect(() => {
         if (id) {
             fetchWorkflowDetails();
             fetchExecutions();
+            fetchMetadata();
         }
     }, [id]);
+
+    // Sync selected metadata when workflow or metadata changes
+    useEffect(() => {
+        if (workflow && triggers.length > 0 && actions.length > 0) {
+            // Only set if not already set (or if specific circumstances require)
+            // But here we want to ensure edit state matches workflow state initially
+            setEditName(workflow.name);
+            setEditDescription(workflow.description || "");
+
+            // Initial Trigger
+            const matchingTrigger = triggers.find(t => t.id === workflow.triggerId && t.serviceProvider === workflow.triggerProvider);
+            if (matchingTrigger) {
+                setSelectedTrigger(matchingTrigger);
+                setEditTriggerConfig(workflow.triggerConfig || {});
+            }
+
+            // Initial Action
+            const matchingAction = actions.find(a => a.id === workflow.actionId && a.serviceProvider === workflow.actionProvider);
+            if (matchingAction) {
+                setSelectedAction(matchingAction);
+                setEditActionConfig(workflow.actionConfig || {});
+            }
+        }
+    }, [workflow, triggers, actions]);
+
+    // Reset Config when changing Provider/Type
+    const handleTriggerChange = (trigger: TriggerMetadata) => {
+        setSelectedTrigger(trigger);
+        setEditTriggerConfig({}); // Clear config on type change
+    };
+
+    const handleActionChange = (action: ActionMetadata) => {
+        setSelectedAction(action);
+        setEditActionConfig({}); // Clear config on type change
+    };
+
+    const fetchMetadata = async (): Promise<void> => {
+        try {
+            const [triggersRes, actionsRes] = await Promise.all([
+                api.get<TriggerMetadata[]>('/api/v2/triggers'),
+                api.get<ActionMetadata[]>('/api/v2/actions')
+            ]);
+
+            if (triggersRes.data) setTriggers(triggersRes.data);
+            if (actionsRes.data) setActions(actionsRes.data);
+        } catch (e) {
+            console.error('Failed to load metadata:', e);
+        } finally {
+            setLoadingMetadata(false);
+        }
+    };
 
     const fetchWorkflowDetails = async (): Promise<void> => {
         try {
@@ -68,30 +136,21 @@ const WorkflowDetailScreen: React.FC<Props> = ({ navigation, route }) => {
         }
     };
 
-    useEffect(() => {
-        if (workflow) {
-            setEditName(workflow.name);
-            setEditDescription(workflow.description || "");
-            setEditTriggerConfig(workflow.triggerConfig || {});
-            setEditActionConfig(workflow.actionConfig || {});
-        }
-    }, [workflow]);
-
     const handleSave = async (): Promise<void> => {
-        if (!workflow) return;
+        if (!workflow || !selectedTrigger || !selectedAction) return;
         setSaving(true);
         try {
             const body = {
                 name: editName,
                 description: editDescription,
                 trigger: {
-                    provider: workflow.triggerProvider,
-                    triggerId: workflow.triggerId,
+                    provider: selectedTrigger.serviceProvider, // Use selected provider
+                    triggerId: selectedTrigger.id,             // Use selected ID
                     config: editTriggerConfig
                 },
                 action: {
-                    provider: workflow.actionProvider,
-                    actionId: workflow.actionId,
+                    provider: selectedAction.serviceProvider,  // Use selected provider
+                    actionId: selectedAction.id,               // Use selected ID
                     config: editActionConfig,
                     credentialsId: workflow.actionCredentialsId
                 }
@@ -104,6 +163,7 @@ const WorkflowDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                 setTitle(data.name);
                 setIsEditing(false);
                 Alert.alert("Success", "Workflow updated successfully!");
+                // Force sync again just in case (though useEffect should verify it)
             } else {
                 console.error("Update error:", error);
                 Alert.alert("Error", error?.message || "Failed to update workflow");
@@ -125,6 +185,8 @@ const WorkflowDetailScreen: React.FC<Props> = ({ navigation, route }) => {
             setIsActive(!value);
         }
     };
+
+
 
     const handleDelete = (): void => {
         Alert.alert(
@@ -256,46 +318,59 @@ const WorkflowDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                         </GlassCard>
 
                         {/* Trigger Info */}
+                        {/* Trigger Info */}
                         <GlassCard style={styles.card}>
                             <View style={styles.cardHeader}>
                                 <Zap color="#f59e0b" size={20} />
                                 <Text style={styles.cardTitle}>Trigger</Text>
                             </View>
-                            <View style={styles.infoRow}>
-                                <Text style={styles.infoLabel}>Provider</Text>
-                                <Text style={styles.infoValue}>{workflow.triggerProvider}</Text>
-                            </View>
-                            <View style={styles.infoRow}>
-                                <Text style={styles.infoLabel}>Type</Text>
-                                <Text style={styles.infoValue}>{workflow.triggerId}</Text>
-                            </View>
 
-                            {(isEditing || Object.keys(workflow.triggerConfig || {}).length > 0) && (
-                                <View style={styles.configSection}>
-                                    {isEditing ? (
-                                        <>
-                                            <Text style={styles.configLabel}>Configuration</Text>
-                                            {Object.entries(editTriggerConfig).map(([key, value]) => (
-                                                <View key={key} style={{ marginTop: 8 }}>
-                                                    <Text style={[styles.configLabel, { color: '#fff' }]}>{key}</Text>
-                                                    <TextInput
-                                                        style={[styles.configValue, { borderBottomWidth: 1, borderColor: 'rgba(255,255,255,0.2)', paddingVertical: 4, color: '#fff', fontSize: 14 }]}
-                                                        value={String(value)}
-                                                        onChangeText={(text) => setEditTriggerConfig(prev => ({ ...prev, [key]: text }))}
-                                                    />
-                                                </View>
-                                            ))}
-                                            {Object.keys(editTriggerConfig).length === 0 && <Text style={styles.configValue}>No configuration needed</Text>}
-                                        </>
-                                    ) : (
-                                        <>
+                            {isEditing ? (
+                                <>
+                                    <Text style={styles.cardLabel}>Select Trigger ({triggers.length} available)</Text>
+
+                                    <TouchableOpacity
+                                        style={styles.pickerButton}
+                                        onPress={() => setShowTriggerModal(true)}
+                                    >
+                                        <Text style={selectedTrigger ? styles.pickerTextSelected : styles.pickerTextPlaceholder}>
+                                            {selectedTrigger
+                                                ? `${selectedTrigger.serviceProvider}: ${selectedTrigger.name}`
+                                                : 'Select a trigger...'
+                                            }
+                                        </Text>
+                                        <ChevronDown color="#94a3b8" size={20} />
+                                    </TouchableOpacity>
+
+                                    {/* Trigger Config Form */}
+                                    {selectedTrigger && (
+                                        <DynamicConfigForm
+                                            schema={selectedTrigger.configSchema}
+                                            config={editTriggerConfig}
+                                            setConfig={setEditTriggerConfig}
+                                            title="Trigger Configuration"
+                                        />
+                                    )}
+                                </>
+                            ) : (
+                                <>
+                                    <View style={styles.infoRow}>
+                                        <Text style={styles.infoLabel}>Provider</Text>
+                                        <Text style={styles.infoValue}>{workflow.triggerProvider}</Text>
+                                    </View>
+                                    <View style={styles.infoRow}>
+                                        <Text style={styles.infoLabel}>Type</Text>
+                                        <Text style={styles.infoValue}>{workflow.triggerId}</Text>
+                                    </View>
+                                    {(Object.keys(workflow.triggerConfig || {}).length > 0) && (
+                                        <View style={styles.configSection}>
                                             <Text style={styles.configLabel}>Config:</Text>
                                             <Text style={styles.configValue}>
                                                 {JSON.stringify(workflow.triggerConfig, null, 2)}
                                             </Text>
-                                        </>
+                                        </View>
                                     )}
-                                </View>
+                                </>
                             )}
                         </GlassCard>
 
@@ -305,41 +380,53 @@ const WorkflowDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                                 <Target color="#10b981" size={20} />
                                 <Text style={styles.cardTitle}>Action</Text>
                             </View>
-                            <View style={styles.infoRow}>
-                                <Text style={styles.infoLabel}>Provider</Text>
-                                <Text style={styles.infoValue}>{workflow.actionProvider}</Text>
-                            </View>
-                            <View style={styles.infoRow}>
-                                <Text style={styles.infoLabel}>Type</Text>
-                                <Text style={styles.infoValue}>{workflow.actionId}</Text>
-                            </View>
 
-                            {(isEditing || Object.keys(workflow.actionConfig || {}).length > 0) && (
-                                <View style={styles.configSection}>
-                                    {isEditing ? (
-                                        <>
-                                            <Text style={styles.configLabel}>Configuration</Text>
-                                            {Object.entries(editActionConfig).map(([key, value]) => (
-                                                <View key={key} style={{ marginTop: 8 }}>
-                                                    <Text style={[styles.configLabel, { color: '#fff' }]}>{key}</Text>
-                                                    <TextInput
-                                                        style={[styles.configValue, { borderBottomWidth: 1, borderColor: 'rgba(255,255,255,0.2)', paddingVertical: 4, color: '#fff', fontSize: 14 }]}
-                                                        value={String(value)}
-                                                        onChangeText={(text) => setEditActionConfig(prev => ({ ...prev, [key]: text }))}
-                                                    />
-                                                </View>
-                                            ))}
-                                            {Object.keys(editActionConfig).length === 0 && <Text style={styles.configValue}>No configuration needed</Text>}
-                                        </>
-                                    ) : (
-                                        <>
+                            {isEditing ? (
+                                <>
+                                    <Text style={styles.cardLabel}>Select Action ({actions.length})</Text>
+                                    <TouchableOpacity
+                                        style={styles.pickerButton}
+                                        onPress={() => setShowActionModal(true)}
+                                    >
+                                        <Text style={selectedAction ? styles.pickerTextSelected : styles.pickerTextPlaceholder}>
+                                            {selectedAction
+                                                ? `${selectedAction.serviceProvider}: ${selectedAction.name}`
+                                                : 'Select an action...'
+                                            }
+                                        </Text>
+                                        <ChevronDown color="#94a3b8" size={20} />
+                                    </TouchableOpacity>
+
+                                    {/* Action Config Form */}
+                                    {selectedAction && (
+                                        <DynamicConfigForm
+                                            schema={selectedAction.inputSchema}
+                                            config={editActionConfig}
+                                            setConfig={setEditActionConfig}
+                                            title="Action Configuration"
+                                        />
+                                    )}
+                                </>
+                            ) : (
+                                <>
+
+                                    <View style={styles.infoRow}>
+                                        <Text style={styles.infoLabel}>Provider</Text>
+                                        <Text style={styles.infoValue}>{workflow.actionProvider}</Text>
+                                    </View>
+                                    <View style={styles.infoRow}>
+                                        <Text style={styles.infoLabel}>Type</Text>
+                                        <Text style={styles.infoValue}>{workflow.actionId}</Text>
+                                    </View>
+                                    {(Object.keys(workflow.actionConfig || {}).length > 0) && (
+                                        <View style={styles.configSection}>
                                             <Text style={styles.configLabel}>Config:</Text>
                                             <Text style={styles.configValue}>
                                                 {JSON.stringify(workflow.actionConfig, null, 2)}
                                             </Text>
-                                        </>
+                                        </View>
                                     )}
-                                </View>
+                                </>
                             )}
                         </GlassCard>
 
@@ -442,6 +529,22 @@ const WorkflowDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                     </TouchableOpacity>
                 )}
             </View>
+
+            <ServicePickerModal
+                visible={showTriggerModal}
+                onClose={() => setShowTriggerModal(false)}
+                items={triggers}
+                onSelect={handleTriggerChange}
+                title="Select Trigger"
+            />
+
+            <ServicePickerModal
+                visible={showActionModal}
+                onClose={() => setShowActionModal(false)}
+                items={actions}
+                onSelect={handleActionChange}
+                title="Select Action"
+            />
         </GradientBackground >
     );
 };
@@ -595,6 +698,30 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '700',
     },
+    // Picker & Field Styles
+    pickerButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        backgroundColor: 'rgba(30, 41, 59, 0.5)',
+        borderRadius: 12,
+        padding: 16,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+        marginTop: 8,
+        marginBottom: 16,
+    },
+    pickerTextPlaceholder: {
+        color: '#64748b',
+        fontSize: 14,
+    },
+    pickerTextSelected: {
+        color: '#fff',
+        fontSize: 14,
+    },
+
+
+
     // Log styles
     refreshLink: {
         color: '#3b82f6',
