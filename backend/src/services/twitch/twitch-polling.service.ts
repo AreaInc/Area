@@ -170,17 +170,19 @@ export class TwitchPollingService implements OnModuleInit, OnModuleDestroy {
         },
       });
 
+      // State init
       const state = credential.pollingState || {
         isLive: false,
-        lastFollowers: null,
+        lastFollowers: [],
         lastViewerCount: 0,
       };
       let stateChanged = false;
 
       const userInfo = await client.getUserInfo();
-      if (!userInfo) return;
+      if (!userInfo) return; // Should not happen if token valid
       const userId = userInfo.id;
 
+      // Check Stream Info (Live status, Viewer count)
       if (
         tasks.started.length > 0 ||
         tasks.ended.length > 0 ||
@@ -189,6 +191,7 @@ export class TwitchPollingService implements OnModuleInit, OnModuleDestroy {
         const streamInfo = await client.getStreamInfo(userId);
         const isLive = !!streamInfo;
 
+        // Stream Started
         if (tasks.started.length > 0 && isLive && !state.isLive) {
           const data = {
             startedAt: streamInfo.started_at,
@@ -198,18 +201,28 @@ export class TwitchPollingService implements OnModuleInit, OnModuleDestroy {
             await this.workflowsService.triggerWorkflowExecution(wid, data);
         }
 
+        // Stream Ended
         if (tasks.ended.length > 0 && !isLive && state.isLive) {
           const data = { endedAt: new Date().toISOString() };
           for (const wid of tasks.ended)
             await this.workflowsService.triggerWorkflowExecution(wid, data);
         }
 
+        // Viewer Count
         if (tasks.viewer.length > 0 && isLive) {
           const registrationMap = this.viewerCountTrigger.getRegistrations();
           const viewers = streamInfo.viewer_count;
           for (const wid of tasks.viewer) {
-            const regId = wid;
+            const regId = wid; // Tasks stores IDs
             const reg = registrationMap.get(regId);
+            // Only trigger if crossed threshold? Or just check condition?
+            // Typically simpler to check if condition met, maybe with debounce/state to avoid spam.
+            // But request is "triggers when viewer count exceeds".
+            // If it stays above, does it trigger every poll? `area` logic usually triggers on EVENT.
+            // So we should track if it WAS below and NOW above.
+            // But we don't store per-workflow state easily.
+            // Let's implement simpler logic: Trigger if > threshold. User can rate limit in workflow if needed.
+            // Or better: Use state.lastViewerCount.
             if (
               reg &&
               viewers >= reg.config.threshold &&
@@ -232,12 +245,14 @@ export class TwitchPollingService implements OnModuleInit, OnModuleDestroy {
         }
       }
 
+      // Check Followers
       if (tasks.follower.length > 0) {
         const followerData = await client.getFollowers(userId);
         const followers = followerData || [];
         const savedIds = new Set(state.lastFollowers || []);
 
-        if (!state.lastFollowers || state.lastFollowers.length === 0) {
+        if (!state.lastFollowers) {
+          // Init state
           state.lastFollowers = followers.map((f: any) => f.user_id);
           stateChanged = true;
         } else {
@@ -254,7 +269,7 @@ export class TwitchPollingService implements OnModuleInit, OnModuleDestroy {
               await this.workflowsService.triggerWorkflowExecution(wid, data);
           }
           if (newFollowers.length > 0) {
-            state.lastFollowers = followers.map((f: any) => f.user_id);
+            state.lastFollowers = followers.map((f: any) => f.user_id); // update full list to latest page
             stateChanged = true;
           }
         }
