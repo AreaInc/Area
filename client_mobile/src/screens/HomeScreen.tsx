@@ -8,6 +8,7 @@ import SearchBar from '../components/SearchBar';
 import StatsCard from '../components/StatsCard';
 import WorkflowItem from '../components/WorkflowItem';
 import BottomNav from '../components/BottomNav';
+import FilterModal, { FilterStatus } from '../components/FilterModal';
 import { api } from '../services/api';
 import type { RootStackParamList, Workflow } from '../types';
 
@@ -17,6 +18,21 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
     const [workflows, setWorkflows] = useState<Workflow[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [refreshing, setRefreshing] = useState<boolean>(false);
+    const [searchQuery, setSearchQuery] = useState<string>("");
+    const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
+    const [showFilterModal, setShowFilterModal] = useState<boolean>(false);
+
+    const filteredWorkflows = workflows.filter(workflow => {
+        const matchesSearch = workflow.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (workflow.description && workflow.description.toLowerCase().includes(searchQuery.toLowerCase()));
+
+        const matchesFilter =
+            filterStatus === 'all' ||
+            (filterStatus === 'active' && workflow.isActive) ||
+            (filterStatus === 'inactive' && !workflow.isActive);
+
+        return matchesSearch && matchesFilter;
+    });
 
     const fetchWorkflows = async (): Promise<void> => {
         try {
@@ -62,7 +78,11 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
                     <Text style={styles.pageTitle}>Dashboard</Text>
                 </View>
 
-                <SearchBar />
+                <SearchBar
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    onFilterPress={() => setShowFilterModal(true)}
+                />
 
                 <View style={styles.statsContainer}>
                     <StatsCard
@@ -89,10 +109,10 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
                 <View style={styles.workflowList}>
                     {loading && !refreshing ? (
                         <ActivityIndicator size="large" color="#3b82f6" style={{ marginTop: 20 }} />
-                    ) : workflows.length === 0 ? (
-                        <Text style={styles.emptyText}>No workflows created yet.</Text>
+                    ) : filteredWorkflows.length === 0 ? (
+                        <Text style={styles.emptyText}>No workflows match your search.</Text>
                     ) : (
-                        workflows.map((workflow) => (
+                        filteredWorkflows.map((workflow) => (
                             <WorkflowItem
                                 key={workflow.id}
                                 title={workflow.name}
@@ -131,6 +151,13 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
             <View style={styles.bottomNavContainer}>
                 <BottomNav />
             </View>
+
+            <FilterModal
+                visible={showFilterModal}
+                onClose={() => setShowFilterModal(false)}
+                currentFilter={filterStatus}
+                onSelectFilter={setFilterStatus}
+            />
 
         </GradientBackground>
     );
