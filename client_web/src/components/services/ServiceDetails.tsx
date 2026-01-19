@@ -1,128 +1,131 @@
 import { Link } from '@tanstack/react-router'
-import { ArrowLeft, Shield, Info, Activity, Plug } from 'lucide-react'
-import type { Service, Action } from '@area/shared'
-import { Button } from '../ui/button'
+import { ArrowLeft, Shield, Zap, Play } from 'lucide-react'
+import type { Service, ActionMetadata, TriggerMetadata } from '@area/shared'
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
 
 interface ServiceDetailsProps {
     service: Service
-    authStatus?: 'success' | 'error'
+    triggers: TriggerMetadata[]
+    actions: ActionMetadata[]
 }
 
-import { API_BASE } from '@area/shared'
-
-export function ServiceDetails({ service, authStatus }: ServiceDetailsProps) {
-    const isOAuth2Service = service.credentialTypes.includes('OAUTH2')
-    const backendAuthUrl = `${API_BASE}/auth/${service.provider}/authorize` // Adjust if needed
-
+export function ServiceDetails({ service, triggers, actions }: ServiceDetailsProps) {
     return (
-        <div className="max-w-5xl mx-auto">
-            <Link
-                to="/dashboard/services"
-                className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
-            >
-                <ArrowLeft size={16} />
-                Back to Services
-            </Link>
-
-            <div className="bg-card border border-border rounded-xl p-8 mb-8 shadow-sm">
-                <div className="flex flex-col md:flex-row gap-8 items-start">
-                    <div className="p-6 bg-muted rounded-xl w-32 h-32 flex items-center justify-center shrink-0">
+        <div className="max-w-6xl mx-auto space-y-8">
+            {/* Header Section */}
+            <div>
+                 <Link
+                    to="/dashboard/services"
+                    className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors"
+                >
+                    <ArrowLeft size={16} />
+                    Back to Services
+                </Link>
+                <div className="flex flex-col md:flex-row gap-6 items-start">
+                    <div className="h-24 w-24 rounded-2xl bg-background p-4 flex items-center justify-center shrink-0 border border-border shadow-sm">
                          {service.imageUrl ? (
                             <img src={service.imageUrl} alt={service.name} className="w-full h-full object-contain" />
                         ) : (
-                            <div className="w-16 h-16 bg-gray-400 rounded-full" />
+                            <span className="text-3xl font-bold uppercase text-muted-foreground">
+                                {service.name.charAt(0)}
+                            </span>
                         )}
                     </div>
-                    <div className="flex-1">
-                        <div className="flex items-center gap-4 mb-2">
-                            <h1 className="text-3xl font-bold">{service.name}</h1>
-                            <span className="px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full border border-primary/20">
-                                v{service.version}
-                            </span>
+                    <div className="flex-1 space-y-2">
+                        <div className="flex items-center gap-3">
+                            <h1 className="text-3xl font-bold tracking-tight">{service.name}</h1>
+                            <Badge variant="secondary" className="font-normal">v{service.version}</Badge>
                         </div>
-                        <p className="text-muted-foreground text-lg mb-6">{service.description}</p>
-
-                        <div className="flex flex-wrap gap-4 items-center">
-                            <div className="flex items-center gap-2 px-4 py-2 bg-secondary/50 rounded-lg border border-border">
-                                <Shield size={16} className="text-muted-foreground" />
-                                <span className="text-sm font-medium">
-                                    Auth: {service.credentialTypes.join(', ')}
-                                </span>
+                        <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl">
+                            {service.description}
+                        </p>
+                        <div className="flex items-center gap-4 pt-2">
+                            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                                <Shield size={16} />
+                                <span>{service.credentialTypes.join(', ')}</span>
                             </div>
-                            <div className="flex items-center gap-2 px-4 py-2 bg-secondary/50 rounded-lg border border-border">
-                                <Activity size={16} className="text-muted-foreground" />
-                                <span className="text-sm font-medium">
-                                    Actions: {service.actions.length}
-                                </span>
-                            </div>
-                            {isOAuth2Service && (
-                                <Button asChild variant="secondary" className="group">
-                                    <a href={backendAuthUrl}>
-                                        <Plug size={16} className="mr-2 group-hover:rotate-45 transition-transform" />
-                                        Connect {service.name}
-                                    </a>
-                                </Button>
-                            )}
                         </div>
-                        {authStatus === 'success' && (
-                            <div className="mt-4 p-3 bg-green-100 text-green-700 rounded-lg text-sm">
-                                Successfully connected to {service.name}!
-                            </div>
-                        )}
-                        {authStatus === 'error' && (
-                            <div className="mt-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm">
-                                Failed to connect to {service.name}. Please try again.
-                            </div>
-                        )}
                     </div>
                 </div>
             </div>
 
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-                Available Actions
-            </h2>
+            <Separator />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {service.actions.map((action) => (
-                    <ActionCard key={action.id} action={action} />
-                ))}
-            </div>
+            {/* Content Tabs */}
+            <Tabs defaultValue="triggers" className="w-full">
+                <TabsList className="w-full justify-start h-auto p-1 bg-transparent border-b rounded-none mb-6 gap-6">
+                    <TabsTrigger 
+                        value="triggers" 
+                        className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-0 py-2 shadow-none"
+                    >
+                        Triggers <Badge variant="secondary" className="ml-2">{triggers.length}</Badge>
+                    </TabsTrigger>
+                    <TabsTrigger 
+                        value="actions" 
+                        className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-0 py-2 shadow-none"
+                    >
+                        Actions <Badge variant="secondary" className="ml-2">{actions.length}</Badge>
+                    </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="triggers" className="mt-0">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {triggers.length > 0 ? triggers.map(trigger => (
+                            <NodeCard key={trigger.id} node={trigger} type="trigger" />
+                        )) : (
+                            <EmptyState type="trigger" />
+                        )}
+                    </div>
+                </TabsContent>
+
+                <TabsContent value="actions" className="mt-0">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {actions.length > 0 ? actions.map(action => (
+                            <NodeCard key={action.id} node={action} type="action" />
+                        )) : (
+                            <EmptyState type="action" />
+                        )}
+                    </div>
+                </TabsContent>
+            </Tabs>
         </div>
     )
 }
 
-function ActionCard({ action }: { action: Action }) {
+function NodeCard({ node, type }: { node: any, type: 'trigger' | 'action' }) {
+    const Icon = type === 'trigger' ? Zap : Play;
     return (
-        <div className="bg-card border border-border rounded-xl p-6 hover:border-primary/50 transition-colors group">
-            <div className="flex items-start justify-between mb-3">
-                <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
-                    {action.name}
-                </h3>
-                <span className="text-xs font-mono bg-muted px-2 py-1 rounded text-muted-foreground">
-                    {action.id}
-                </span>
-            </div>
-            <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
-                {action.description}
-            </p>
+        <Card className="hover:border-primary/30 transition-colors">
+            <CardHeader className="pb-3">
+                <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-lg ${type === 'trigger' ? 'bg-node-webhook/10 text-node-webhook' : 'bg-node-action/10 text-node-action'}`}>
+                            <Icon size={18} />
+                        </div>
+                        <CardTitle className="text-base font-semibold">{node.name}</CardTitle>
+                    </div>
+                    <Badge variant="outline" className="font-mono text-[10px] text-muted-foreground">
+                        {node.id}
+                    </Badge>
+                </div>
+            </CardHeader>
+            <CardContent>
+                <CardDescription className="line-clamp-2 mb-3">
+                    {node.description}
+                </CardDescription>
+                {/* Schema hints could be added here if needed */}
+            </CardContent>
+        </Card>
+    )
+}
 
-            <div className="space-y-3">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <Info size={14} />
-                    <span className="font-medium">Inputs:</span>
-                </div>
-                <div className="bg-muted/50 rounded-lg p-3 font-mono text-xs">
-                    {Object.keys(action.inputSchema.properties || {}).map((prop) => (
-                         <div key={prop} className="flex items-center gap-2 mb-1 last:mb-0">
-                            <span className="text-primary">{prop}</span>
-                            <span className="text-muted-foreground">: {action.inputSchema.properties[prop].type}</span>
-                         </div>
-                    ))}
-                    {Object.keys(action.inputSchema.properties || {}).length === 0 && (
-                        <span className="text-muted-foreground italic">No inputs required</span>
-                    )}
-                </div>
-            </div>
+function EmptyState({ type }: { type: string }) {
+    return (
+        <div className="col-span-full py-12 text-center text-muted-foreground border border-dashed rounded-xl bg-muted/30">
+            <p>No {type}s available for this service.</p>
         </div>
     )
 }

@@ -60,12 +60,24 @@ export interface ApiError {
     code?: string;
 }
 
+export interface WorkflowExecution {
+    id: number;
+    workflowId: number;
+    status: 'completed' | 'failed' | 'running' | 'cancelled';
+    startedAt: string;
+    completedAt?: string;
+    triggerData?: any;
+    actionResults?: any;
+    errorMessage?: string;
+}
+
 // Navigation types
 export type RootStackParamList = {
     Home: undefined;
     WorkflowDetail: { id: number; title: string; status: string };
     CreateWorkflow: undefined;
     Profile: undefined;
+    Services: undefined;
     Login: undefined;
     Register: undefined;
 };
@@ -79,4 +91,37 @@ export interface AuthContextType {
     signUp: (name: string, email: string, password: string) => Promise<{ error?: ApiError; success?: boolean }>;
     signOut: () => Promise<void>;
     checkSession: () => Promise<void>;
+    updateProfile: (data: { name?: string; password?: string }) => Promise<{ error?: ApiError; success?: boolean }>;
+}
+
+// Workflow Metadata Types
+export interface SchemaProperty {
+    type: string;
+    description?: string;
+    default?: any;
+    items?: {
+        type: string;
+    };
+    example?: string;
+}
+
+export interface Schema {
+    properties: Record<string, SchemaProperty>;
+    required?: string[];
+}
+
+export interface TriggerMetadata {
+    id: string;
+    name: string;
+    description: string;
+    serviceProvider: string;
+    configSchema?: Schema;
+}
+
+export interface ActionMetadata {
+    id: string;
+    name: string;
+    description: string;
+    serviceProvider: string;
+    inputSchema?: Schema;
 }

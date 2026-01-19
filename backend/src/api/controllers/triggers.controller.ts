@@ -6,7 +6,9 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { AuthGuard } from "../guards/auth.guard";
+import { AllowAnonymous } from "@thallesp/nestjs-better-auth";
 import { TriggerRegistryService } from "../../services/registries/trigger-registry.service";
+import { ServicesService } from "../../services/services/services.service";
 import {
   ApiTags,
   ApiOperation,
@@ -19,11 +21,14 @@ import { TriggerMetadataResponseDto } from "../dtos";
 @ApiTags("Triggers")
 @ApiBearerAuth()
 @Controller("api/v2/triggers")
-@UseGuards(AuthGuard)
 export class TriggersController {
-  constructor(private readonly triggerRegistry: TriggerRegistryService) {}
+  constructor(
+    private readonly triggerRegistry: TriggerRegistryService,
+    private readonly servicesService: ServicesService,
+  ) {}
 
   @Get()
+  @AllowAnonymous()
   @ApiOperation({
     summary: "Get all available triggers",
     description:
@@ -62,10 +67,20 @@ export class TriggersController {
     ],
   })
   async getAllTriggers() {
-    return this.triggerRegistry.getAllMetadata();
+    const triggers = this.triggerRegistry.getAllMetadata();
+    const services = await this.servicesService.getAllServices();
+    const serviceMap = new Map(
+      services.map((s) => [s.provider as string, s.imageUrl]),
+    );
+
+    return triggers.map((trigger) => ({
+      ...trigger,
+      serviceImageUrl: serviceMap.get(trigger.serviceProvider as string) || null,
+    }));
   }
 
   @Get(":service")
+  @AllowAnonymous()
   @ApiOperation({
     summary: "Get triggers for a specific service",
     description:
@@ -111,6 +126,9 @@ export class TriggersController {
   })
   async getTriggersByService(@Param("service") service: string) {
     const triggers = this.triggerRegistry.getByProvider(service);
+    const serviceData = await this.servicesService.getService(service);
+    const serviceImageUrl = serviceData?.imageUrl || null;
+
     return triggers.map((trigger) => ({
       id: trigger.id,
       name: trigger.name,
@@ -120,6 +138,7 @@ export class TriggersController {
       configSchema: trigger.configSchema,
       outputSchema: trigger.outputSchema,
       requiresCredentials: trigger.requiresCredentials,
+      serviceImageUrl,
     }));
   }
 }

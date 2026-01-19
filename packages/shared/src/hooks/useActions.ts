@@ -18,3 +18,21 @@ export function useActions() {
     },
   });
 }
+
+export function useServiceActions(service: string) {
+  return useQuery<ActionMetadata[]>({
+    queryKey: ['actions', service],
+    queryFn: async () => {
+      const response = await fetch(`${API_BASE}/v2/actions/${service}`, {
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch service actions');
+      }
+
+      return response.json();
+    },
+    enabled: !!service,
+  });
+}

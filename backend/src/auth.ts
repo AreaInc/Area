@@ -13,6 +13,7 @@ export const auth = betterAuth({
       verification: schema.verification,
     },
   }),
+  baseURL: `https://${process.env.DEPLOY_ADDRESS}`,
   emailAndPassword: {
     enabled: true,
   },
@@ -28,5 +29,6 @@ export const auth = betterAuth({
     "http://localhost:3000",
     "http://localhost:8081",
     process.env.FRONTEND_URL ?? "http://localhost:8081",
+    process.env.MOBILE_URL ?? "area://mobile",
   ],
 });

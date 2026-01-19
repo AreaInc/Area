@@ -6,7 +6,9 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { AuthGuard } from "../guards/auth.guard";
+import { AllowAnonymous } from "@thallesp/nestjs-better-auth";
 import { ActionRegistryService } from "../../services/registries/action-registry.service";
+import { ServicesService } from "../../services/services/services.service";
 import {
   ApiTags,
   ApiOperation,
@@ -19,11 +21,14 @@ import { ActionMetadataResponseDto } from "../dtos";
 @ApiTags("Actions")
 @ApiBearerAuth()
 @Controller("api/v2/actions")
-@UseGuards(AuthGuard)
 export class ActionsController {
-  constructor(private readonly actionRegistry: ActionRegistryService) {}
+  constructor(
+    private readonly actionRegistry: ActionRegistryService,
+    private readonly servicesService: ServicesService,
+  ) {}
 
   @Get()
+  @AllowAnonymous()
   @ApiOperation({
     summary: "Get all available actions",
     description:
@@ -69,10 +74,20 @@ export class ActionsController {
     ],
   })
   async getAllActions() {
-    return this.actionRegistry.getAllMetadata();
+    const actions = this.actionRegistry.getAllMetadata();
+    const services = await this.servicesService.getAllServices();
+    const serviceMap = new Map(
+      services.map((s) => [s.provider as string, s.imageUrl]),
+    );
+
+    return actions.map((action) => ({
+      ...action,
+      serviceImageUrl: serviceMap.get(action.serviceProvider as string) || null,
+    }));
   }
 
   @Get(":service")
+  @AllowAnonymous()
   @ApiOperation({
     summary: "Get actions for a specific service",
     description:
@@ -125,6 +140,12 @@ export class ActionsController {
   })
   async getActionsByService(@Param("service") service: string) {
     const actions = this.actionRegistry.getByProvider(service);
-    return actions.map((action) => action.getMetadata());
+    const serviceData = await this.servicesService.getService(service);
+    const serviceImageUrl = serviceData?.imageUrl || null;
+
+    return actions.map((action) => ({
+      ...action.getMetadata(),
+      serviceImageUrl,
+    }));
   }
 }

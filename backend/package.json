@@ -23,7 +23,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "db:seed": "tsx src/scripts/seed-services.ts"
   },
   "dependencies": {
     "@nestjs/cache-manager": "^3.0.1",
@@ -34,6 +35,7 @@
     "@nestjs/platform-socket.io": "^11.1.9",
     "@nestjs/swagger": "^11.2.3",
     "@nestjs/websockets": "^11.1.9",
+    "@octokit/rest": "^21.1.0",
     "@thallesp/nestjs-better-auth": "^2.2.0",
     "@temporalio/activity": "^1.11.3",
     "@temporalio/client": "^1.11.3",

@@ -58,7 +58,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const signUp = async (name: string, email: string, password: string): Promise<{ error?: ApiError; success?: boolean }> => {
         setIsLoading(true);
-        // Better-auth usually expects 'name', 'email', 'password' for email registration
         const result = await api.post<{ user?: User }>('/api/auth/sign-up/email', { name, email, password });
 
         if (result.error) {
@@ -78,8 +77,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setIsLoading(false);
     };
 
+    const updateProfile = async (data: { name?: string; password?: string }): Promise<{ error?: ApiError; success?: boolean }> => {
+        setIsLoading(true);
+        const result = await api.post<{ user?: User }>('/api/auth/update-user', data);
+
+        if (result.error) {
+            setIsLoading(false);
+            return { error: result.error };
+        }
+
+        await checkSession();
+        return { success: true };
+    };
+
     return (
-        <AuthContext.Provider value={{ user, isLoading, isAuthenticated, signIn, signUp, signOut, checkSession }}>
+        <AuthContext.Provider value={{ user, isLoading, isAuthenticated, signIn, signUp, signOut, checkSession, updateProfile }}>
             {children}
         </AuthContext.Provider>
     );

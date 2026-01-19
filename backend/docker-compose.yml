@@ -66,6 +66,8 @@ services:
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
       - BACKEND_PORT=${BACKEND_PORT:-8080}
       - REDIS_PASS=${REDIS_PASS}
       - REDIS_HOST=${REDIS_HOST:-area-cache}
@@ -75,6 +77,7 @@ services:
       - DEPLOY_ADDRESS=${DEPLOY_ADDRESS:-localhost}
       - OAUTH_CALLBACK_URL=${OAUTH_CALLBACK_URL:-http://localhost:8080/api/oauth2-credential/callback}
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
+      - MOBILE_URL=${MOBILE_URL:-area://mobile}
     depends_on:
       patroni1:
         condition: service_healthy
