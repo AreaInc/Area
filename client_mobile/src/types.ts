@@ -74,6 +74,7 @@ export interface WorkflowExecution {
 // Navigation types
 export type RootStackParamList = {
     Home: undefined;
+    AllWorkflows: undefined;
     WorkflowDetail: { id: number; title: string; status: string };
     CreateWorkflow: undefined;
     Profile: undefined;
