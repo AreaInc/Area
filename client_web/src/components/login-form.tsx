@@ -79,7 +79,10 @@ export function LoginForm({
                     variant="outline" 
                     type="button" 
                     className="w-full"
-                    onClick={() => signIn.social({ provider: 'google', callbackURL: '/dashboard' })}
+                    onClick={() => signIn.social({
+                      provider: 'google',
+                      callbackURL: `${window.location.origin}/dashboard`
+                    })}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="mr-2 h-4 w-4">
                     <path
