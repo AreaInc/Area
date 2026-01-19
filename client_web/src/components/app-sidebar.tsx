@@ -6,7 +6,8 @@ import {
   Settings,
   LogOut,
   ChevronsUpDown,
-  Clock
+  Clock,
+  Download
 } from "lucide-react"
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { useWorkflows, useCreateWorkflow } from '@area/shared';
@@ -211,6 +212,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <DropdownMenuItem onClick={() => navigate({ to: '/dashboard/profile' })}>
                     <Settings />
                     Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <a href="/area_mobile.apk" download="area_mobile.apk">
+                      <Download />
+                      Download Mobile App
+                    </a>
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
