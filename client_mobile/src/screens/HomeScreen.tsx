@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { StyleSheet, Text, View, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, ActivityIndicator, RefreshControl, TouchableOpacity } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import GradientBackground from '../components/GradientBackground';
@@ -103,7 +103,9 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
 
                 <View style={styles.sectionHeader}>
                     <Text style={styles.sectionTitle}>Your Workflows</Text>
-                    <Text style={styles.seeAll}>See All</Text>
+                    <TouchableOpacity onPress={() => navigation.navigate('AllWorkflows')}>
+                        <Text style={styles.seeAll}>See All</Text>
+                    </TouchableOpacity>
                 </View>
 
                 <View style={styles.workflowList}>

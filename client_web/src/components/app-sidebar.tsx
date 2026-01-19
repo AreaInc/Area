@@ -3,11 +3,11 @@ import {
   Plus,
   Key,
   Grid,
-  GalleryVerticalEnd,
   Settings,
   LogOut,
   ChevronsUpDown,
-  Clock
+  Clock,
+  Download
 } from "lucide-react"
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { useWorkflows, useCreateWorkflow } from '@area/shared';
@@ -94,11 +94,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenuButton size="lg" asChild>
               <div className="cursor-pointer">
                 <div className="bg-primary text-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                  <GalleryVerticalEnd className="size-4" />
+                  {/* <GalleryVerticalEnd className="size-4" /> */}
+                  <img src="/area.svg" alt="Area Logo" className="w-5 h-5" />
                 </div>
                 <div className="flex flex-col gap-0.5 leading-none">
                   <span className="font-bold">Plug & Play</span>
-                  <span className="">v1.0.0</span>
                 </div>
               </div>
             </SidebarMenuButton>
@@ -212,6 +212,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <DropdownMenuItem onClick={() => navigate({ to: '/dashboard/profile' })}>
                     <Settings />
                     Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <a href="/area_mobile.apk" download="area_mobile.apk">
+                      <Download />
+                      Download Mobile App
+                    </a>
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />

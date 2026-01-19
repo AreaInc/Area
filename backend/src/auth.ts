@@ -13,7 +13,9 @@ export const auth = betterAuth({
       verification: schema.verification,
     },
   }),
-  baseURL: `https://${process.env.DEPLOY_ADDRESS}`,
+  baseURL: process.env.DEPLOY_ADDRESS && process.env.DEPLOY_ADDRESS !== "localhost"
+    ? `https://api.${process.env.DEPLOY_ADDRESS}`
+    : process.env.AUTH_BASE_URL,
   emailAndPassword: {
     enabled: true,
   },

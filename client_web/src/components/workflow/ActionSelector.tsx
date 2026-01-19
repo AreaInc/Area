@@ -260,7 +260,7 @@ export function ActionSelector({ value, onChange }: ActionSelectorProps) {
           </PopoverContent>
         </Popover>
       </div>
-
+      <ScrollArea className='h-[600px]'>
       {selectedAction && (
         <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-4 space-y-4">
           <div>
@@ -303,7 +303,6 @@ export function ActionSelector({ value, onChange }: ActionSelectorProps) {
               )}
             </div>
           )}
-
           {inputSchema?.properties && (
             <div className="border-t pt-4 space-y-4">
               <h4 className="text-sm font-medium">Configuration</h4>
@@ -317,6 +316,7 @@ export function ActionSelector({ value, onChange }: ActionSelectorProps) {
           )}
         </div>
       )}
+      </ScrollArea>
     </div>
   );
 }

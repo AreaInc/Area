@@ -54,6 +54,7 @@ export function DashboardHeader({
     <div className="flex flex-col md:flex-row items-center justify-between gap-4">
       <Input
         type="text"
+        aria-label='Workflow Name'
         value={workflowName}
         onChange={(e) => onNameChange(e.target.value)}
         className="text-2xl font-bold bg-transparent border-transparent hover:border-input focus:border-input px-2 h-12 w-full md:w-auto"
@@ -99,7 +100,7 @@ export function DashboardHeader({
           <Save className="mr-2 h-4 w-4" />
           {isSaving ? 'Saving...' : 'Save'}
         </Button>
-        <Button onClick={onDelete} disabled={isPending} variant="destructive" size="icon">
+        <Button onClick={onDelete} disabled={isPending} variant="destructive" size="icon" aria-label='Delete Workflow'>
           <Trash2 className="h-4 w-4" />
         </Button>
       </div>
